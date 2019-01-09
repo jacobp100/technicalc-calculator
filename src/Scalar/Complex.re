@@ -28,14 +28,14 @@ let is_real = a => Real.is_zero(a.im);
 let is_imaginary = a => Real.is_zero(a.re);
 
 let float_of_complex = a =>
-  is_real(a) ? Real.float_of_real(a.re) : Pervasives.nan;
+  is_real(a) ? Real.to_float(a.re) : Pervasives.nan;
 
-let tuple_of_complex = a => (
-  Real.float_of_real(a.re),
-  Real.float_of_real(a.im),
-);
+let tuple_of_complex = a => (Real.to_float(a.re), Real.to_float(a.im));
 
 let _magnitude = a => a.re * a.re + a.im * a.im;
+
+let _arg = a =>
+  Real.of_float(atan2(Real.to_float(a.im), Real.to_float(a.re)));
 
 let neg = a => of_components(- a.re, - a.im);
 
@@ -106,5 +106,33 @@ let tan = a =>
     (x -$ y) /$ ((x +$ y) *$ i);
   };
 
+let log = a =>
+  if (is_real(a) && Real.to_float(a.re) == (-1.)) {
+    of_imaginary(Real.pi);
+  } else {
+    of_components(Real.log(_magnitude(a)), _arg(a));
+  };
+
+let pow = (a, b) =>
+  if (is_zero(b)) {
+    of_real(Real.of_int64(1L));
+  } else if (is_real(a) && is_real(b) && Real.to_float(a.re) >= 0.) {
+    of_real(Real.pow(a.re, b.re));
+  } else if (is_real(a) && is_real(b) && Real.to_float(b.re) == (-0.5)) {
+    of_imaginary(Real.sqrt(a.re));
+  } else if (is_real(a) && a.re == Real.e) {
+    of_components(Real.cos(a.re), Real.sin(a.im));
+  } else {
+    exp(log(a) *$ b);
+  };
+
+let sqrt = a => pow(a, of_real(Real.of_int64(~denominator=2L, 1L)));
+
 let to_string = x =>
-  Real.to_string(x.re) ++ "+" ++ Real.to_string(x.im) ++ "i";
+  if (is_real(x)) {
+    Real.to_string(x.re);
+  } else if (is_imaginary(x)) {
+    Real.to_string(x.im) ++ "i";
+  } else {
+    Real.to_string(x.re) ++ "+" ++ Real.to_string(x.im) ++ "i";
+  };

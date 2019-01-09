@@ -29,7 +29,25 @@ it("works for sin", () => {
   trigValues.forEach(v => {
     expect(SciLine.sin(v.sciLineValue)).toMatchJsValue(
       mathjs.sin(v.jsValue),
-      v.title
+      `sin ${v.title}`
+    );
+  });
+});
+
+it("works for cos", () => {
+  trigValues.forEach(v => {
+    expect(SciLine.cos(v.sciLineValue)).toMatchJsValue(
+      mathjs.cos(v.jsValue),
+      `cos ${v.title}`
+    );
+  });
+});
+
+it("works for tan", () => {
+  trigValues.forEach(v => {
+    expect(SciLine.tan(v.sciLineValue)).toMatchJsValue(
+      mathjs.tan(v.jsValue),
+      `tan ${v.title}`
     );
   });
 });

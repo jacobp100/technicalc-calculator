@@ -4,8 +4,11 @@ const SciLine = require("../SciLine.bs");
 
 expect.extend({ toMatchJsValue });
 
+const sciLineString = x => SciLine.to_string(x.sciLineValue);
+
 const range12 = Array.from({ length: 12 }, (_, i) => i + 1);
 
+const range12NegativeValues = range12.map(x => Value.float(-x));
 const range12Values = range12.map(Value.float);
 
 const trigValues = cartesian([range12, range12]).map(
@@ -20,60 +23,93 @@ const trigValues = cartesian([range12, range12]).map(
     )
 );
 
-const miscValues = [...range12Values, ...trigValues];
+const trigNegativeValues = cartesian([
+  range12NegativeValues,
+  range12NegativeValues
+]).map(
+  ([num, denom]) =>
+    new Value(
+      (Math.PI * num) / denom,
+      SciLine.mul(
+        SciLine.div(SciLine.of_float(num), SciLine.of_float(denom)),
+        SciLine.pi
+      ),
+      `${num}pi/${denom}`
+    )
+);
+
+const miscValues = [...range12Values, ...range12NegativeValues, ...trigValues];
 
 it("works for add", () => {
   cartesian([miscValues, miscValues]).map(([lhs, rhs]) => {
-    const sciLineValue = SciLine.add(lhs.sciLineValue, rhs.sciLineValue);
-    const jsValue = lhs.jsValue + rhs.jsValue;
-    expect(sciLineValue).toMatchJsValue(jsValue);
+    expect(SciLine.add(lhs.sciLineValue, rhs.sciLineValue)).toMatchJsValue(
+      lhs.jsValue + rhs.jsValue,
+      `${sciLineString(lhs)} + ${sciLineString(rhs)}`
+    );
   });
 });
 
 it("works for sub", () => {
   cartesian([miscValues, miscValues]).map(([lhs, rhs]) => {
-    const sciLineValue = SciLine.sub(lhs.sciLineValue, rhs.sciLineValue);
-    const jsValue = lhs.jsValue - rhs.jsValue;
-    expect(sciLineValue).toMatchJsValue(jsValue);
+    expect(SciLine.sub(lhs.sciLineValue, rhs.sciLineValue)).toMatchJsValue(
+      lhs.jsValue - rhs.jsValue,
+      `${sciLineString(lhs)} - ${sciLineString(rhs)}`
+    );
   });
 });
 
 it("works for mul", () => {
   cartesian([miscValues, miscValues]).map(([lhs, rhs]) => {
-    const sciLineValue = SciLine.mul(lhs.sciLineValue, rhs.sciLineValue);
-    const jsValue = lhs.jsValue * rhs.jsValue;
-    expect(sciLineValue).toMatchJsValue(jsValue);
+    expect(SciLine.mul(lhs.sciLineValue, rhs.sciLineValue)).toMatchJsValue(
+      lhs.jsValue * rhs.jsValue,
+      `${sciLineString(lhs)} * ${sciLineString(rhs)}`
+    );
   });
 });
 
 it("works for div", () => {
   cartesian([miscValues, miscValues]).map(([lhs, rhs]) => {
-    const sciLineValue = SciLine.div(lhs.sciLineValue, rhs.sciLineValue);
-    const jsValue = lhs.jsValue / rhs.jsValue;
-    expect(sciLineValue).toMatchJsValue(jsValue);
+    expect(SciLine.div(lhs.sciLineValue, rhs.sciLineValue)).toMatchJsValue(
+      lhs.jsValue / rhs.jsValue,
+      `${sciLineString(lhs)} / ${sciLineString(rhs)}`
+    );
+  });
+});
+
+it("works for pow", () => {
+  const powValues = [...range12Values, ...trigValues];
+
+  cartesian([powValues, powValues]).map(([lhs, rhs], i) => {
+    expect(SciLine.pow(lhs.sciLineValue, rhs.sciLineValue)).toMatchJsValue(
+      lhs.jsValue ** rhs.jsValue,
+      `${sciLineString(lhs)} ** ${sciLineString(rhs)}`
+    );
   });
 });
 
 it("works for sin", () => {
-  trigValues.forEach(v => {
-    const sciLineValue = SciLine.sin(v.sciLineValue);
-    const jsValue = Math.sin(v.jsValue);
-    expect(sciLineValue).toMatchJsValue(jsValue, v.title);
+  [...trigValues, ...trigNegativeValues].forEach(v => {
+    expect(SciLine.sin(v.sciLineValue)).toMatchJsValue(
+      Math.sin(v.jsValue),
+      v.title
+    );
   });
 });
 
 it("works for cos", () => {
-  trigValues.forEach(v => {
-    const sciLineValue = SciLine.cos(v.sciLineValue);
-    const jsValue = Math.cos(v.jsValue);
-    expect(sciLineValue).toMatchJsValue(jsValue, v.title);
+  [...trigValues, ...trigNegativeValues].forEach(v => {
+    expect(SciLine.cos(v.sciLineValue)).toMatchJsValue(
+      Math.cos(v.jsValue),
+      v.title
+    );
   });
 });
 
 it("works for tan", () => {
-  trigValues.forEach(v => {
-    const sciLineValue = SciLine.tan(v.sciLineValue);
-    const jsValue = Math.tan(v.jsValue);
-    expect(sciLineValue).toMatchJsValue(jsValue, v.title);
+  [...trigValues, ...trigNegativeValues].forEach(v => {
+    expect(SciLine.tan(v.sciLineValue)).toMatchJsValue(
+      Math.tan(v.jsValue),
+      v.title
+    );
   });
 });

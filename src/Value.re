@@ -52,6 +52,12 @@ module Make = (Number: Types.Scalar) : Types.Scalar => {
     | _ => nan
     };
 
+  let pow = (a, b) =>
+    switch (a, b) {
+    | (`Scalar(aS), `Scalar(bS)) => of_scalar(Number.pow(aS, bS))
+    | _ => nan
+    };
+
   let neg = a =>
     switch (a) {
     | `Scalar(aS) => `Scalar(Number.neg(aS))
@@ -69,4 +75,6 @@ module Make = (Number: Types.Scalar) : Types.Scalar => {
   let sin = _map_scalar(Number.sin);
   let cos = _map_scalar(Number.cos);
   let tan = _map_scalar(Number.tan);
+  let log = _map_scalar(Number.log);
+  let sqrt = _map_scalar(Number.sqrt);
 };

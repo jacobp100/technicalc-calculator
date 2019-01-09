@@ -39,7 +39,7 @@ let float_of_constant = a =>
   | Sqrt(v) => sqrt(Int64.to_float(v))
   };
 
-let float_of_real = a =>
+let to_float = a =>
   switch (a) {
   | Rational(ar) =>
     Int64.to_float(ar.numerator)
@@ -52,7 +52,10 @@ let float_of_real = a =>
 
 let normalize = a =>
   switch (a) {
-  | Rational(ar) when ar.denominator == 0L => Zero
+  | Rational({denominator: 0L})
+  | NaN => NaN
+  | Zero
+  | Rational({numerator: 0L}) => Zero
   | Float(value) =>
     switch (classify_float(value)) {
     | FP_zero => Zero
@@ -64,12 +67,10 @@ let normalize = a =>
     let divisor =
       _greatest_common_divisor(Int64.abs(ar.numerator), ar.denominator);
     Rational({
-      ...ar,
       numerator: ar.numerator / divisor,
       denominator: ar.denominator / divisor,
+      constant: ar.constant,
     });
-  | Zero => Zero
-  | NaN => NaN
   };
 
 let of_int64 = (~denominator=1L, ~constant=None, numerator) =>
@@ -77,8 +78,10 @@ let of_int64 = (~denominator=1L, ~constant=None, numerator) =>
 
 let of_float = (~constant=None, v) => {
   let magnitude = 1.e6;
-  if (_float_is_int(v *. magnitude)) {
-    let numerator = Int64.of_float(v *. magnitude);
+  let int_max_f = Int64.to_float(Int64.max_int);
+  let numerator_f = v *. magnitude;
+  if (abs_float(numerator_f) < int_max_f && _float_is_int(numerator_f)) {
+    let numerator = Int64.of_float(numerator_f);
     let denominator = Int64.of_float(magnitude);
     normalize(Rational({numerator, denominator, constant}));
   } else {
@@ -93,11 +96,12 @@ let nan = NaN;
 let is_nan = (==)(NaN);
 
 let pi = Rational({numerator: 1L, denominator: 1L, constant: Pi});
+let e = Rational({numerator: 1L, denominator: 1L, constant: Exp(1L)});
 
 let neg = a =>
   switch (a) {
   | Rational(ar) => Rational({...ar, numerator: - ar.numerator})
-  | Float(v) => Float(-. v)
+  | Float(v) => of_float(-. v)
   | Zero
   | NaN => a
   };
@@ -113,7 +117,7 @@ let add = (a, b) =>
   | (_, NaN) => NaN
   | (Zero, _) => b
   | (_, Zero) => a
-  | (_, _) => Float(float_of_real(a) +. float_of_real(b))
+  | (_, _) => of_float(to_float(a) +. to_float(b))
   };
 
 let sub = (a, b) => add(a, neg(b));
@@ -141,7 +145,7 @@ let mul = (a, b) =>
   | (_, NaN) => NaN
   | (Zero, _)
   | (_, Zero) => Zero
-  | (_, _) => Float(float_of_real(a) *. float_of_real(b))
+  | (_, _) => of_float(to_float(a) *. to_float(b))
   };
 
 let div = (a, b) =>
@@ -150,7 +154,7 @@ let div = (a, b) =>
   | (_, NaN | Zero) => NaN
   | (Zero, _) => Zero
   | (Rational(ar), Rational(br)) =>
-    let bSign = float_of_real(b) >= 0.0 ? 1L : 0L;
+    let bSign = to_float(b) >= 0.0 ? 1L : 0L;
     let numerator = br.denominator * ar.numerator * bSign;
     let denominator = Int64.abs(br.numerator * ar.denominator);
     switch (ar.constant, br.constant) {
@@ -160,9 +164,9 @@ let div = (a, b) =>
     | (None, Sqrt(x)) =>
       let denominator = denominator * x;
       of_int64(numerator, ~denominator, ~constant=Sqrt(x));
-    | _ => Float(float_of_real(a) /. float_of_real(b))
+    | _ => of_float(to_float(a) /. to_float(b))
     };
-  | _ => Float(float_of_real(a) /. float_of_real(b))
+  | _ => of_float(to_float(a) /. to_float(b))
   };
 
 let _trig_period = a =>
@@ -176,11 +180,18 @@ let _trig_period = a =>
   | _ => a
   };
 
+let sqrt = a =>
+  switch (a) {
+  | Rational({numerator: x, denominator: 1L, constant: None}) =>
+    of_int64(~constant=Sqrt(x), 1L)
+  | _ => of_float(sqrt(to_float(a)))
+  };
+
 let exp = a =>
   switch (a) {
   | Rational({numerator, denominator: 1L, constant: None}) =>
     of_int64(~constant=Exp(numerator), 1L)
-  | _ => Float(exp(float_of_real(a)))
+  | _ => of_float(exp(to_float(a)))
   };
 
 let sin = a =>
@@ -205,7 +216,7 @@ let sin = a =>
   | Rational({numerator: 7L | 11L, denominator: 6L, constant: Pi}) =>
     of_int64(-1L, ~denominator=2L)
   | NaN => NaN
-  | _ => Float(sin(float_of_real(a)))
+  | _ => of_float(sin(to_float(a)))
   };
 
 let cos = a => sin(add(a, of_int64(1L, ~denominator=2L, ~constant=Pi)));
@@ -227,8 +238,30 @@ let tan = a =>
     of_int64(-1L)
   | Rational({numerator: 5L | 11L, denominator: 6L, constant: Pi}) =>
     of_int64(-1L, ~denominator=3L, ~constant=Sqrt(3L))
+  | Rational({numerator: 1L | 3L, denominator: 2L, constant: Pi})
   | NaN => NaN
-  | _ => Float(tan(float_of_real(a)))
+  | _ => of_float(tan(to_float(a)))
+  };
+
+let pow = (a, b) =>
+  switch (a, b) {
+  | (_, Rational({numerator: 1L, denominator: 2L, constant: None})) =>
+    sqrt(a)
+  | (Rational({numerator: 1L, denominator: 1L, constant: Exp(1L)}), _) =>
+    exp(b)
+  | (
+      Rational({numerator: 1L, denominator: 1L, constant: Sqrt(x)}),
+      Rational({numerator: 2L, denominator: 1L, constant: None}),
+    ) =>
+    of_int64(x)
+  | _ => of_float(to_float(a) ** to_float(b))
+  };
+
+let log = a =>
+  switch (a) {
+  | Rational({numerator: 1L, denominator: 1L, constant: Exp(x)}) =>
+    of_int64(x)
+  | _ => of_float(log(to_float(a)))
   };
 
 let to_string = a =>

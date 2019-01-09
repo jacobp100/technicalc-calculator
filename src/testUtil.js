@@ -16,7 +16,7 @@ module.exports.Value = class Value {
   }
 
   toString() {
-    return `(js: ${this.jsValue}, sciline: ${SciLine.string_of_value(
+    return `(js: ${this.jsValue}, sciline: ${SciLine.to_string(
       this.sciLineValue
     )})`;
   }
@@ -37,9 +37,9 @@ module.exports.toMatchJsValue = (
 
   return {
     message: () =>
-      `expected ${SciLine.string_of_float(received)} ${
-        pass ? "not" : ""
-      } to be close to ${expectedRe}+${expectedIm}i (${title})`,
+      `expected ${SciLine.to_string(received)} ${
+        pass ? "not " : ""
+      }to be close to ${expectedRe}+${expectedIm}i (${title})`,
     pass
   };
 };

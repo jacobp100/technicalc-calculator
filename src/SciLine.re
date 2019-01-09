@@ -23,7 +23,7 @@ let complex_tuple = x =>
   | _ => (Pervasives.nan, Pervasives.nan)
   };
 
-let string_of_value = x =>
+let to_string = x =>
   switch (x) {
   | `Scalar(xS) => Complex.to_string(xS)
   | _ => "other"
