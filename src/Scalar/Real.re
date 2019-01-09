@@ -4,6 +4,8 @@ let rec _greatest_common_divisor = (a, b) =>
   | r => _greatest_common_divisor(b, r)
   };
 
+let _float_is_int = a => floor(a) == a;
+
 let (+) = Int64.add;
 /* let (-) = Int64.sub; */
 let ( * ) = Int64.mul;
@@ -73,11 +75,24 @@ let normalize = a =>
 let of_int64 = (~denominator=1L, ~constant=None, numerator) =>
   normalize(Rational({numerator, denominator, constant}));
 
+let of_float = (~constant=None, v) => {
+  let magnitude = 1.e6;
+  if (_float_is_int(v *. magnitude)) {
+    let numerator = Int64.of_float(v *. magnitude);
+    let denominator = Int64.of_float(magnitude);
+    normalize(Rational({numerator, denominator, constant}));
+  } else {
+    normalize(Float(v *. float_of_constant(constant)));
+  };
+};
+
 let zero = Zero;
-let is_zero = a => a == Zero;
+let is_zero = (==)(Zero);
 
 let nan = NaN;
 let is_nan = (==)(NaN);
+
+let pi = Rational({numerator: 1L, denominator: 1L, constant: Pi});
 
 let neg = a =>
   switch (a) {
@@ -136,8 +151,8 @@ let div = (a, b) =>
   | (Zero, _) => Zero
   | (Rational(ar), Rational(br)) =>
     let bSign = float_of_real(b) >= 0.0 ? 1L : 0L;
-    let numerator = ar.numerator * br.denominator * bSign;
-    let denominator = Int64.abs(ar.denominator * br.denominator);
+    let numerator = br.denominator * ar.numerator * bSign;
+    let denominator = Int64.abs(br.numerator * ar.denominator);
     switch (ar.constant, br.constant) {
     | (_, None) => of_int64(numerator, ~denominator, ~constant=ar.constant)
     | (Sqrt(x), Sqrt(y)) when x > y && x mod y == 0L =>
@@ -216,25 +231,23 @@ let tan = a =>
   | _ => Float(tan(float_of_real(a)))
   };
 
-/*
- let to_string = a =>
-   switch (a) {
-   | Rational(ar) =>
-     let numerator_str =
-       ar.numerator == 1L && ar.constant != None ?
-         "" : Int64.to_string(ar.numerator);
-     let constant_str =
-       switch (ar.constant) {
-       | None => ""
-       | Pi => "\\pi"
-       | Exp(v) => "e^{" ++ Int64.to_string(v) ++ "}"
-       | Sqrt(v) => "\\sqrt{" ++ Int64.to_string(v) ++ "}"
-       };
-     let denominator =
-       ar.denominator != 1L ? "/" ++ Int64.to_string(ar.denominator) : "";
-     numerator_str ++ constant_str ++ denominator;
-   | Float(v) => string_of_float(v)
-   | NaN => "NaN"
-   | Zero => "0"
-   };
- */
+let to_string = a =>
+  switch (a) {
+  | Rational(ar) =>
+    let numerator_str =
+      ar.numerator == 1L && ar.constant != None ?
+        "" : Int64.to_string(ar.numerator);
+    let constant_str =
+      switch (ar.constant) {
+      | None => ""
+      | Pi => "\\pi"
+      | Exp(v) => "e^{" ++ Int64.to_string(v) ++ "}"
+      | Sqrt(v) => "\\sqrt{" ++ Int64.to_string(v) ++ "}"
+      };
+    let denominator =
+      ar.denominator != 1L ? "/" ++ Int64.to_string(ar.denominator) : "";
+    numerator_str ++ constant_str ++ denominator;
+  | Float(v) => string_of_float(v)
+  | NaN => "NaN"
+  | Zero => "0"
+  };

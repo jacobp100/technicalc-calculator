@@ -30,6 +30,11 @@ let is_imaginary = a => Real.is_zero(a.re);
 let float_of_complex = a =>
   is_real(a) ? Real.float_of_real(a.re) : Pervasives.nan;
 
+let tuple_of_complex = a => (
+  Real.float_of_real(a.re),
+  Real.float_of_real(a.im),
+);
+
 let _magnitude = a => a.re * a.re + a.im * a.im;
 
 let neg = a => of_components(- a.re, - a.im);
@@ -100,3 +105,6 @@ let tan = a =>
     let y = exp(neg(iA));
     (x -$ y) /$ ((x +$ y) *$ i);
   };
+
+let to_string = x =>
+  Real.to_string(x.re) ++ "+" ++ Real.to_string(x.im) ++ "i";

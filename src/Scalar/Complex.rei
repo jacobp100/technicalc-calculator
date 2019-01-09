@@ -8,3 +8,5 @@ let is_real: t => bool;
 let is_imaginary: t => bool;
 
 let float_of_complex: t => float;
+let tuple_of_complex: t => (float, float);
+let to_string: t => string;

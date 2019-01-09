@@ -35,8 +35,8 @@ module Make = (Number: Types.Scalar) : Types.Scalar => {
 
   let mul = (a, b) =>
     switch (a, b) {
-    | (`Scalar(aS), `Scalar(bS)) => of_scalar(Number.add(aS, bS))
-    | (`Matrix(aM), `Matrix(bM)) => of_matrix(ScalarMatrix.add(aM, bM))
+    | (`Scalar(aS), `Scalar(bS)) => of_scalar(Number.mul(aS, bS))
+    | (`Matrix(aM), `Matrix(bM)) => of_matrix(ScalarMatrix.mul(aM, bM))
     | (`Scalar(aS), `Matrix(aM))
     | (`Matrix(aM), `Scalar(aS)) =>
       of_matrix(ScalarMatrix.mul_const(aS, aM))
@@ -45,8 +45,8 @@ module Make = (Number: Types.Scalar) : Types.Scalar => {
 
   let div = (a, b) =>
     switch (a, b) {
-    | (`Scalar(aS), `Scalar(bS)) => of_scalar(Number.add(aS, bS))
-    | (`Matrix(aM), `Matrix(bM)) => of_matrix(ScalarMatrix.add(aM, bM))
+    | (`Scalar(aS), `Scalar(bS)) => of_scalar(Number.div(aS, bS))
+    | (`Matrix(aM), `Matrix(bM)) => of_matrix(ScalarMatrix.div(aM, bM))
     | (`Matrix(aM), `Scalar(aS)) =>
       of_matrix(ScalarMatrix.div_const(aS, aM))
     | _ => nan
