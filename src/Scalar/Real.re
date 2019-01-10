@@ -1,286 +1,233 @@
-let rec _greatest_common_divisor = (a, b) =>
-  switch (Int64.rem(a, b)) {
-  | 0L => b
-  | r => _greatest_common_divisor(b, r)
-  };
+module Zt = TestZarith.ZBigint;
+module Qt = TestZarith.QBigint;
+
+let (+) = Qt.add;
+/* let (-) = Qt.sub; */
+let ( * ) = Qt.mul;
+let (/) = Qt.div;
+/* let (mod) = Qt.rem; */
+let (~-) = Qt.neg;
 
 let _float_is_int = a => floor(a) == a;
-
-let (+) = Int64.add;
-/* let (-) = Int64.sub; */
-let ( * ) = Int64.mul;
-let (/) = Int64.div;
-let (mod) = Int64.rem;
-let (~-) = Int64.neg;
 
 type constant =
   | None
   | Pi
-  | Exp(int64)
-  | Sqrt(int64);
-
-type rational = {
-  numerator: int64,
-  denominator: int64,
-  constant,
-};
+  | Exp(Zt.t)
+  | Sqrt(Zt.t);
 
 type t =
-  | Rational(rational)
-  | Float(float)
-  | Zero
+  | Value(Qt.t, constant)
   | NaN;
 
 let float_of_constant = a =>
   switch (a) {
   | None => 1.0
   | Pi => 4.0 *. atan(1.0)
-  | Exp(v) => exp(Int64.to_float(v))
-  | Sqrt(v) => sqrt(Int64.to_float(v))
+  | Exp(v) => exp(Zt.to_float(v))
+  | Sqrt(v) => sqrt(Zt.to_float(v))
   };
 
 let to_float = a =>
   switch (a) {
-  | Rational(ar) =>
-    Int64.to_float(ar.numerator)
-    /. Int64.to_float(ar.denominator)
-    *. float_of_constant(ar.constant)
-  | Float(v) => v
-  | Zero => 0.0
+  | Value(aq, ac) => Qt.to_float(aq) *. float_of_constant(ac)
   | NaN => infinity
   };
 
 let normalize = a =>
   switch (a) {
-  | Rational({denominator: 0L})
-  | NaN => NaN
-  | Zero
-  | Rational({numerator: 0L}) => Zero
-  | Float(value) =>
-    switch (classify_float(value)) {
-    | FP_zero => Zero
-    | FP_infinite
-    | FP_nan => NaN
-    | _ => Float(value)
-    }
-  | Rational(ar) =>
-    let divisor =
-      _greatest_common_divisor(Int64.abs(ar.numerator), ar.denominator);
-    Rational({
-      numerator: ar.numerator / divisor,
-      denominator: ar.denominator / divisor,
-      constant: ar.constant,
-    });
+  | Value(aq, ac) when aq == Qt.zero && ac != None => Value(Qt.zero, None)
+  | Value(_, Sqrt(ac)) when ac == Zt.zero => Value(Qt.zero, None)
+  | _ => a
   };
 
-let of_int64 = (~denominator=1L, ~constant=None, numerator) =>
-  normalize(Rational({numerator, denominator, constant}));
+let of_int = (~denominator=1, ~constant=None, numerator) =>
+  normalize(Value(Qt.of_ints(numerator, denominator), constant));
 
 let of_float = (~constant=None, v) => {
   let magnitude = 1.e6;
-  let int_max_f = Int64.to_float(Int64.max_int);
+  let int_max_f = float_of_int(max_int);
   let numerator_f = v *. magnitude;
   if (abs_float(numerator_f) < int_max_f && _float_is_int(numerator_f)) {
-    let numerator = Int64.of_float(numerator_f);
-    let denominator = Int64.of_float(magnitude);
-    normalize(Rational({numerator, denominator, constant}));
+    let numerator = int_of_float(numerator_f);
+    let denominator = int_of_float(magnitude);
+    normalize(of_int(numerator, ~denominator, ~constant));
   } else {
-    normalize(Float(v *. float_of_constant(constant)));
+    normalize(Value(Qt.of_float(v), constant));
   };
 };
 
-let zero = Zero;
-let is_zero = (==)(Zero);
+let of_q = (~constant=None, v) => normalize(Value(v, constant));
+
+let of_z = (~constant=None, v) => of_q(~constant, Qt.make(v, Zt.one));
 
 let nan = NaN;
-let is_nan = (==)(NaN);
+let zero = Value(Qt.zero, None);
+let one = Value(Qt.one, None);
+let minus_one = Value(Qt.minus_one, None);
+let pi = Value(Qt.one, Pi);
+let e = Value(Qt.one, Exp(Zt.one));
 
-let pi = Rational({numerator: 1L, denominator: 1L, constant: Pi});
-let e = Rational({numerator: 1L, denominator: 1L, constant: Exp(1L)});
+let is_zero = (==)(zero);
+let is_nan = (==)(NaN);
 
 let neg = a =>
   switch (a) {
-  | Rational(ar) => Rational({...ar, numerator: - ar.numerator})
-  | Float(v) => of_float(-. v)
-  | Zero
+  | Value(ar, ac) => Value(- ar, ac)
   | NaN => a
   };
 
 let add = (a, b) =>
   switch (a, b) {
-  | (Rational(ar), Rational(br)) when ar.constant == br.constant =>
-    let numerator =
-      ar.numerator * br.denominator + ar.denominator * br.numerator;
-    let denominator = ar.denominator * br.denominator;
-    of_int64(numerator, ~denominator, ~constant=ar.constant);
+  | (Value(aq, _), Value(_)) when aq == Qt.zero => b
+  | (Value(_), Value(bq, _)) when bq == Qt.zero => a
+  | (Value(aq, ac), Value(bq, bc)) when ac == bc =>
+    of_q(aq + bq, ~constant=ac)
+  | (Value(_), Value(_)) => of_float(to_float(a) +. to_float(b))
   | (NaN, _)
   | (_, NaN) => NaN
-  | (Zero, _) => b
-  | (_, Zero) => a
-  | (_, _) => of_float(to_float(a) +. to_float(b))
   };
 
 let sub = (a, b) => add(a, neg(b));
 
 let mul = (a, b) =>
   switch (a, b) {
-  | (Rational(ar), Rational(br))
-      when ar.constant == None || br.constant == None =>
-    let constant = ar.constant != None ? ar.constant : br.constant;
-    of_int64(
-      ar.numerator * br.numerator,
-      ~denominator=ar.denominator * br.denominator,
-      ~constant,
-    );
-  | (
-      Rational({numerator: an, denominator: ad, constant: Sqrt(ac)}),
-      Rational({numerator: bn, denominator: bd, constant: Sqrt(bc)}),
-    ) =>
-    let numerator = an * bn;
-    let denominator = ad * bd;
-    ac == bc ?
-      of_int64(numerator * ac, ~denominator) :
-      of_int64(numerator, ~denominator, ~constant=Sqrt(ac * bc));
+  | (Value(aq, _), Value(_)) when aq == Qt.zero => zero
+  | (Value(_), Value(bq, _)) when bq == Qt.zero => zero
+  | (Value(aq, constant), Value(bq, None))
+  | (Value(aq, None), Value(bq, constant)) => of_q(aq * bq, ~constant)
+  | (Value(aq, Sqrt(ac)), Value(bq, Sqrt(bc))) when ac == bc =>
+    of_q(aq * bq * Qt.make(ac, Zt.one))
+  | (Value(_), Value(_)) => of_float(to_float(a) *. to_float(b))
   | (NaN, _)
   | (_, NaN) => NaN
-  | (Zero, _)
-  | (_, Zero) => Zero
-  | (_, _) => of_float(to_float(a) *. to_float(b))
   };
 
 let div = (a, b) =>
   switch (a, b) {
+  | (_, Value(value, _)) when value == Qt.zero => NaN
+  | (Value(aq, ac), Value(bq, None)) => of_q(aq / bq, ~constant=ac)
+  | (Value(aq, ac), Value(bq, bc)) when ac == bc => of_q(aq / bq)
+  | (Value(aq, Sqrt(ac)), Value(bq, Sqrt(bc)))
+      when ac > bc && Zt.rem(ac, bc) == Zt.zero =>
+    of_q(aq / bq, ~constant=Sqrt(Zt.div(ac, bc)))
+  | (Value(_, _), Value(_, _)) => of_float(to_float(a) /. to_float(b))
   | (NaN, _)
-  | (_, NaN | Zero) => NaN
-  | (Zero, _) => Zero
-  | (Rational(ar), Rational(br)) =>
-    let bSign = to_float(b) >= 0.0 ? 1L : 0L;
-    let numerator = br.denominator * ar.numerator * bSign;
-    let denominator = Int64.abs(br.numerator * ar.denominator);
-    switch (ar.constant, br.constant) {
-    | (_, None) => of_int64(numerator, ~denominator, ~constant=ar.constant)
-    | (Sqrt(x), Sqrt(y)) when x > y && x mod y == 0L =>
-      of_int64(numerator, ~denominator, ~constant=Sqrt(x / y))
-    | (None, Sqrt(x)) =>
-      let denominator = denominator * x;
-      of_int64(numerator, ~denominator, ~constant=Sqrt(x));
-    | _ => of_float(to_float(a) /. to_float(b))
-    };
-  | _ => of_float(to_float(a) /. to_float(b))
-  };
-
-let _trig_period = a =>
-  switch (a) {
-  | Rational({numerator, denominator, constant: Pi as constant}) =>
-    let divisor = 2L * denominator;
-    let numerator = numerator mod divisor;
-    /* Handle negative numerators */
-    let numerator = (numerator + divisor) mod divisor;
-    Rational({numerator, denominator, constant});
-  | _ => a
+  | (_, NaN) => NaN
   };
 
 let sqrt = a =>
   switch (a) {
-  | Rational({numerator: x, denominator: 1L, constant: None}) =>
-    of_int64(~constant=Sqrt(x), 1L)
-  | _ => of_float(sqrt(to_float(a)))
+  | Value(aq, None) when Qt.den(aq) == Zt.one =>
+    of_q(Qt.one, ~constant=Sqrt(Qt.num(aq)))
+  | Value(_) => of_float(sqrt(to_float(a)))
+  | NaN => NaN
   };
 
 let exp = a =>
   switch (a) {
-  | Rational({numerator, denominator: 1L, constant: None}) =>
-    of_int64(~constant=Exp(numerator), 1L)
-  | _ => of_float(exp(to_float(a)))
+  | Value(aq, None) when Qt.den(aq) == Zt.one =>
+    of_q(Qt.one, ~constant=Exp(Qt.num(aq)))
+  | Value(_) => of_float(exp(to_float(a)))
+  | NaN => NaN
+  };
+
+type trig_period =
+  | PiFraction(int, int)
+  | Float
+  | NaN;
+
+let _trig_period = a =>
+  switch (a) {
+  | Value(aq, _) when aq == Qt.zero => PiFraction(0, 1)
+  | Value(aq, Pi) =>
+    let denominator = Qt.den(aq);
+    let divisor = Zt.mul(Zt.of_int(2), denominator);
+    let numerator = Zt.rem(Qt.num(aq), divisor);
+    /* Handle negative numerators */
+    let numerator = Zt.rem(Zt.add(numerator, divisor), divisor);
+    switch (Zt.to_int(numerator), Zt.to_int(denominator)) {
+    | (n, d) => PiFraction(n, d)
+    | exception Zt.Overflow => Float
+    };
+  | Value(_, _) => Float
+  | NaN => NaN
   };
 
 let sin = a =>
   switch (_trig_period(a)) {
-  | Zero
-  | Rational({numerator: 1L | 2L, denominator: 1L, constant: Pi}) =>
-    of_int64(0L)
-  | Rational({numerator: 1L | 5L, denominator: 2L, constant: Pi}) =>
-    of_int64(1L)
-  | Rational({numerator: 3L | 7L, denominator: 2L, constant: Pi}) =>
-    of_int64(-1L)
-  | Rational({numerator: 1L | 2L, denominator: 3L, constant: Pi}) =>
-    of_int64(1L, ~denominator=2L, ~constant=Sqrt(3L))
-  | Rational({numerator: 4L | 5L, denominator: 3L, constant: Pi}) =>
-    of_int64(-1L, ~denominator=2L, ~constant=Sqrt(3L))
-  | Rational({numerator: 1L | 3L, denominator: 4L, constant: Pi}) =>
-    of_int64(1L, ~denominator=2L, ~constant=Sqrt(2L))
-  | Rational({numerator: 5L | 7L, denominator: 4L, constant: Pi}) =>
-    of_int64(-1L, ~denominator=2L, ~constant=Sqrt(2L))
-  | Rational({numerator: 1L | 5L, denominator: 6L, constant: Pi}) =>
-    of_int64(1L, ~denominator=2L)
-  | Rational({numerator: 7L | 11L, denominator: 6L, constant: Pi}) =>
-    of_int64(-1L, ~denominator=2L)
+  | PiFraction(0 | 1 | 2, 0) => of_q(Qt.zero)
+  | PiFraction(1 | 5, 2) => of_q(Qt.one)
+  | PiFraction(3 | 7, 2) => of_q(Qt.minus_one)
+  | PiFraction(1 | 2, 3) =>
+    of_q(Qt.of_ints(1, 2), ~constant=Sqrt(Zt.of_int(3)))
+  | PiFraction(4 | 5, 3) =>
+    of_q(Qt.of_ints(-1, 2), ~constant=Sqrt(Zt.of_int(3)))
+  | PiFraction(1 | 3, 4) =>
+    of_q(Qt.of_ints(1, 2), ~constant=Sqrt(Zt.of_int(2)))
+  | PiFraction(5 | 7, 4) =>
+    of_q(Qt.of_ints(-1, 2), ~constant=Sqrt(Zt.of_int(2)))
+  | PiFraction(1 | 5, 6) => of_q(Qt.of_ints(1, 2))
+  | PiFraction(7 | 11, 6) => of_q(Qt.of_ints(-1, 2))
+  | PiFraction(_, _)
+  | Float => of_float(sin(to_float(a)))
   | NaN => NaN
-  | _ => of_float(sin(to_float(a)))
   };
 
-let cos = a => sin(add(a, of_int64(1L, ~denominator=2L, ~constant=Pi)));
+let cos = a => sin(add(a, of_q(Qt.of_ints(1, 2), ~constant=Pi)));
 
 let tan = a =>
   switch (_trig_period(a)) {
-  | Zero
-  | Rational({numerator: 1L | 2L, denominator: 1L, constant: Pi}) =>
-    of_int64(0L)
-  | Rational({numerator: 1L | 5L, denominator: 4L, constant: Pi}) =>
-    of_int64(1L)
-  | Rational({numerator: 1L | 4L, denominator: 3L, constant: Pi}) =>
-    of_int64(1L, ~constant=Sqrt(3L))
-  | Rational({numerator: 1L | 7L, denominator: 6L, constant: Pi}) =>
-    of_int64(1L, ~denominator=3L, ~constant=Sqrt(3L))
-  | Rational({numerator: 2L | 5L, denominator: 3L, constant: Pi}) =>
-    of_int64(-1L, ~constant=Sqrt(3L))
-  | Rational({numerator: 3L | 7L, denominator: 4L, constant: Pi}) =>
-    of_int64(-1L)
-  | Rational({numerator: 5L | 11L, denominator: 6L, constant: Pi}) =>
-    of_int64(-1L, ~denominator=3L, ~constant=Sqrt(3L))
-  | Rational({numerator: 1L | 3L, denominator: 2L, constant: Pi})
+  | PiFraction(0 | 1 | 2, 1) => of_q(Qt.zero)
+  | PiFraction(1 | 5, 4) => of_q(Qt.one)
+  | PiFraction(3 | 7, 4) => of_q(Qt.minus_one)
+  | PiFraction(1 | 4, 3) => of_q(Qt.one, ~constant=Sqrt(Zt.of_int(3)))
+  | PiFraction(2 | 5, 3) =>
+    of_q(Qt.minus_one, ~constant=Sqrt(Zt.of_int(3)))
+  | PiFraction(1 | 7, 6) =>
+    of_q(Qt.of_ints(1, 3), ~constant=Sqrt(Zt.of_int(3)))
+  | PiFraction(5 | 11, 6) =>
+    of_q(Qt.of_ints(-1, 3), ~constant=Sqrt(Zt.of_int(3)))
+  | PiFraction(1 | 3, 2) => NaN
+  | PiFraction(_, _)
+  | Float => of_float(tan(to_float(a)))
   | NaN => NaN
-  | _ => of_float(tan(to_float(a)))
   };
 
 let pow = (a, b) =>
   switch (a, b) {
-  | (_, Rational({numerator: 1L, denominator: 2L, constant: None})) =>
-    sqrt(a)
-  | (Rational({numerator: 1L, denominator: 1L, constant: Exp(1L)}), _) =>
-    exp(b)
-  | (
-      Rational({numerator: 1L, denominator: 1L, constant: Sqrt(x)}),
-      Rational({numerator: 2L, denominator: 1L, constant: None}),
-    ) =>
-    of_int64(x)
-  | _ => of_float(to_float(a) ** to_float(b))
+  | (Value(_), Value(ar, None)) when ar == Qt.of_ints(1, 2) => sqrt(a)
+  | (Value(ar, Exp(ac)), _) when ar == Qt.one && ac == Zt.one => exp(b)
+  | (Value(ar, Sqrt(ac)), Value(br, None))
+      when ar == Qt.one && br == Qt.of_int(2) =>
+    of_z(ac)
+  | (Value(_), Value(_)) => of_float(to_float(a) ** to_float(b))
+  | (NaN, _)
+  | (_, NaN) => NaN
   };
 
 let log = a =>
   switch (a) {
-  | Rational({numerator: 1L, denominator: 1L, constant: Exp(x)}) =>
-    of_int64(x)
-  | _ => of_float(log(to_float(a)))
+  | Value(ar, Exp(ac)) when ar == Qt.one => of_z(ac)
+  | Value(_) => of_float(log(to_float(a)))
+  | NaN => NaN
   };
 
 let to_string = a =>
   switch (a) {
-  | Rational(ar) =>
-    let numerator_str =
-      ar.numerator == 1L && ar.constant != None ?
-        "" : Int64.to_string(ar.numerator);
+  | Value(ar, ac) =>
+    /* let numerator_str =
+       ar.numerator == 1L && ar.constant != None ?
+         "" : Int64.to_string(ar.numerator); */
     let constant_str =
-      switch (ar.constant) {
+      switch (ac) {
       | None => ""
-      | Pi => "\\pi"
-      | Exp(v) => "e^{" ++ Int64.to_string(v) ++ "}"
-      | Sqrt(v) => "\\sqrt{" ++ Int64.to_string(v) ++ "}"
+      | Pi => "*\\pi"
+      | Exp(v) => "*e^{" ++ Zt.to_string(v) ++ "}"
+      | Sqrt(v) => "*\\sqrt{" ++ Zt.to_string(v) ++ "}"
       };
-    let denominator =
-      ar.denominator != 1L ? "/" ++ Int64.to_string(ar.denominator) : "";
-    numerator_str ++ constant_str ++ denominator;
-  | Float(v) => string_of_float(v)
+    /* let denominator =
+       ar.denominator != 1L ? "/" ++ Int64.to_string(ar.denominator) : ""; */
+    Qt.to_string(ar) ++ constant_str;
   | NaN => "NaN"
-  | Zero => "0"
   };

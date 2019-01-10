@@ -2,24 +2,25 @@ module SciLineValue = Value.Make(Complex);
 
 include SciLineValue;
 
-let of_float = x => {
-  let complex = x |> Real.of_float |> Complex.of_real;
-  `Scalar(complex);
-};
+let of_float = re => `Scalar(Complex.of_float(re));
+let of_floats = (re, im) => `Scalar(Complex.of_floats(re, im));
 
-let pi = `Scalar(Complex.of_real(Real.pi));
+let zero = `Scalar(Complex.zero);
+let one = `Scalar(Complex.one);
+let minus_one = `Scalar(Complex.minus_one);
+let e = `Scalar(Complex.e);
+let i = `Scalar(Complex.i);
+let minus_i = `Scalar(Complex.minus_i);
 
-let i = `Scalar(Complex.of_imaginary(Real.of_int64(1L)));
-
-let float_of_value = x =>
+let to_float = x =>
   switch (x) {
-  | `Scalar(xS) => Complex.float_of_complex(xS)
+  | `Scalar(xS) => Complex.to_float(xS)
   | _ => Pervasives.nan
   };
 
-let complex_tuple = x =>
+let to_floats = x =>
   switch (x) {
-  | `Scalar(xS) => Complex.tuple_of_complex(xS)
+  | `Scalar(xS) => Complex.to_floats(xS)
   | _ => (Pervasives.nan, Pervasives.nan)
   };
 

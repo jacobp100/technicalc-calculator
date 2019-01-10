@@ -13,6 +13,10 @@ module type BasicMath = {
 module type Scalar = {
   include BasicMath;
   let zero: t;
+  let one: t;
+  let minus_one: t;
+  let pi: t;
+  let e: t;
   let is_zero: t => bool;
   let exp: t => t;
   let sqrt: t => t;

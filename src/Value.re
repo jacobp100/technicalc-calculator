@@ -4,9 +4,13 @@ module Make = (Number: Types.Scalar) : Types.Scalar => {
   type t = [ | `Scalar(Number.t) | `Matrix(ScalarMatrix.t) | `NaN];
 
   let nan = `NaN;
-  let is_nan = a => a == `NaN;
-
   let zero = `Scalar(Number.zero);
+  let one = `Scalar(Number.one);
+  let minus_one = `Scalar(Number.minus_one);
+  let e = `Scalar(Number.e);
+  let pi = `Scalar(Number.pi);
+
+  let is_nan = a => a == `NaN;
   let is_zero = (==)(zero);
 
   let normalize = a =>

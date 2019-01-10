@@ -17,5 +17,9 @@
     "cartesian": "^1.0.1",
     "jest": "^23.6.0",
     "mathjs": "^5.4.0"
+  },
+  "dependencies": {
+    "big-rat": "^1.0.4",
+    "bn.js": "^4.11.8"
   }
 }

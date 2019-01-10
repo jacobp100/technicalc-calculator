@@ -11,12 +11,20 @@ type t = {
 };
 
 let nan = {re: Real.nan, im: Real.nan};
-let is_nan = a => Real.is_nan(a.re) || Real.is_nan(a.im);
-
 let zero = {re: Real.zero, im: Real.zero};
+let one = {re: Real.one, im: Real.zero};
+let minus_one = {re: Real.minus_one, im: Real.zero};
+let pi = {re: Real.pi, im: Real.zero};
+let e = {re: Real.e, im: Real.zero};
+
+let i = {re: Real.zero, im: Real.one};
+let minus_i = {re: Real.zero, im: Real.minus_one};
+
+let is_nan = a => Real.is_nan(a.re) || Real.is_nan(a.im);
 let is_zero = a => Real.is_zero(a.re) && Real.is_zero(a.im);
 
-let i = {re: Real.zero, im: Real.of_int64(1L)};
+let is_real = a => Real.is_zero(a.im);
+let is_imaginary = a => Real.is_zero(a.re);
 
 let normalize = a => is_nan(a) ? nan : a;
 
@@ -24,13 +32,12 @@ let of_real = a => normalize({re: a, im: Real.zero});
 let of_imaginary = a => normalize({re: Real.zero, im: a});
 let of_components = (re, im) => normalize({re, im});
 
-let is_real = a => Real.is_zero(a.im);
-let is_imaginary = a => Real.is_zero(a.re);
+let of_float = re => normalize({re: Real.of_float(re), im: Real.zero});
+let of_floats = (re, im) =>
+  normalize({re: Real.of_float(re), im: Real.of_float(im)});
 
-let float_of_complex = a =>
-  is_real(a) ? Real.to_float(a.re) : Pervasives.nan;
-
-let tuple_of_complex = a => (Real.to_float(a.re), Real.to_float(a.im));
+let to_float = a => is_real(a) ? Real.to_float(a.re) : Pervasives.nan;
+let to_floats = a => (Real.to_float(a.re), Real.to_float(a.im));
 
 let _magnitude = a => a.re * a.re + a.im * a.im;
 
@@ -41,7 +48,7 @@ let neg = a => of_components(- a.re, - a.im);
 
 let add = (a, b) => of_components(a.re + b.re, a.im + b.im);
 
-let sub = (a, b) => add(a, neg(b));
+let sub = (a, b) => of_components(a.re - b.re, a.im - b.im);
 
 let mul = (a, b) =>
   if (is_real(a) && is_real(b)) {
@@ -84,7 +91,7 @@ let sin = a =>
   } else {
     let iA = a *$ i;
     (exp(neg(iA)) -$ exp(iA))
-    *$ of_imaginary(Real.of_int64(~denominator=2L, 1L));
+    *$ of_imaginary(Real.of_int(1, ~denominator=2));
   };
 
 let cos = a =>
@@ -92,8 +99,7 @@ let cos = a =>
     of_real(Real.cos(a.re));
   } else {
     let iA = a *$ i;
-    (exp(iA) +$ exp(neg(iA)))
-    *$ of_real(Real.of_int64(~denominator=2L, 1L));
+    (exp(iA) +$ exp(neg(iA))) *$ of_real(Real.of_int(1, ~denominator=2));
   };
 
 let tan = a =>
@@ -115,7 +121,7 @@ let log = a =>
 
 let pow = (a, b) =>
   if (is_zero(b)) {
-    of_real(Real.of_int64(1L));
+    of_real(Real.one);
   } else if (is_real(a) && is_real(b) && Real.to_float(a.re) >= 0.) {
     of_real(Real.pow(a.re, b.re));
   } else if (is_real(a) && is_real(b) && Real.to_float(b.re) == (-0.5)) {
@@ -126,7 +132,7 @@ let pow = (a, b) =>
     exp(log(a) *$ b);
   };
 
-let sqrt = a => pow(a, of_real(Real.of_int64(~denominator=2L, 1L)));
+let sqrt = a => pow(a, of_real(Real.of_int(1, ~denominator=2)));
 
 let to_string = x =>
   if (is_real(x)) {
