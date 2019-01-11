@@ -27,5 +27,6 @@ let to_floats = x =>
 let to_string = x =>
   switch (x) {
   | `Scalar(xS) => Complex.to_string(xS)
-  | _ => "other"
+  | `Matrix(_) => "matrix"
+  | `NaN => "NaN"
   };

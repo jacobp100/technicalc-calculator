@@ -1,4 +1,5 @@
 module Make = (Number: Types.Scalar) => {
+  let (==) = Number.equal;
   let (+) = Number.add;
   let (-) = Number.sub;
   let ( * ) = Number.mul;
@@ -12,7 +13,26 @@ module Make = (Number: Types.Scalar) => {
   };
 
   let nan = {numRows: 0, numColumns: 0, elements: [||]};
-  let is_nan = a => Array.length(a.elements) == 0;
+  let is_nan = a => Pervasives.(==)(Array.length(a.elements), 0);
+
+  let shape_equal = (a, b) =>
+    Pervasives.(==)(a.numRows, b.numRows)
+    && Pervasives.(==)(a.numColumns, b.numColumns);
+
+  let equal = (a, b) =>
+    if (shape_equal(a, b)) {
+      let elements_match = ref(true);
+
+      for (x in 0 to Array.length(a.elements)) {
+        if (!(a.elements[x] == b.elements[x])) {
+          elements_match := false;
+        };
+      };
+
+      elements_match^;
+    } else {
+      false;
+    };
 
   let normalize = a =>
     Array.fold_left(
@@ -25,7 +45,7 @@ module Make = (Number: Types.Scalar) => {
     normalize({...a, elements: Array.map(iter, a.elements)});
 
   let _combine = (iter, a, b) =>
-    if (a.numRows == b.numRows && a.numColumns == b.numColumns) {
+    if (shape_equal(a, b)) {
       let elements =
         Array.mapi(
           (i, _) => iter(a.elements[i], b.elements[i]),

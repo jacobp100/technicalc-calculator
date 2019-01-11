@@ -1,3 +1,4 @@
+let (==) = Real.equal;
 let (+) = Real.add;
 let (-) = Real.sub;
 let ( * ) = Real.mul;
@@ -17,14 +18,15 @@ let minus_one = {re: Real.minus_one, im: Real.zero};
 let pi = {re: Real.pi, im: Real.zero};
 let e = {re: Real.e, im: Real.zero};
 
+let equal = (a, b) => a.re == b.re && a.im == b.im;
+
 let i = {re: Real.zero, im: Real.one};
 let minus_i = {re: Real.zero, im: Real.minus_one};
 
 let is_nan = a => Real.is_nan(a.re) || Real.is_nan(a.im);
-let is_zero = a => Real.is_zero(a.re) && Real.is_zero(a.im);
 
-let is_real = a => Real.is_zero(a.im);
-let is_imaginary = a => Real.is_zero(a.re);
+let is_real = a => a.im == Real.zero;
+let is_imaginary = a => a.re == Real.zero;
 
 let normalize = a => is_nan(a) ? nan : a;
 
@@ -64,7 +66,7 @@ let mul = (a, b) =>
   };
 
 let div = (a, b) =>
-  if (is_zero(b)) {
+  if (equal(b, zero)) {
     nan;
   } else if (is_real(a) && is_real(b)) {
     of_real(a.re / b.re);
@@ -113,18 +115,22 @@ let tan = a =>
   };
 
 let log = a =>
-  if (is_real(a) && Real.to_float(a.re) == (-1.)) {
+  if (is_real(a) && Pervasives.(==)(Real.to_float(a.re), -1.)) {
     of_imaginary(Real.pi);
   } else {
     of_components(Real.log(_magnitude(a)), _arg(a));
   };
 
 let pow = (a, b) =>
-  if (is_zero(b)) {
+  if (equal(b, zero)) {
     of_real(Real.one);
-  } else if (is_real(a) && is_real(b) && Real.to_float(a.re) >= 0.) {
+  } else if (is_real(a)
+             && is_real(b)
+             && Pervasives.(>=)(Real.to_float(a.re), 0.)) {
     of_real(Real.pow(a.re, b.re));
-  } else if (is_real(a) && is_real(b) && Real.to_float(b.re) == (-0.5)) {
+  } else if (is_real(a)
+             && is_real(b)
+             && Pervasives.(==)(Real.to_float(b.re), -0.5)) {
     of_imaginary(Real.sqrt(a.re));
   } else if (is_real(a) && a.re == Real.e) {
     of_components(Real.cos(a.re), Real.sin(a.im));
@@ -138,7 +144,7 @@ let to_string = x =>
   if (is_real(x)) {
     Real.to_string(x.re);
   } else if (is_imaginary(x)) {
-    Real.to_string(x.im) ++ "i";
+    Real.to_string(x.im) ++ " i";
   } else {
-    Real.to_string(x.re) ++ "+" ++ Real.to_string(x.im) ++ "i";
+    Real.to_string(x.re) ++ " + " ++ Real.to_string(x.im) ++ " i";
   };
