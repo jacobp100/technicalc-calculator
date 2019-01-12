@@ -35,6 +35,7 @@ let of_imaginary = a => normalize({re: Real.zero, im: a});
 let of_components = (re, im) => normalize({re, im});
 
 let of_float = re => normalize({re: Real.of_float(re), im: Real.zero});
+let of_int = re => normalize({re: Real.of_int(re), im: Real.zero});
 let of_floats = (re, im) =>
   normalize({re: Real.of_float(re), im: Real.of_float(im)});
 
@@ -45,6 +46,8 @@ let _magnitude = a => a.re * a.re + a.im * a.im;
 
 let _arg = a =>
   Real.of_float(atan2(Real.to_float(a.im), Real.to_float(a.re)));
+
+let to_int = a => is_real(a) ? Real.to_int(a.re) : None;
 
 let neg = a => of_components(- a.re, - a.im);
 

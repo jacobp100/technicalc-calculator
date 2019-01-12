@@ -60,7 +60,9 @@ const asComplex = a => {
 };
 
 module.exports.toMatchJsValue = (received, expected) => {
-  const [actualRe, actualIm] = SciLine.to_floats(received);
+  const resolved = SciLine.resolve(received);
+
+  const [actualRe, actualIm] = SciLine.to_floats(resolved);
   const [expectedRe, expectedIm] = asComplex(expected);
 
   const pass =
@@ -68,7 +70,7 @@ module.exports.toMatchJsValue = (received, expected) => {
 
   return {
     message: () =>
-      `expected ${SciLine.to_string(received)} ${
+      `expected ${SciLine.to_string(resolved)} ${
         pass ? "not " : ""
       }to be close to ${expectedRe}+${expectedIm}i`,
     pass

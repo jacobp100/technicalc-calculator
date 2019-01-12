@@ -21,6 +21,14 @@ let to_float = a =>
   | NaN => infinity
   };
 
+let to_int = a =>
+  switch (a) {
+  | Value(_) =>
+    let f = to_float(a);
+    _float_is_int(f) ? Some(int_of_float(f)) : None;
+  | NaN => None
+  };
+
 let normalize = a =>
   switch (a) {
   | Value(aq, ac) when aq == Qt.zero && !Constant.equal(ac, None) =>

@@ -23,7 +23,7 @@ trigValues.forEach(v => {
   it(v.title, () => {
     const sciLineValue = SciLine.tan(v.sciLineValue);
     if (tanInfiniteValues.has(v.title)) {
-      expect(SciLine.is_nan).toBeTruthy();
+      expect(SciLine.is_nan(SciLine.resolve(sciLineValue))).toBeTruthy();
     } else {
       expect(sciLineValue).toMatchJsValue(Math.tan(v.jsValue));
     }

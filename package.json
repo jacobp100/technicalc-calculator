@@ -5,6 +5,7 @@
     "build": "bsb -make-world",
     "start": "bsb -make-world -w",
     "clean": "bsb -clean-world",
+    "bundle": "webpack ./src/SciLine.bs.js --output-library=SciLine",
     "test": "jest --watch"
   },
   "keywords": [
@@ -17,15 +18,17 @@
     "cartesian": "^1.0.1",
     "eslint": "^5.12.0",
     "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-config-prettier": "^3.3.0",
     "eslint-plugin-import": "^2.14.0",
     "jest": "^23.6.0",
     "jest-silent-reporter": "^0.1.1",
-    "mathjs": "^5.4.0"
+    "mathjs": "^5.4.0",
+    "webpack": "^4.28.4",
+    "webpack-cli": "^3.2.1"
   },
   "dependencies": {
     "big-rat": "^1.0.4",
-    "bn.js": "^4.11.8",
-    "eslint-config-prettier": "^3.3.0"
+    "bn.js": "^4.11.8"
   },
   "jest": {
     "reporters": [

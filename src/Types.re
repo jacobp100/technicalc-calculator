@@ -13,6 +13,10 @@ module type BasicMath = {
 
 module type Scalar = {
   include BasicMath;
+  let of_int: int => t;
+  let of_float: float => t;
+  let to_int: t => option(int);
+  let to_string: t => string;
   let zero: t;
   let one: t;
   let minus_one: t;
