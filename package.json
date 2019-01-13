@@ -22,6 +22,7 @@
     "eslint-plugin-import": "^2.14.0",
     "jest": "^23.6.0",
     "jest-silent-reporter": "^0.1.1",
+    "lodash": "^4.17.11",
     "mathjs": "^5.4.0",
     "webpack": "^4.28.4",
     "webpack-cli": "^3.2.1"

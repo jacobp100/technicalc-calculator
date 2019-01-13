@@ -6,7 +6,6 @@ module Make = (V: Types.BaseValue) => {
   };
 
   type t =
-    | Resolved(V.t) /* Can be used for runtime type checking */
     | Value(V.t)
     | Matrix(int, int, array(t))
     | Variable(string)
@@ -60,8 +59,7 @@ module Make = (V: Types.BaseValue) => {
 
   let rec eval = (~context=Context.empty, node: t): V.t =>
     switch (node) {
-    | Value(a)
-    | Resolved(a) => a
+    | Value(a) => a
     | Matrix(numRows, numColumns, elements) =>
       let elements = Array.map(eval(~context), elements);
       V.of_matrix_elements(~numRows, ~numColumns, elements);

@@ -27,6 +27,12 @@ module Make = (Number: Types.Scalar) => {
     | _ => None
     };
 
+  let to_matrix = a =>
+    switch (a) {
+    | Matrix(aM) => Some(aM)
+    | _ => None
+    };
+
   let normalize = a =>
     switch (a) {
     | Scalar(aS) => Number.is_nan(aS) ? NaN : a

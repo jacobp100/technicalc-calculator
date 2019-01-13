@@ -1,4 +1,5 @@
 const cartesian = require("cartesian");
+const { range } = require("lodash");
 const SciLine = require("../SciLine.bs");
 
 module.exports.Value = class Value {
@@ -23,7 +24,7 @@ module.exports.Value = class Value {
   }
 };
 
-const range12 = Array.from({ length: 12 }, (_, i) => i + 1);
+const range12 = range(1, 12 + 1);
 const existingFractions = new Set();
 const fractionsTo12 = cartesian([[0, ...range12], range12]).filter(([a, b]) => {
   const key = (a / b).toFixed(8);
@@ -60,6 +61,24 @@ const asComplex = a => {
 };
 
 module.exports.toMatchJsValue = (received, expected) => {
+  const resolved = SciLine.resolve(received);
+
+  const [actualRe, actualIm] = SciLine.to_floats(resolved);
+  const [expectedRe, expectedIm] = asComplex(expected);
+
+  const pass =
+    isCloseTo(actualRe, expectedRe) && isCloseTo(actualIm, expectedIm);
+
+  return {
+    message: () =>
+      `expected ${SciLine.to_string(resolved)} ${
+        pass ? "not " : ""
+      }to be close to ${expectedRe}+${expectedIm}i`,
+    pass
+  };
+};
+
+module.exports.toMatchJsMatrix = (received, expected) => {
   const resolved = SciLine.resolve(received);
 
   const [actualRe, actualIm] = SciLine.to_floats(resolved);

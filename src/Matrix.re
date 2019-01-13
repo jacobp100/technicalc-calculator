@@ -27,6 +27,8 @@ module Make = (Number: Types.Scalar) => {
   let nan = {numRows: 0, numColumns: 0, elements: [||]};
   let is_nan = a => Array.length(a.elements) ==% 0;
 
+  let to_array_matrix = a => a.elements;
+
   let shape_equal = (a, b) =>
     a.numRows ==% b.numRows && a.numColumns ==% b.numColumns;
 
