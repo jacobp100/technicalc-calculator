@@ -51,6 +51,8 @@ let to_int = a => is_real(a) ? Real.to_int(a.re) : None;
 
 let neg = a => of_components(- a.re, - a.im);
 
+let abs = a => of_components(Real.abs(a.re), Real.abs(a.im));
+
 let add = (a, b) => of_components(a.re + b.re, a.im + b.im);
 
 let sub = (a, b) => of_components(a.re - b.re, a.im - b.im);
@@ -143,11 +145,15 @@ let pow = (a, b) =>
 
 let sqrt = a => pow(a, of_real(Real.of_int(1, ~denominator=2)));
 
-let to_string = x =>
+let format_string = (format, x) =>
   if (is_real(x)) {
-    Real.to_string(x.re);
+    format(x.re);
   } else if (is_imaginary(x)) {
-    Real.to_string(x.im) ++ " i";
+    format(x.im) ++ " i";
   } else {
-    Real.to_string(x.re) ++ " + " ++ Real.to_string(x.im) ++ " i";
+    format(x.re) ++ " + " ++ format(x.im) ++ " i";
   };
+
+let to_string = format_string(Real.to_string);
+
+let to_latex = format_string(Real.to_latex);

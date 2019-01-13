@@ -32,6 +32,9 @@ module Bigint = {
   [@bs.module] external neg: t => t = "big-rat/neg";
   let neg = neg;
 
+  [@bs.module] external abs: t => t = "big-rat/abs";
+  let abs = abs;
+
   [@bs.module] external to_string: t => string = "big-rat/to-string";
   let to_string = to_string;
 

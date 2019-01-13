@@ -1,4 +1,4 @@
-module Make = (V: Types.Scalar) => {
+module Make = (V: Types.BaseValue) => {
   type iter_range('t) = {
     start: 't,
     upTo: 't,
@@ -6,19 +6,33 @@ module Make = (V: Types.Scalar) => {
   };
 
   type t =
+    | Resolved(V.t) /* Can be used for runtime type checking */
     | Value(V.t)
+    | Matrix(int, int, array(t))
     | Variable(string)
     | Add(t, t)
     | Sub(t, t)
     | Mul(t, t)
     | Div(t, t)
     | Pow(t, t)
+    | Dot(t, t)
+    | Abs(t)
     | Sqrt(t)
     | Exp(t)
     | Log(t)
     | Sin(t)
+    | Arcsin(t)
+    | Sinh(t)
+    | Arcsinh(t)
     | Cos(t)
+    | Arccos(t)
+    | Cosh(t)
+    | Arccosh(t)
     | Tan(t)
+    | Arctan(t)
+    | Tanh(t)
+    | Arctanh(t)
+    | Factorial(t)
     | Sum(iter_range(t))
     | Product(iter_range(t));
 
@@ -27,6 +41,8 @@ module Make = (V: Types.Scalar) => {
   let value_of_int = a => Value(V.of_int(a));
   let value_of_float = a => Value(V.of_float(a));
   let value_of_t = a => Value(a);
+  let matrix_of_elements = (numRows, numColumns, elements) =>
+    Matrix(numRows, numColumns, elements);
   let variable = name => Variable(name);
   let add = (a, b) => Add(a, b);
   let sub = (a, b) => Sub(a, b);
@@ -44,7 +60,11 @@ module Make = (V: Types.Scalar) => {
 
   let rec eval = (~context=Context.empty, node: t): V.t =>
     switch (node) {
-    | Value(a) => a
+    | Value(a)
+    | Resolved(a) => a
+    | Matrix(numRows, numColumns, elements) =>
+      let elements = Array.map(eval(~context), elements);
+      V.of_matrix_elements(~numRows, ~numColumns, elements);
     | Variable(ident) =>
       switch (Context.find(ident, context)) {
       | v => v
@@ -55,12 +75,24 @@ module Make = (V: Types.Scalar) => {
     | Mul(a, b) => V.mul(eval(a), eval(b))
     | Div(a, b) => V.div(eval(a), eval(b))
     | Pow(a, b) => V.pow(eval(a), eval(b))
+    | Dot(a, b) => V.dot(eval(a), eval(b))
+    | Abs(a) => V.abs(eval(a))
     | Sqrt(a) => V.sqrt(eval(a))
     | Exp(a) => V.exp(eval(a))
     | Log(a) => V.log(eval(a))
     | Sin(a) => V.sin(eval(a))
+    | Arcsin(_a) => V.nan /* V.arcsin(eval(a)) */
+    | Sinh(_a) => V.nan /* V.sinh(eval(a)) */
+    | Arcsinh(_a) => V.nan /* V.arcsinh(eval(a)) */
     | Cos(a) => V.cos(eval(a))
+    | Arccos(_a) => V.nan /* V.arccos(eval(a)) */
+    | Cosh(_a) => V.nan /* V.cosh(eval(a)) */
+    | Arccosh(_a) => V.nan /* V.arccosh(eval(a)) */
     | Tan(a) => V.tan(eval(a))
+    | Arctan(_a) => V.nan /* V.arctan(eval(a)) */
+    | Tanh(_a) => V.nan /* V.tanh(eval(a)) */
+    | Arctanh(_a) => V.nan /* V.arctanh(eval(a)) */
+    | Factorial(_a) => V.nan /* V.factorial(eval(a)) */
     | Sum(range) => reduce_range(~context, V.add, V.zero, range)
     | Product(range) => reduce_range(~context, V.mul, V.one, range)
     }

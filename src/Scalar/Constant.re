@@ -29,6 +29,15 @@ let to_string = a =>
   switch (a) {
   | None => ""
   | Pi => "pi"
-  | Exp(v) => "e^(" ++ Zt.to_string(v) ++ ")"
+  | Exp(v) => "exp(" ++ Zt.to_string(v) ++ ")"
   | Sqrt(v) => "sqrt(" ++ Zt.to_string(v) ++ ")"
+  };
+
+let to_latex = a =>
+  switch (a) {
+  | None => ""
+  | Pi => "pi"
+  | Exp(v) when Zt.equal(v, Zt.one) => "e"
+  | Exp(v) => "e^{" ++ Zt.to_string(v) ++ "}"
+  | Sqrt(v) => "\\sqrt{" ++ Zt.to_string(v) ++ "}"
   };

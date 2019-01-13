@@ -1,11 +1,4 @@
-module Make =
-       (Number: Types.Scalar)
-       : {
-         include Types.Scalar;
-         let of_number: Number.t => t;
-         let to_int: t => option(int);
-         let to_number: t => option(Number.t);
-       } => {
+module Make = (Number: Types.Scalar) => {
   module NumberMatrix = Matrix.Make(Number);
 
   type t =
@@ -21,10 +14,6 @@ module Make =
   let pi = Scalar(Number.pi);
 
   let is_nan = a => Pervasives.(==)(a, NaN);
-
-  let of_number = a => Scalar(a);
-  let of_int = a => Scalar(Number.of_int(a));
-  let of_float = a => Scalar(Number.of_float(a));
 
   let to_int = a =>
     switch (a) {
@@ -47,6 +36,20 @@ module Make =
 
   let of_scalar = a => normalize(Scalar(a));
   let of_matrix = a => normalize(Matrix(a));
+
+  let of_number = a => of_scalar(a);
+  let of_int = a => of_scalar(Number.of_int(a));
+  let of_float = a => of_scalar(Number.of_float(a));
+  let of_matrix_elements = (~numRows, ~numColumns, elements) => {
+    let to_scalar = element =>
+      switch (element) {
+      | Scalar(aS) => aS
+      | _ => Number.nan
+      };
+    let elements = Array.map(to_scalar, elements);
+    /* Normalized to NaN if non-scalar values exist */
+    of_matrix(NumberMatrix.init(~numRows, ~numColumns, elements));
+  };
 
   let equal = (a, b) =>
     switch (a, b) {
@@ -99,6 +102,20 @@ module Make =
     | _ => nan
     };
 
+  let dot = (a, b) =>
+    switch (a, b) {
+    | (Scalar(aS), Scalar(bS)) => of_scalar(Number.mul(aS, bS))
+    | (Matrix(aM), Matrix(bM)) => of_scalar(NumberMatrix.dot(aM, bM))
+    | _ => nan
+    };
+
+  let abs = a =>
+    switch (a) {
+    | Scalar(aS) => of_scalar(Number.abs(aS))
+    | Matrix(aM) => of_scalar(NumberMatrix.det(aM))
+    | _ => nan
+    };
+
   let _map_scalar = (iteratee, a) =>
     switch (a) {
     | Scalar(aS) => of_scalar(iteratee(aS))
@@ -112,16 +129,17 @@ module Make =
   let log = _map_scalar(Number.log);
   let sqrt = _map_scalar(Number.sqrt);
 
-  /* let to_float = x =>
-     switch (x) {
-     | Scalar(xS) => Number.to_float(xS)
-     | _ => Pervasives.nan
-     }; */
-
   let to_string = x =>
     switch (x) {
     | Scalar(xS) => Number.to_string(xS)
-    | Matrix(_) => "matrix"
-    | NaN => "NaN"
+    | Matrix(xM) => NumberMatrix.to_string(xM)
+    | NaN => "Math Error"
+    };
+
+  let to_latex = x =>
+    switch (x) {
+    | Scalar(xS) => Number.to_latex(xS)
+    | Matrix(xM) => NumberMatrix.to_latex(xM)
+    | NaN => "Math Error"
     };
 };

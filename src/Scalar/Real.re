@@ -34,6 +34,8 @@ let normalize = a =>
   | Value(aq, ac) when aq == Qt.zero && !Constant.equal(ac, None) =>
     Value(Qt.zero, None)
   | Value(_, Sqrt(ac)) when Zt.equal(ac, Zt.zero) => Value(Qt.zero, None)
+  | Value(aq, Sqrt(ac)) when Zt.equal(ac, Zt.one) => Value(aq, None)
+  | Value(aq, Exp(ac)) when Zt.equal(ac, Zt.zero) => Value(aq, None)
   | _ => a
   };
 
@@ -224,20 +226,84 @@ let log = a =>
   | NaN => NaN
   };
 
-let to_string = a =>
+let abs = a =>
   switch (a) {
-  | Value(ar, ac) when Zt.lt(Qt.den(ar), Zt.of_int(1000000)) =>
+  | Value(ar, ac) => of_q(Qt.abs(ar), ~constant=ac)
+  | _ => NaN
+  };
+
+type fractionFormat = {
+  numerator: option(Zt.t),
+  constant: option(Constant.t),
+  denominator: option(Zt.t),
+};
+
+type formatting =
+  | Fraction(fractionFormat)
+  | Float(float)
+  | Scientific(float)
+  | NaN;
+
+let format_fraction = (format: Formatting.format, a) =>
+  switch (format, a) {
+  | (Natural, Value(ar, ac)) when Zt.lt(Qt.den(ar), Zt.of_int(1000000)) =>
     let num = Qt.num(ar);
     let den = Qt.den(ar);
 
-    let constant_str = Constant.to_string(ac);
-    let numerator_str =
-      Zt.equal(num, Zt.one) && Pervasives.(!=)(constant_str, "") ?
-        "" : Zt.to_string(num);
-    let denominator_str =
-      Zt.equal(den, Zt.one) ? "" : "/" ++ Zt.to_string(den);
+    let showConstant = !Constant.equal(ac, None);
+    let showNumerator = !Zt.equal(num, Zt.one) || !showConstant;
+    let showDenominator = !Zt.equal(den, Zt.one);
 
-    numerator_str ++ constant_str ++ denominator_str;
-  | Value(_) => string_of_float(to_float(a))
+    let numerator = showNumerator ? Some(num) : None;
+    let constant = showConstant ? Some(ac) : None;
+    let denominator = showDenominator ? Some(den) : None;
+
+    Fraction({numerator, constant, denominator});
+  | (Natural | Numerical, Value(_)) => Float(to_float(a))
+  | (Scientific, Value(_)) => Scientific(to_float(a))
+  | (_, NaN) => NaN
+  };
+
+let to_string = a =>
+  switch (format_fraction(Natural, a)) {
+  | Fraction({numerator, constant, denominator}) =>
+    let body = ref("");
+    switch (numerator) {
+    | Some(n) => body := body^ ++ Zt.to_string(n)
+    | _ => ()
+    };
+    switch (constant) {
+    | Some(c) => body := body^ ++ Constant.to_string(c)
+    | _ => ()
+    };
+    switch (denominator) {
+    | Some(d) => body := body^ ++ "/" ++ Zt.to_string(d)
+    | _ => ()
+    };
+    body^;
+  | Float(f)
+  | Scientific(f) => string_of_float(f)
+  | NaN => "NaN"
+  };
+
+let to_latex = a =>
+  switch (format_fraction(Natural, a)) {
+  | Fraction({numerator, constant, denominator}) =>
+    let body = ref("");
+    switch (numerator) {
+    | Some(n) => body := body^ ++ Zt.to_string(n)
+    | _ => ()
+    };
+    switch (constant) {
+    | Some(c) => body := body^ ++ Constant.to_latex(c)
+    | _ => ()
+    };
+    switch (denominator) {
+    | Some(d) => body := "\\frac{" ++ body^ ++ "}{" ++ Zt.to_string(d) ++ "}"
+    | _ => ()
+    };
+    body^;
+  | Float(f) => string_of_float(f)
+  | Scientific(f) => string_of_float(f)
   | NaN => "NaN"
   };

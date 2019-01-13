@@ -11,14 +11,14 @@ let e = value_of_t(SciLineValue.e);
 let i = value_of_t(SciLineValue.of_number(Complex.i));
 let minus_i = value_of_t(SciLineValue.of_number(Complex.minus_i));
 
-let resolve = a => value_of_t(SciLineAst.eval(a));
+let resolve = a => Resolved(SciLineAst.eval(a));
 
 /* FIXME */
 let of_float = value_of_float;
 
 let _number_of = a =>
   switch (a) {
-  | Value(v) =>
+  | Resolved(v) =>
     switch (SciLineValue.to_number(v)) {
     | Some(comp) => Some(comp)
     | None => None
@@ -38,14 +38,18 @@ let to_floats = a =>
   | None => (nan, nan)
   };
 
-let to_string = a =>
-  switch (a) {
-  | Value(a) => SciLineValue.to_string(a)
-  | _ => "Unresolved type"
-  };
-
 let is_nan = a =>
   switch (_number_of(a)) {
   | Some(comp) => Complex.is_nan(comp)
   | None => true
   };
+
+let format_resolved = (format, a) =>
+  switch (a) {
+  | Resolved(a) => format(a)
+  | _ => "Unresolved type"
+  };
+
+let to_string = format_resolved(SciLineValue.to_string);
+
+let to_latex = format_resolved(SciLineValue.to_latex);
