@@ -46,7 +46,7 @@ module Make = (Number: Types.Scalar) => {
   let of_number = a => of_scalar(a);
   let of_int = a => of_scalar(Number.of_int(a));
   let of_float = a => of_scalar(Number.of_float(a));
-  let of_matrix_elements = (~numRows, ~numColumns, elements) => {
+  let of_matrix_elements = (~rows, ~columns, elements) => {
     let to_scalar = element =>
       switch (element) {
       | Scalar(aS) => aS
@@ -54,7 +54,7 @@ module Make = (Number: Types.Scalar) => {
       };
     let elements = Array.map(to_scalar, elements);
     /* Normalized to NaN if non-scalar values exist */
-    of_matrix(NumberMatrix.init(~numRows, ~numColumns, elements));
+    of_matrix(NumberMatrix.from_elements(~rows, ~columns, elements));
   };
 
   let equal = (a, b) =>
@@ -83,7 +83,7 @@ module Make = (Number: Types.Scalar) => {
     | (Scalar(aS), Scalar(bS)) => of_scalar(Number.mul(aS, bS))
     | (Matrix(aM), Matrix(bM)) => of_matrix(NumberMatrix.mul(aM, bM))
     | (Scalar(aS), Matrix(aM))
-    | (Matrix(aM), Scalar(aS)) => of_matrix(NumberMatrix.mul_const(aS, aM))
+    | (Matrix(aM), Scalar(aS)) => of_matrix(NumberMatrix.mul_const(aM, aS))
     | _ => nan
     };
 
@@ -91,13 +91,14 @@ module Make = (Number: Types.Scalar) => {
     switch (a, b) {
     | (Scalar(aS), Scalar(bS)) => of_scalar(Number.div(aS, bS))
     | (Matrix(aM), Matrix(bM)) => of_matrix(NumberMatrix.div(aM, bM))
-    | (Matrix(aM), Scalar(aS)) => of_matrix(NumberMatrix.div_const(aS, aM))
+    | (Matrix(aM), Scalar(aS)) => of_matrix(NumberMatrix.div_const(aM, aS))
     | _ => nan
     };
 
   let pow = (a, b) =>
     switch (a, b) {
     | (Scalar(aS), Scalar(bS)) => of_scalar(Number.pow(aS, bS))
+    | (Matrix(aM), Scalar(aS)) => of_matrix(NumberMatrix.pow_const(aM, aS))
     | _ => nan
     };
 
@@ -128,12 +129,22 @@ module Make = (Number: Types.Scalar) => {
     | _ => nan
     };
 
-  let exp = _map_scalar(Number.exp);
-  let sin = _map_scalar(Number.sin);
-  let cos = _map_scalar(Number.cos);
-  let tan = _map_scalar(Number.tan);
-  let log = _map_scalar(Number.log);
   let sqrt = _map_scalar(Number.sqrt);
+  let exp = _map_scalar(Number.exp);
+  let log = _map_scalar(Number.log);
+  let factorial = _map_scalar(Number.factorial);
+  let sin = _map_scalar(Number.sin);
+  let arcsin = _map_scalar(Number.arcsin);
+  let sinh = _map_scalar(Number.sinh);
+  let arcsinh = _map_scalar(Number.arcsinh);
+  let cos = _map_scalar(Number.cos);
+  let arccos = _map_scalar(Number.arccos);
+  let cosh = _map_scalar(Number.cosh);
+  let arccosh = _map_scalar(Number.arccosh);
+  let tan = _map_scalar(Number.tan);
+  let arctan = _map_scalar(Number.arctan);
+  let tanh = _map_scalar(Number.tanh);
+  let arctanh = _map_scalar(Number.arctanh);
 
   let to_string = x =>
     switch (x) {

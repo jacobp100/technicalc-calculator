@@ -1,5 +1,6 @@
 const cartesian = require("cartesian");
 const { range } = require("lodash");
+const mathjs = require("mathjs");
 const SciLine = require("../SciLine.bs");
 
 module.exports.Value = class Value {
@@ -13,8 +14,28 @@ module.exports.Value = class Value {
     return new Value(n, SciLine.of_float(n), title);
   }
 
+  static complex(re, im, title = `${re}+${im}i`) {
+    return new Value(
+      mathjs.complex(re, im),
+      SciLine.of_complex_floats(re, im),
+      title
+    );
+  }
+
+  static e(n = 1, title = `${n}e`) {
+    return new Value(
+      n * Math.E,
+      SciLine.mul(SciLine.of_float(n), SciLine.e),
+      title
+    );
+  }
+
   static pi(n = 1, title = `${n}pi`) {
-    return new Value(n * Math.PI, SciLine.pi, title);
+    return new Value(
+      n * Math.PI,
+      SciLine.mul(SciLine.of_float(n), SciLine.pi),
+      title
+    );
   }
 
   toString() {
@@ -63,7 +84,7 @@ const asComplex = a => {
 module.exports.toMatchJsValue = (received, expected) => {
   const resolved = SciLine.resolve(received);
 
-  const [actualRe, actualIm] = SciLine.to_floats(resolved);
+  const [actualRe, actualIm] = SciLine.to_complex_floats(resolved);
   const [expectedRe, expectedIm] = asComplex(expected);
 
   const pass =
@@ -81,17 +102,22 @@ module.exports.toMatchJsValue = (received, expected) => {
 module.exports.toMatchJsMatrix = (received, expected) => {
   const resolved = SciLine.resolve(received);
 
-  const [actualRe, actualIm] = SciLine.to_floats(resolved);
-  const [expectedRe, expectedIm] = asComplex(expected);
+  const sciLineElements = SciLine.to_complex_floats_matrix(resolved);
 
-  const pass =
-    isCloseTo(actualRe, expectedRe) && isCloseTo(actualIm, expectedIm);
+  let allPass = true;
+  expected.forEach((mathJsElement, [row, column]) => {
+    const [actualRe, actualIm] = sciLineElements[row][column];
+    const [expectedRe, expectedIm] = asComplex(mathJsElement);
+    const pass =
+      isCloseTo(actualRe, expectedRe) && isCloseTo(actualIm, expectedIm);
+    allPass = allPass && pass;
+  });
 
   return {
     message: () =>
       `expected ${SciLine.to_string(resolved)} ${
-        pass ? "not " : ""
-      }to be close to ${expectedRe}+${expectedIm}i`,
-    pass
+        allPass ? "not " : ""
+      }to be close to ${expected}`,
+    pass: allPass
   };
 };

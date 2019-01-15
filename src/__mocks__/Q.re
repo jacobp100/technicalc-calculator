@@ -44,4 +44,8 @@ module Bigint = {
   [@bs.module] external cmp: (t, t) => int = "big-rat/cmp";
 
   let equal = (a: t, b: t): bool => cmp(a, b) == 0;
+  let lt = (a, b) => cmp(a, b) == (-1);
+  let lte = (a, b) => cmp(a, b) != 1;
+  let gt = (a, b) => cmp(a, b) == 1;
+  let gte = (a, b) => cmp(a, b) != (-1);
 };

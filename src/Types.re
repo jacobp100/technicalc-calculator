@@ -23,18 +23,28 @@ module type Scalar = {
   let minus_one: t;
   let pi: t;
   let e: t;
-  let exp: t => t;
-  let sqrt: t => t;
   let abs: t => t;
+  let sqrt: t => t;
+  let exp: t => t;
   let log: t => t;
+  let factorial: t => t;
   let sin: t => t;
+  let arcsin: t => t;
+  let sinh: t => t;
+  let arcsinh: t => t;
   let cos: t => t;
+  let arccos: t => t;
+  let cosh: t => t;
+  let arccosh: t => t;
   let tan: t => t;
+  let arctan: t => t;
+  let tanh: t => t;
+  let arctanh: t => t;
 };
 
 module type BaseValue = {
   include Scalar;
-  let of_matrix_elements: (~numRows: int, ~numColumns: int, array(t)) => t;
+  let of_matrix_elements: (~rows: int, ~columns: int, array(t)) => t;
   let to_int: t => option(int);
 
   let dot: (t, t) => t;

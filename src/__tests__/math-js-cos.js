@@ -1,6 +1,6 @@
 const mathjs = require("mathjs");
-const { toMatchJsValue } = require("../testUtil");
-const { trigValues } = require("../testUtil/math-js");
+const { toMatchJsValue } = require("../__test-util__");
+const { trigValues } = require("../__test-util__/math-js");
 const SciLine = require("../SciLine.bs");
 
 expect.extend({ toMatchJsValue });

@@ -1,5 +1,5 @@
-const { toMatchJsValue } = require("../testUtil");
-const { trigValues } = require("../testUtil/math-native");
+const { toMatchJsValue } = require("../__test-util__");
+const { trigValues } = require("../__test-util__/math-native");
 const SciLine = require("../SciLine.bs");
 
 expect.extend({ toMatchJsValue });

@@ -1,12 +1,14 @@
 const mathjs = require("mathjs");
 const { toMatchJsValue } = require("../__test-util__");
-const { trigValues } = require("../__test-util__/math-js");
+const { imagValues } = require("../__test-util__/math-js");
 const SciLine = require("../SciLine.bs");
 
 expect.extend({ toMatchJsValue });
 
-trigValues.forEach(v => {
+imagValues.forEach(v => {
   it(v.title, () => {
-    expect(SciLine.tan(v.sciLineValue)).toMatchJsValue(mathjs.tan(v.jsValue));
+    expect(SciLine.arccos(v.sciLineValue)).toMatchJsValue(
+      mathjs.acos(v.jsValue)
+    );
   });
 });

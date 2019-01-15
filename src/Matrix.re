@@ -18,16 +18,11 @@ module Make = (Number: Types.Scalar) => {
     elements: array(Number.t),
   };
 
-  let init = (~numRows, ~numColumns, elements) => {
-    numRows,
-    numColumns,
-    elements,
-  };
+  let _element_index = (~numColumns, row, column) =>
+    column +% row *% numColumns;
 
   let nan = {numRows: 0, numColumns: 0, elements: [||]};
   let is_nan = a => Array.length(a.elements) ==% 0;
-
-  let to_array_matrix = a => a.elements;
 
   let shape_equal = (a, b) =>
     a.numRows ==% b.numRows && a.numColumns ==% b.numColumns;
@@ -71,14 +66,46 @@ module Make = (Number: Types.Scalar) => {
 
   let from_elements = (~rows as numRows, ~columns as numColumns, elements) =>
     normalize({numRows, numColumns, elements});
+  let from_matrix = elements => {
+    let numRows = Array.length(elements);
+    if (numRows > 0) {
+      let numColumns = Array.length(elements[0]);
+      let elements = Array.concat(Array.to_list(elements));
+      normalize({numRows, numColumns, elements});
+    } else {
+      nan;
+    };
+  };
+  let init = (~rows as numRows, ~columns as numColumns, fn) => {
+    let elements =
+      Array.init(
+        numRows *% numColumns,
+        elementIndex => {
+          let column = elementIndex mod numColumns;
+          let row = elementIndex /% numColumns;
+          fn(row, column);
+        },
+      );
+    normalize({numRows, numColumns, elements});
+  };
+  let from_identity = (~rows, ~columns) =>
+    init(~rows, ~columns, (row, column) =>
+      row ==% column ? Number.one : Number.zero
+    );
+  let to_elements = a => a.elements;
+  let to_matrix = ({numRows, numColumns, elements}) => {
+    Array.init(numRows, row =>
+      Array.init(numColumns, column =>
+        elements[_element_index(~numColumns, row, column)]
+      )
+    );
+  };
 
-  let mul_const = (c, a) => _map_elements(Number.mul(c), a);
-  let div_const = (c, a) => _map_elements(Number.div(c), a);
+  let mul_const = (a, c) => _map_elements(Number.mul(c), a);
+  let div_const = (a, c) => _map_elements(Number.div(c), a);
 
   let add = _combine(Number.add);
   let sub = _combine(Number.sub);
-
-  let _element_index = (~numRows, row, column) => column +% row *% numRows;
 
   let mul = (a, b) =>
     switch (a, b) {
@@ -92,24 +119,61 @@ module Make = (Number: Types.Scalar) => {
       }
     | (_, _) when a.numColumns ==% b.numRows =>
       let shape = a.numRows;
-      let elements =
-        Array.init(
-          shape *% shape,
-          elementIndex => {
-            let column = elementIndex mod shape;
-            let row = elementIndex /% shape;
-            let element = ref(Number.zero);
-            for (i in 0 to shape -% 1) {
-              let aIndex = _element_index(~numRows=shape, row, i);
-              let bIndex = _element_index(~numRows=shape, i, column);
-              element := element^ + a.elements[aIndex] * b.elements[bIndex];
-            };
-            element^;
-          },
-        );
-      {numRows: shape, numColumns: shape, elements};
+      init(
+        ~rows=shape,
+        ~columns=shape,
+        (row, column) => {
+          let element = ref(Number.zero);
+          for (i in 0 to shape -% 1) {
+            let aIndex = _element_index(~numColumns=shape, row, i);
+            let bIndex = _element_index(~numColumns=shape, i, column);
+            element := element^ + a.elements[aIndex] * b.elements[bIndex];
+          };
+          element^;
+        },
+      );
     | _ => nan
     };
+
+  let inverse = a =>
+    switch (a) {
+    | {numRows: 2, numColumns: 2, elements: [|a, b, c, d|]} =>
+      let factor = a * d - b * c;
+      let elements = [|d, - b, - c, a|];
+      div_const({numRows: 2, numColumns: 2, elements}, factor);
+    | {numRows: 3, numColumns: 3, elements: [|a, b, c, d, e, f, g, h, i|]} =>
+      /* https://www.wolframalpha.com/input/?i=%7B%7Ba,b,c%7D,%7Bd,e,f%7D,%7Bg,h,i%7D%7D%5E-1 */
+      let factor =
+        a * e * i - a * f * h - b * d * i + b * f * g + c * d * h - c * e * g;
+      let elements = [|
+        e * i - f * h,
+        c * h - b * i,
+        b * f - c * e,
+        f * g - d * i,
+        a * i - c * g,
+        c * d - a * f,
+        d * h - e * g,
+        b * g - a * h,
+        a * e - b * d,
+      |];
+      div_const({numRows: 3, numColumns: 3, elements}, factor);
+    | _ => nan
+    };
+
+  let rec pow_const = (a, c) => {
+    switch (Number.to_int(c)) {
+    | Some((-1)) => pow_const(inverse(a), c)
+    | Some(0) => from_identity(~rows=a.numRows, ~columns=a.numColumns)
+    | Some(1) => a
+    | Some(pow) when pow < 20 =>
+      let m = ref(a);
+      for (_ in 0 to pow) {
+        m := mul(m^, m^);
+      };
+      m^;
+    | _ => nan
+    };
+  };
 
   let dot = (a, b) =>
     switch (a, b) {

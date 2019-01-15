@@ -1,5 +1,5 @@
 const cartesian = require("cartesian");
-const { Value, range12, fractionsTo12 } = require("../testUtil");
+const { Value, range12, fractionsTo12 } = require(".");
 const SciLine = require("../SciLine.bs");
 
 const range12Values = range12.map(Value.float);

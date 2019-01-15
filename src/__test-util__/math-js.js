@@ -1,3 +1,4 @@
+const { range } = require("lodash");
 const cartesian = require("cartesian");
 const mathjs = require("mathjs");
 const { Value, fractionsTo12 } = require(".");
@@ -22,3 +23,9 @@ const trigValues = cartesian([fractionsTo12, fractionsTo12]).map(
 );
 
 module.exports.trigValues = trigValues;
+
+const imagValues = cartesian([
+  [0.5, ...range(-3, 3 + 1)],
+  [0.5, ...range(-3, 3 + 1)]
+]).map(([re, im]) => Value.complex(re, im));
+module.exports.imagValues = imagValues;

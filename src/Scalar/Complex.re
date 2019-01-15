@@ -3,8 +3,11 @@ let (+) = Real.add;
 let (-) = Real.sub;
 let ( * ) = Real.mul;
 let (/) = Real.div;
-/* let (mod) = Int64.rem; */
 let (~-) = Real.neg;
+let (>) = None;
+let (<) = None;
+let (>=) = None;
+let (<=) = None;
 
 type t = {
   re: Real.t,
@@ -42,19 +45,35 @@ let of_floats = (re, im) =>
 let to_float = a => is_real(a) ? Real.to_float(a.re) : Pervasives.nan;
 let to_floats = a => (Real.to_float(a.re), Real.to_float(a.im));
 
-let _magnitude = a => a.re * a.re + a.im * a.im;
-
-let _arg = a =>
-  Real.of_float(atan2(Real.to_float(a.im), Real.to_float(a.re)));
+let _magnitude2 = a => a.re * a.re + a.im * a.im;
+let _arg = ({re: x, im: y}) =>
+  if (x == Real.zero) {
+    switch (Pervasives.compare(Real.to_float(y), 0.0)) {
+    | 1 => Real.pi / Real.of_int(2)
+    | (-1) => Real.pi / Real.of_int(-2)
+    | _ => Real.nan
+    };
+  } else {
+    Real.of_float(atan2(Real.to_float(y), Real.to_float(x)));
+  };
 
 let to_int = a => is_real(a) ? Real.to_int(a.re) : None;
 
+let format_string = (format, x) =>
+  if (is_real(x)) {
+    format(x.re);
+  } else if (is_imaginary(x)) {
+    format(x.im) ++ " i";
+  } else {
+    format(x.re) ++ " + " ++ format(x.im) ++ " i";
+  };
+
+let to_string = format_string(Real.to_string);
+let to_latex = format_string(Real.to_latex);
+
 let neg = a => of_components(- a.re, - a.im);
-
 let abs = a => of_components(Real.abs(a.re), Real.abs(a.im));
-
 let add = (a, b) => of_components(a.re + b.re, a.im + b.im);
-
 let sub = (a, b) => of_components(a.re - b.re, a.im - b.im);
 
 let mul = (a, b) =>
@@ -76,7 +95,8 @@ let div = (a, b) =>
   } else if (is_real(a) && is_real(b)) {
     of_real(a.re / b.re);
   } else {
-    let s = _magnitude(b);
+    /* More precision than _magnitude */
+    let s = _magnitude2(b);
     let bReciprocal = of_components(b.re / s, - (b.im / s));
     mul(a, bReciprocal);
   };
@@ -85,7 +105,7 @@ let (+$) = add;
 let (-$) = sub;
 let ( *$ ) = mul;
 let (/$) = div;
-/* let (mod) = Int64.rem; */
+let (~-$) = neg;
 
 let exp = a => {
   let exp_part = Real.exp(a.re);
@@ -120,40 +140,106 @@ let tan = a =>
   };
 
 let log = a =>
-  if (is_real(a) && Pervasives.(==)(Real.to_float(a.re), -1.)) {
+  if (is_real(a) && Pervasives.(>)(Real.to_float(a.re), 0.)) {
+    of_real(Real.log(a.re));
+  } else if (is_real(a) && Pervasives.(==)(Real.to_float(a.re), -1.)) {
     of_imaginary(Real.pi);
   } else {
-    of_components(Real.log(_magnitude(a)), _arg(a));
+    of_components(Real.log(_magnitude2(a)) / Real.of_int(2), _arg(a));
   };
 
 let pow = (a, b) =>
-  if (equal(b, zero)) {
-    of_real(Real.one);
-  } else if (is_real(a)
-             && is_real(b)
-             && Pervasives.(>=)(Real.to_float(a.re), 0.)) {
+  if (is_real(a)
+      && is_real(b)
+      && (Real.is_integer(b.re) || Pervasives.(>=)(Real.to_float(a.re), 0.))) {
     of_real(Real.pow(a.re, b.re));
+  } else if (is_real(a) && a.re == Real.e) {
+    let multiplier = Real.exp(b.re);
+    of_components(multiplier * Real.cos(b.im), multiplier * Real.sin(b.im));
   } else if (is_real(a)
              && is_real(b)
              && Pervasives.(==)(Real.to_float(b.re), -0.5)) {
     of_imaginary(Real.sqrt(a.re));
-  } else if (is_real(a) && a.re == Real.e) {
-    of_components(Real.cos(a.re), Real.sin(a.im));
+  } else if (equal(a, zero)) {
+    /* b == 0 => NaN case handled in first branch */
+    zero;
   } else {
     exp(log(a) *$ b);
   };
 
 let sqrt = a => pow(a, of_real(Real.of_int(1, ~denominator=2)));
 
-let format_string = (format, x) =>
+let between_one_minus_one = x =>
   if (is_real(x)) {
-    format(x.re);
-  } else if (is_imaginary(x)) {
-    format(x.im) ++ " i";
+    let f = Pervasives.abs_float(Real.to_float(x.re));
+    Pervasives.(<=)(f, 1.0);
   } else {
-    format(x.re) ++ " + " ++ format(x.im) ++ " i";
+    false;
   };
 
-let to_string = format_string(Real.to_string);
-
-let to_latex = format_string(Real.to_latex);
+let factorial = x =>
+  if (is_real(x)) {
+    of_real(Real.factorial(x.re));
+  } else {
+    nan;
+  };
+let arcsin = x =>
+  if (between_one_minus_one(x)) {
+    of_real(Real.arcsin(x.re));
+  } else {
+    ~-$i *$ log(i *$ x +$ sqrt(one -$ x *$ x));
+  };
+let sinh = x =>
+  if (is_real(x)) {
+    of_real(Real.sinh(x.re));
+  } else {
+    (exp(x) -$ exp(~-$x)) /$ of_int(2);
+  };
+let arcsinh = x =>
+  if (is_real(x)) {
+    of_real(Real.arcsinh(x.re));
+  } else {
+    log(x +$ sqrt(x *$ x +$ one));
+  };
+let arccos = x =>
+  if (between_one_minus_one(x)) {
+    of_real(Real.arccos(x.re));
+  } else {
+    of_real(Real.pi / Real.of_int(2)) -$ arcsin(x);
+  };
+let cosh = x =>
+  if (is_real(x)) {
+    of_real(Real.cosh(x.re));
+  } else {
+    (exp(x) +$ exp(~-$x)) /$ of_int(2);
+  };
+let arccosh = x =>
+  if (is_real(x) && Pervasives.(>=)(Real.to_float(x.re), 1.0)) {
+    of_real(Real.arccosh(x.re));
+  } else {
+    log(x +$ sqrt(x *$ x -$ one));
+  };
+let arctan = x =>
+  if (is_real(x)) {
+    of_real(Real.arctan(x.re));
+  } else {
+    let {re: a, im: b} = x;
+    let c = Real.one - b;
+    let d = a * a + c * c;
+    let t1 =
+      of_components((Real.one - b * b - a * a) / d, Real.of_int(-2) * a / d)
+      |> log;
+    of_components(- t1.im, t1.re) /$ of_int(2);
+  };
+let tanh = x =>
+  if (is_real(x)) {
+    of_real(Real.tanh(x.re));
+  } else {
+    (exp(x) -$ exp(~-$x)) /$ (exp(x) +$ exp(~-$x));
+  };
+let arctanh = x =>
+  if (between_one_minus_one(x)) {
+    of_real(Real.arctanh(x.re));
+  } else {
+    log((one +$ x) /$ (one -$ x)) /$ of_int(2);
+  };
