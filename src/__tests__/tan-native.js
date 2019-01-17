@@ -20,10 +20,12 @@ const tanInfiniteValues = new Set([
 ]);
 
 trigValues.forEach(v => {
-  it(v.title, () => {
+  it(`tan ${v.title}`, () => {
     const sciLineValue = SciLine.tan(v.sciLineValue);
     if (tanInfiniteValues.has(v.title)) {
-      expect(SciLine.is_nan(SciLine.resolve(sciLineValue))).toBeTruthy();
+      expect(SciLine.to_string(SciLine.resolve(sciLineValue))).toBe(
+        "Math Error"
+      );
     } else {
       expect(sciLineValue).toMatchJsValue(Math.tan(v.jsValue));
     }

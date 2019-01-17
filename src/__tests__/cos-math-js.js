@@ -123,7 +123,7 @@ const cosImaginaryOnlyValues = new Set([
 ]);
 
 trigValues.forEach(v => {
-  it(v.title, () => {
+  it(`cos ${v.title}`, () => {
     let mathJsValue = mathjs.cos(v.jsValue);
     if (cosRealOnlyValues.has(v.title)) {
       mathJsValue = { re: mathJsValue.re, im: 0 };

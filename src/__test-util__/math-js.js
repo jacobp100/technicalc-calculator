@@ -25,7 +25,7 @@ const trigValues = cartesian([fractionsTo12, fractionsTo12]).map(
 module.exports.trigValues = trigValues;
 
 const imagValues = cartesian([
-  [0.5, ...range(-3, 3 + 1)],
-  [0.5, ...range(-3, 3 + 1)]
+  [0.5, 0.25, 0.75, ...range(-5, 5 + 1)],
+  [0.5, 0.25, 0.75, ...range(-5, 5 + 1)]
 ]).map(([re, im]) => Value.complex(re, im));
 module.exports.imagValues = imagValues;

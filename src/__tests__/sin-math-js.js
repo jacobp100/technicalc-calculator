@@ -123,7 +123,7 @@ const sinImaginaryOnlyValues = new Set([
 ]);
 
 trigValues.forEach(v => {
-  it(v.title, () => {
+  it(`sin ${v.title}`, () => {
     let mathJsValue = mathjs.sin(v.jsValue);
     if (sinRealOnlyValues.has(v.title)) {
       mathJsValue = { re: mathJsValue.re, im: 0 };

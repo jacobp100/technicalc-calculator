@@ -49,21 +49,6 @@ module Make = (Number: Types.Scalar) => {
       a.elements,
     );
 
-  let _map_elements = (iter, a) =>
-    normalize({...a, elements: Array.map(iter, a.elements)});
-
-  let _combine = (iter, a, b) =>
-    if (shape_equal(a, b)) {
-      let elements =
-        Array.mapi(
-          (i, _) => iter(a.elements[i], b.elements[i]),
-          a.elements,
-        );
-      normalize({...a, elements});
-    } else {
-      nan;
-    };
-
   let from_elements = (~rows as numRows, ~columns as numColumns, elements) =>
     normalize({numRows, numColumns, elements});
   let from_matrix = elements => {
@@ -101,11 +86,26 @@ module Make = (Number: Types.Scalar) => {
     );
   };
 
-  let mul_const = (a, c) => _map_elements(Number.mul(c), a);
-  let div_const = (a, c) => _map_elements(Number.div(c), a);
+  let _combine = (iter, a, b) =>
+    if (shape_equal(a, b)) {
+      let elements =
+        Array.mapi(
+          (i, _) => iter(a.elements[i], b.elements[i]),
+          a.elements,
+        );
+      normalize({...a, elements});
+    } else {
+      nan;
+    };
 
   let add = _combine(Number.add);
   let sub = _combine(Number.sub);
+
+  let _map_elements = (iter, a) =>
+    normalize({...a, elements: Array.map(iter, a.elements)});
+
+  let mul_const = (a, c) => _map_elements(Number.mul(c), a);
+  let div_const = (a, c) => _map_elements(v => Number.div(v, c), a);
 
   let mul = (a, b) =>
     switch (a, b) {
@@ -160,14 +160,14 @@ module Make = (Number: Types.Scalar) => {
     | _ => nan
     };
 
-  let rec pow_const = (a, c) => {
+  let pow_const = (a, c) => {
     switch (Number.to_int(c)) {
-    | Some((-1)) => pow_const(inverse(a), c)
+    | Some((-1)) => inverse(a)
     | Some(0) => from_identity(~rows=a.numRows, ~columns=a.numColumns)
     | Some(1) => a
-    | Some(pow) when pow < 20 =>
+    | Some(pow) when pow < 20 && pow > 0 =>
       let m = ref(a);
-      for (_ in 0 to pow) {
+      for (_ in 2 to pow) {
         m := mul(m^, m^);
       };
       m^;
@@ -177,21 +177,17 @@ module Make = (Number: Types.Scalar) => {
 
   let dot = (a, b) =>
     switch (a, b) {
-    | ({numColumns: 1, elements: aElem}, {numColumns: 1, elements: bElem}) =>
+    | ({numColumns: 1, elements: aElem}, {numColumns: 1, elements: bElem})
+        when a.numRows ==% b.numRows =>
       let accum = ref(Number.zero);
       Array.iteri((i, _) => accum := accum^ + aElem[i] * bElem[i], aElem);
       accum^;
     | _ => Number.nan
     };
 
-  let div = (_a, _b) => nan;
-
   let det = a =>
     switch (a) {
-    | {numColumns: 1} =>
-      a.elements
-      |> Array.map(Number.pow(_, Number.of_int(2)))
-      |> Array.fold_left(Number.add, Number.zero)
+    | {numColumns: 1} => dot(a, a)
     | {numRows: 2, numColumns: 2, elements: [|a, b, c, d|]} => a * d - b * c
     | {numRows: 3, numColumns: 3, elements: [|a, b, c, d, e, f, g, h, i|]} =>
       /* https://www.wolframalpha.com/input/?i=det(%7B%7Ba,b,c%7D,%7Bd,e,f%7D,%7Bg,h,i%7D%7D) */

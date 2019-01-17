@@ -90,7 +90,6 @@ module Make = (Number: Types.Scalar) => {
   let div = (a, b) =>
     switch (a, b) {
     | (Scalar(aS), Scalar(bS)) => of_scalar(Number.div(aS, bS))
-    | (Matrix(aM), Matrix(bM)) => of_matrix(NumberMatrix.div(aM, bM))
     | (Matrix(aM), Scalar(aS)) => of_matrix(NumberMatrix.div_const(aM, aS))
     | _ => nan
     };

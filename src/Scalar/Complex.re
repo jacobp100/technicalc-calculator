@@ -8,6 +8,11 @@ let (>) = None;
 let (<) = None;
 let (>=) = None;
 let (<=) = None;
+let (==%) = Pervasives.(==);
+let (>%) = Pervasives.(>);
+let (<%) = Pervasives.(<);
+let (>=%) = Pervasives.(>=);
+let (<=%) = Pervasives.(<=);
 
 type t = {
   re: Real.t,
@@ -140,9 +145,9 @@ let tan = a =>
   };
 
 let log = a =>
-  if (is_real(a) && Pervasives.(>)(Real.to_float(a.re), 0.)) {
+  if (is_real(a) && Real.to_float(a.re) >% 0.) {
     of_real(Real.log(a.re));
-  } else if (is_real(a) && Pervasives.(==)(Real.to_float(a.re), -1.)) {
+  } else if (is_real(a) && Real.to_float(a.re) ==% (-1.)) {
     of_imaginary(Real.pi);
   } else {
     of_components(Real.log(_magnitude2(a)) / Real.of_int(2), _arg(a));
@@ -151,15 +156,16 @@ let log = a =>
 let pow = (a, b) =>
   if (is_real(a)
       && is_real(b)
-      && (Real.is_integer(b.re) || Pervasives.(>=)(Real.to_float(a.re), 0.))) {
+      && (Real.is_integer(b.re) || Real.to_float(a.re) >=% 0.)) {
     of_real(Real.pow(a.re, b.re));
   } else if (is_real(a) && a.re == Real.e) {
     let multiplier = Real.exp(b.re);
     of_components(multiplier * Real.cos(b.im), multiplier * Real.sin(b.im));
   } else if (is_real(a)
              && is_real(b)
-             && Pervasives.(==)(Real.to_float(b.re), -0.5)) {
-    of_imaginary(Real.sqrt(a.re));
+             && Pervasives.(<)(Real.to_float(a.re), 0.)
+             && Pervasives.(==)(Real.to_float(b.re), 0.5)) {
+    of_imaginary(Real.sqrt(- a.re));
   } else if (equal(a, zero)) {
     /* b == 0 => NaN case handled in first branch */
     zero;
@@ -172,7 +178,7 @@ let sqrt = a => pow(a, of_real(Real.of_int(1, ~denominator=2)));
 let between_one_minus_one = x =>
   if (is_real(x)) {
     let f = Pervasives.abs_float(Real.to_float(x.re));
-    Pervasives.(<=)(f, 1.0);
+    f <=% 1.0;
   } else {
     false;
   };
@@ -214,10 +220,16 @@ let cosh = x =>
     (exp(x) +$ exp(~-$x)) /$ of_int(2);
   };
 let arccosh = x =>
-  if (is_real(x) && Pervasives.(>=)(Real.to_float(x.re), 1.0)) {
+  if (is_real(x) && Real.to_float(x.re) >=% 1.0) {
     of_real(Real.arccosh(x.re));
   } else {
-    log(x +$ sqrt(x *$ x -$ one));
+    /* From complex.js library */
+    let res = arccos(x);
+    if (Real.to_float(res.im) <=% 0.) {
+      of_components(- res.im, res.re);
+    } else {
+      of_components(res.im, - res.re);
+    };
   };
 let arctan = x =>
   if (is_real(x)) {

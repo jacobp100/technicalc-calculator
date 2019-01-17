@@ -7,9 +7,9 @@ const SciLine = require("../SciLine.bs");
 expect.extend({ toMatchJsValue });
 
 cartesian([imagValues, imagValues]).forEach(([a, b]) => {
-  it(`${a.title} * ${b.title}`, () => {
-    expect(SciLine.div(a.sciLineValue, b.sciLineValue)).toMatchJsValue(
-      mathjs.divide(a.jsValue, b.jsValue)
+  it(`${a.title} - ${b.title}`, () => {
+    expect(SciLine.sub(a.sciLineValue, b.sciLineValue)).toMatchJsValue(
+      mathjs.subtract(a.jsValue, b.jsValue)
     );
   });
 });

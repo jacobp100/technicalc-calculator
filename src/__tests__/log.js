@@ -6,9 +6,7 @@ const SciLine = require("../SciLine.bs");
 expect.extend({ toMatchJsValue });
 
 imagValues.forEach(v => {
-  it(v.title, () => {
-    expect(SciLine.arctan(v.sciLineValue)).toMatchJsValue(
-      mathjs.atan(v.jsValue)
-    );
+  it(`log ${v.title}`, () => {
+    expect(SciLine.log(v.sciLineValue)).toMatchJsValue(mathjs.log(v.jsValue));
   });
 });

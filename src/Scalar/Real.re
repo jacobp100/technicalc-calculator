@@ -319,9 +319,9 @@ let pow = (a, b) =>
   | (Value(ar, Exp(ac)), _) when ar == Qt.one && Zt.equal(ac, Zt.one) =>
     exp(b)
   | (Value(ar, None), Value(br, None))
-      when q_is_integer(ar) && q_is_integer(br) && br > Qt.zero =>
-    let (an, bn) = (Qt.num(ar), Qt.num(br));
-    of_z(Zt.pow(an, bn));
+      when q_is_integer(br) && br > Qt.zero =>
+    let (an, ad, bn) = (Qt.num(ar), Qt.den(ar), Qt.num(br));
+    of_q(Qt.make(Zt.pow(an, bn), Zt.pow(ad, bn)));
   | (Value(_), Value(_)) => of_float(to_float(a) ** to_float(b))
   | (NaN, _)
   | (_, NaN) => NaN
@@ -413,6 +413,7 @@ let arccosh = x =>
   switch (_check_bounds(~lower=1.0, x)) {
   | Inside(f) =>
     of_float(Pervasives.log(f +. Pervasives.sqrt(f *. f -. 1.0)))
+  | LowerBound => zero
   | _ => NaN
   };
 let arctan = _map_float(atan);

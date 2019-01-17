@@ -5,7 +5,7 @@ const SciLine = require("../SciLine.bs");
 expect.extend({ toMatchJsValue });
 
 trigValues.forEach(v => {
-  it(v.title, () => {
-    expect(SciLine.cos(v.sciLineValue)).toMatchJsValue(Math.cos(v.jsValue));
+  it(`sin ${v.title}`, () => {
+    expect(SciLine.sin(v.sciLineValue)).toMatchJsValue(Math.sin(v.jsValue));
   });
 });

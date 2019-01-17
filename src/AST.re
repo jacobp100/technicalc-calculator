@@ -48,6 +48,7 @@ module Make = (V: Types.BaseValue) => {
   let mul = (a, b) => Mul(a, b);
   let div = (a, b) => Div(a, b);
   let pow = (a, b) => Pow(a, b);
+  let dot = (a, b) => Dot(a, b);
   let abs = a => Abs(a);
   let sqrt = a => Sqrt(a);
   let exp = a => Exp(a);
