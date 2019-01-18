@@ -119,17 +119,28 @@ let to_string = (~format=OutputFormat.default, a) => {
       minus ++ "\\frac{" ++ numerator ++ constant ++ "}{" ++ denominator ++ "}"
     };
   | (Natural | Decimal, Value(_)) =>
-    let outside_magnitude_threshold =
+    let inside_magnitude_threshold =
       value_magnitude
-      <% format.decimal_min_magnitude
-      || value_magnitude
-      >% format.decimal_max_magnitude;
-    let exponent = outside_magnitude_threshold ? value_magnitude : 0.;
-    NumberFormat.format_exponential(
-      ~exponent,
-      NumberFormat.create_format(~max_decimal_places=format.precision, ()),
-      value,
-    );
+      >=% format.decimal_min_magnitude
+      && value_magnitude
+      <=% format.decimal_max_magnitude;
+
+    if (inside_magnitude_threshold) {
+      NumberFormat.format_decimal(
+        NumberFormat.create_format(
+          ~max_decimal_places=format.precision,
+          ~digit_separators=value_magnitude >=% 5.,
+          (),
+        ),
+        value,
+      );
+    } else {
+      NumberFormat.format_exponential(
+        ~exponent=value_magnitude,
+        NumberFormat.create_format(~max_decimal_places=format.precision, ()),
+        value,
+      );
+    };
   | (Scientific, Value(_)) =>
     let exponent = floor(ceil(value_magnitude) /. 3.) *. 3.;
     NumberFormat.format_exponential(

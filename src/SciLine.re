@@ -75,9 +75,9 @@ let _create_formater = mode =>
       OutputFormat.mode,
       style:
         switch (styleGet(f)) {
-        | Some("natural") => Natural
+        | Some("decimal") => Decimal
         | Some("Scientific") => Scientific
-        | _ => Decimal
+        | _ => Natural
         },
       precision:
         Util.default(OutputFormat.default.precision, precisionGet(f)),

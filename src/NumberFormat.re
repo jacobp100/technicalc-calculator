@@ -1,14 +1,19 @@
 type formatting = {
   min_decimal_places: option(int),
   max_decimal_places: option(int),
-  digit_separator: bool,
+  digit_separators: bool,
 };
 
 let create_format =
-    (~min_decimal_places=?, ~max_decimal_places=?, ~digit_separator=false, ()) => {
+    (
+      ~min_decimal_places=?,
+      ~max_decimal_places=?,
+      ~digit_separators=false,
+      (),
+    ) => {
   min_decimal_places,
   max_decimal_places,
-  digit_separator,
+  digit_separators,
 };
 
 let _get_decimal_bounds = f =>
@@ -72,7 +77,7 @@ let format_decimal = (formatting, num) => {
     };
 
   let string =
-    if (formatting.digit_separator) {
+    if (formatting.digit_separators) {
       add_digit_separators(~end_index=decimal_index, string);
     } else {
       string;
