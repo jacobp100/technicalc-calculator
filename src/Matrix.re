@@ -1,3 +1,8 @@
+let _element_index = (~numColumns, row, column) => column + row * numColumns;
+
+let _joined_elements = (elements, join, fn) =>
+  String.concat(join, Array.to_list(Array.init(elements, fn)));
+
 module Make = (Number: Types.Scalar) => {
   let (==) = Number.equal;
   let (+) = Number.add;
@@ -18,8 +23,28 @@ module Make = (Number: Types.Scalar) => {
     elements: array(Number.t),
   };
 
-  let _element_index = (~numColumns, row, column) =>
-    column +% row *% numColumns;
+  let to_string = (~format=OutputFormat.default, a) => {
+    let element_string = (row, column) =>
+      Number.to_string(~format, a.elements[a.numColumns *% row +% column]);
+
+    switch (format.mode) {
+    | String =>
+      let bracketed_elements = (elements, fn) =>
+        "{" ++ _joined_elements(elements, ", ", fn) ++ "}";
+      let create_row = row =>
+        bracketed_elements(a.numColumns, column =>
+          element_string(row, column)
+        );
+      bracketed_elements(a.numRows, create_row);
+    | Latex =>
+      let create_row = row =>
+        _joined_elements(a.numColumns, " && ", column =>
+          element_string(row, column)
+        );
+      let body = _joined_elements(a.numRows, " \\\\\n", create_row);
+      "\\begin{bmatrix}\n" ++ body ++ "\n\\end{bmatrix}";
+    };
+  };
 
   let nan = {numRows: 0, numColumns: 0, elements: [||]};
   let is_nan = a => Array.length(a.elements) ==% 0;
@@ -196,26 +221,4 @@ module Make = (Number: Types.Scalar) => {
     };
 
   let neg = _map_elements(Number.neg);
-
-  let _joined_elements = (elements, join, fn) =>
-    String.concat(join, Array.to_list(Array.init(elements, fn)));
-
-  let to_string = a => {
-    let bracketed_elements = (elements, fn) =>
-      "{" ++ _joined_elements(elements, ", ", fn) ++ "}";
-    let create_row = row =>
-      bracketed_elements(a.numColumns, column =>
-        Number.to_string(a.elements[a.numColumns *% row +% column])
-      );
-    bracketed_elements(a.numRows, create_row);
-  };
-
-  let to_latex = a => {
-    let create_row = row =>
-      _joined_elements(a.numColumns, " && ", column =>
-        Number.to_latex(a.elements[a.numColumns *% row +% column])
-      );
-    let body = _joined_elements(a.numRows, " \\\\\n", create_row);
-    "\\begin{bmatrix}\n" ++ body ++ "\n\\end{bmatrix}";
-  };
 };

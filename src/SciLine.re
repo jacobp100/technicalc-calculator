@@ -55,5 +55,36 @@ let to_floats_matrix = _map_matrix(Complex.to_float);
 let to_complex_floats_matrix = _map_matrix(Complex.to_floats);
 
 let is_nan = a => SciLineValue.is_nan(Result.unwrap(a));
-let to_string = a => SciLineValue.to_string(Result.unwrap(a));
-let to_latex = a => SciLineValue.to_latex(Result.unwrap(a));
+
+[@bs.deriving abstract]
+type format = {
+  [@bs.optional]
+  mode: string,
+  [@bs.optional]
+  precision: int,
+};
+
+let _get_format = (mode, maybeFormat) =>
+  switch (maybeFormat) {
+  | Some(f) => {
+      OutputFormat.mode,
+      style:
+        switch (modeGet(f)) {
+        | Some("natural") => Natural
+        | Some("Scientific") => Scientific
+        | _ => Numerical
+        },
+      precision: Util.default(12, precisionGet(f)),
+    }
+  | None => {...OutputFormat.default, mode}
+  };
+
+let to_string =
+  (. a, f) =>
+    SciLineValue.to_string(
+      ~format=_get_format(String, f),
+      Result.unwrap(a),
+    );
+let to_latex =
+  (. a, f) =>
+    SciLineValue.to_string(~format=_get_format(Latex, f), Result.unwrap(a));

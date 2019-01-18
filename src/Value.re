@@ -145,17 +145,10 @@ module Make = (Number: Types.Scalar) => {
   let tanh = _map_scalar(Number.tanh);
   let arctanh = _map_scalar(Number.arctanh);
 
-  let to_string = x =>
+  let to_string = (~format=OutputFormat.default, x) =>
     switch (x) {
-    | Scalar(xS) => Number.to_string(xS)
-    | Matrix(xM) => NumberMatrix.to_string(xM)
-    | NaN => "Math Error"
-    };
-
-  let to_latex = x =>
-    switch (x) {
-    | Scalar(xS) => Number.to_latex(xS)
-    | Matrix(xM) => NumberMatrix.to_latex(xM)
+    | Scalar(xS) => Number.to_string(~format, xS)
+    | Matrix(xM) => NumberMatrix.to_string(~format, xM)
     | NaN => "Math Error"
     };
 };

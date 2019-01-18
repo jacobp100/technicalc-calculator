@@ -1,7 +1,7 @@
 const Real = require("../Scalar/Real.bs");
 
 const float = Real.of_float.bind(null, undefined);
-const stringOf = Real.to_string;
+const stringOf = Real.to_string.bind(null, undefined);
 
 it("Converts decimals to fractions", () => {
   expect(stringOf(float(0.4))).toBe("2/5");

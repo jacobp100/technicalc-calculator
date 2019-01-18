@@ -59,19 +59,17 @@ let simplify = a =>
   | v => (Zt.one, v)
   };
 
-let to_string = a =>
-  switch (a) {
-  | None => ""
-  | Pi => "pi"
-  | Exp(v) => "exp(" ++ Zt.to_string(v) ++ ")"
-  | Sqrt(v) => "sqrt(" ++ Zt.to_string(v) ++ ")"
-  };
-
-let to_latex = a =>
-  switch (a) {
-  | None => ""
-  | Pi => "pi"
-  | Exp(v) when Zt.equal(v, Zt.one) => "e"
-  | Exp(v) => "e^{" ++ Zt.to_string(v) ++ "}"
-  | Sqrt(v) => "\\sqrt{" ++ Zt.to_string(v) ++ "}"
+let to_string = (~format=OutputFormat.default, a) =>
+  switch (format.mode, a) {
+  | (_, None) => ""
+  | (_, Pi) => "pi"
+  | (String, Exp(v)) =>
+    "exp(" ++ NumberFormat.add_digit_separators(Zt.to_string(v)) ++ ")"
+  | (String, Sqrt(v)) =>
+    "sqrt(" ++ NumberFormat.add_digit_separators(Zt.to_string(v)) ++ ")"
+  | (Latex, Exp(v)) when Zt.equal(v, Zt.one) => "e"
+  | (Latex, Exp(v)) =>
+    "e^{" ++ NumberFormat.add_digit_separators(Zt.to_string(v)) ++ "}"
+  | (Latex, Sqrt(v)) =>
+    "\\sqrt{" ++ NumberFormat.add_digit_separators(Zt.to_string(v)) ++ "}"
   };

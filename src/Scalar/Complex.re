@@ -64,17 +64,19 @@ let _arg = ({re: x, im: y}) =>
 
 let to_int = a => is_real(a) ? Real.to_int(a.re) : None;
 
-let format_string = (format, x) =>
+let to_string = (~format=OutputFormat.default, x) =>
   if (is_real(x)) {
-    format(x.re);
+    Real.to_string(~format, x.re);
   } else if (is_imaginary(x)) {
-    format(x.im) ++ " i";
+    Real.to_string(~format, x.im) ++ "i";
   } else {
-    format(x.re) ++ " + " ++ format(x.im) ++ " i";
+    let format = {...format, precision: Pervasives.(/)(format.precision, 2)};
+    let op = Real.to_float(x.im) >=% 0. ? "+" : "";
+    Real.to_string(~format, x.re)
+    ++ op
+    ++ Real.to_string(~format, x.im)
+    ++ "i";
   };
-
-let to_string = format_string(Real.to_string);
-let to_latex = format_string(Real.to_latex);
 
 let neg = a => of_components(- a.re, - a.im);
 let abs = a => of_components(Real.abs(a.re), Real.abs(a.im));

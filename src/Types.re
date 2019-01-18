@@ -2,6 +2,7 @@ module type BasicMath = {
   type t;
   let nan: t;
   let is_nan: t => bool;
+  let to_string: (~format: OutputFormat.format=?, t) => string;
   let equal: (t, t) => bool;
   let add: (t, t) => t;
   let sub: (t, t) => t;
@@ -16,8 +17,6 @@ module type Scalar = {
   let of_int: int => t;
   let of_float: float => t;
   let to_int: t => option(int);
-  let to_string: t => string;
-  let to_latex: t => string;
   let zero: t;
   let one: t;
   let minus_one: t;

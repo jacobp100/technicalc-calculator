@@ -14,5 +14,3 @@ let of_floats: (float, float) => t;
 
 let to_float: t => float;
 let to_floats: t => (float, float);
-
-let to_string: t => string;

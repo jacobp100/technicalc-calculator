@@ -12,6 +12,11 @@ let (<) = Qt.lt;
 let (<=) = Qt.lte;
 let (>) = Qt.gt;
 let (>=) = Qt.gte;
+let (==%) = Pervasives.(==);
+let (>%) = Pervasives.(>);
+let (<%) = Pervasives.(<);
+let (>=%) = Pervasives.(>=);
+let (<=%) = Pervasives.(<=);
 
 let _float_is_int = a => Pervasives.(==)(floor(a), a);
 
@@ -85,89 +90,49 @@ let of_q = (~constant=Constant.none, v) => normalize(Value(v, constant));
 let of_z = (~constant=Constant.none, v) =>
   of_q(~constant, Qt.make(v, Zt.one));
 
-type fractionFormat = {
-  minus_sign: bool,
-  numerator: option(Zt.t),
-  constant: option(Constant.t),
-  denominator: option(Zt.t),
-};
+let to_string = (~format=OutputFormat.default, a) => {
+  let value = to_float(a);
+  let abs_value = abs_float(value);
 
-type formatting =
-  | Fraction(fractionFormat)
-  | Decimal(float)
-  | Scientific(float)
-  | MathError;
-
-let format_fraction = (format: Formatting.format, a) =>
-  switch (format, a) {
-  | (Natural, Value(ar, ac)) when Zt.lt(Qt.den(ar), Zt.of_int(1000000)) =>
+  switch (format.style, a) {
+  | (Natural, Value(ar, constant))
+      when Zt.lt(Qt.den(ar), Zt.of_int(1000000)) && abs_value <% 1e8 =>
     let num = Qt.num(ar);
     let den = Qt.den(ar);
 
-    let showConstant = !Constant.equal(ac, None);
+    let showConstant = !Constant.equal(constant, None);
     let showNumerator = !Zt.equal(num, Zt.one) || !showConstant;
     let showDenominator = !Zt.equal(den, Zt.one);
 
-    let minus_sign = !showNumerator && Qt.lt(ar, Qt.zero);
-    let numerator = showNumerator ? Some(num) : None;
-    let constant = showConstant ? Some(ac) : None;
-    let denominator = showDenominator ? Some(den) : None;
+    let minus = !showNumerator && Qt.lt(ar, Qt.zero) ? "-" : "";
+    let constant = showConstant ? Constant.to_string(~format, constant) : "";
+    let numerator =
+      showNumerator ?
+        NumberFormat.add_digit_separators(Zt.to_string(num)) : "";
+    let denominator = NumberFormat.add_digit_separators(Zt.to_string(den));
 
-    Fraction({minus_sign, numerator, constant, denominator});
-  | (Natural | Numerical, Value(_)) => Decimal(to_float(a))
-  | (Scientific, Value(_)) => Scientific(to_float(a))
-  | (_, NaN) => MathError
+    switch (format.mode, showDenominator) {
+    | (_, false) => minus ++ numerator ++ constant
+    | (String, true) => minus ++ numerator ++ constant ++ "/" ++ denominator
+    | (Latex, true) =>
+      minus ++ "\\frac{" ++ numerator ++ constant ++ "}{" ++ denominator ++ "}"
+    };
+  | (Natural | Numerical, Value(_)) =>
+    NumberFormat.format_exponential(
+      NumberFormat.create_format(~max_decimal_places=format.precision, ()),
+      value,
+    )
+  | (Scientific, Value(_)) =>
+    let value_magnitude = value ==% 0. ? 0. : floor(log10(abs_value));
+    let exponent = floor(ceil(value_magnitude) /. 3.) *. 3.;
+    NumberFormat.format_exponential(
+      ~exponent,
+      NumberFormat.create_format(~max_decimal_places=format.precision, ()),
+      value,
+    );
+  | (_, NaN) => "NaN"
   };
-
-let to_string = a =>
-  switch (format_fraction(Natural, a)) {
-  | Fraction({minus_sign, numerator, constant, denominator}) =>
-    let body = ref("");
-    if (minus_sign) {
-      body := body^ ++ "-";
-    };
-    switch (numerator) {
-    | Some(n) => body := body^ ++ Zt.to_string(n)
-    | _ => ()
-    };
-    switch (constant) {
-    | Some(c) => body := body^ ++ Constant.to_string(c)
-    | _ => ()
-    };
-    switch (denominator) {
-    | Some(d) => body := body^ ++ "/" ++ Zt.to_string(d)
-    | _ => ()
-    };
-    body^;
-  | Decimal(f)
-  | Scientific(f) => string_of_float(f)
-  | MathError => "NaN"
-  };
-
-let to_latex = a =>
-  switch (format_fraction(Natural, a)) {
-  | Fraction({minus_sign, numerator, constant, denominator}) =>
-    let body = ref("");
-    switch (numerator) {
-    | Some(n) => body := body^ ++ Zt.to_string(n)
-    | _ => ()
-    };
-    switch (constant) {
-    | Some(c) => body := body^ ++ Constant.to_latex(c)
-    | _ => ()
-    };
-    switch (denominator) {
-    | Some(d) => body := "\\frac{" ++ body^ ++ "}{" ++ Zt.to_string(d) ++ "}"
-    | _ => ()
-    };
-    if (minus_sign) {
-      body := body^ ++ "-";
-    };
-    body^;
-  | Decimal(f) => string_of_float(f)
-  | Scientific(f) => string_of_float(f)
-  | MathError => "NaN"
-  };
+};
 
 let q_is_integer = a => Zt.equal(Qt.den(a), Zt.one);
 let is_integer = a =>
@@ -178,8 +143,7 @@ let is_integer = a =>
 
 let equal = (a, b) =>
   switch (a, b) {
-  | (Value(aq, ac), Value(bq, bc)) =>
-    Qt.equal(aq, bq) && Constant.equal(ac, bc)
+  | (Value(aq, ac), Value(bq, bc)) => aq == bq && Constant.equal(ac, bc)
   | _ => false
   };
 
@@ -358,34 +322,9 @@ let _map_float = (fn, x) =>
   | NaN => NaN
   };
 
-type boundary =
-  | BothBound
-  | UpperBound
-  | LowerBound
-  | Inside(float)
-  | Outside;
-
 let _check_bounds = (~lower=?, ~upper=?, x) =>
   switch (x) {
-  | Value(_) =>
-    let f = to_float(x);
-    let lowerCompare =
-      switch (lower) {
-      | Some(l) => compare(l, f)
-      | None => (-1)
-      };
-    let upperCompare =
-      switch (upper) {
-      | Some(u) => compare(u, f)
-      | None => 1
-      };
-    switch (lowerCompare, upperCompare) {
-    | (0, 0) => BothBound
-    | (0, _) => LowerBound
-    | (_, 0) => UpperBound
-    | ((-1), 1) => Inside(f)
-    | _ => Outside
-    };
+  | Value(_) => Util.bounds(~lower?, ~upper?, to_float(x))
   | NaN => Outside
   };
 
