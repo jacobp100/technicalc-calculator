@@ -59,32 +59,41 @@ let is_nan = a => SciLineValue.is_nan(Result.unwrap(a));
 [@bs.deriving abstract]
 type format = {
   [@bs.optional]
-  mode: string,
+  style: string,
   [@bs.optional]
   precision: int,
+  [@bs.optional]
+  decimal_min_magnitude: float,
+  [@bs.optional]
+  decimal_max_magnitude: float,
 };
 
-let _get_format = (mode, maybeFormat) =>
-  switch (maybeFormat) {
-  | Some(f) => {
+let _create_formater = mode =>
+  (. x, maybeFormat) => {
+    let f = Util.default(format(), maybeFormat);
+    let format = {
       OutputFormat.mode,
       style:
-        switch (modeGet(f)) {
+        switch (styleGet(f)) {
         | Some("natural") => Natural
         | Some("Scientific") => Scientific
-        | _ => Numerical
+        | _ => Decimal
         },
-      precision: Util.default(12, precisionGet(f)),
-    }
-  | None => {...OutputFormat.default, mode}
+      precision:
+        Util.default(OutputFormat.default.precision, precisionGet(f)),
+      decimal_min_magnitude:
+        Util.default(
+          OutputFormat.default.decimal_min_magnitude,
+          decimal_min_magnitudeGet(f),
+        ),
+      decimal_max_magnitude:
+        Util.default(
+          OutputFormat.default.decimal_max_magnitude,
+          decimal_max_magnitudeGet(f),
+        ),
+    };
+    SciLineValue.to_string(~format, Result.unwrap(x));
   };
 
-let to_string =
-  (. a, f) =>
-    SciLineValue.to_string(
-      ~format=_get_format(String, f),
-      Result.unwrap(a),
-    );
-let to_latex =
-  (. a, f) =>
-    SciLineValue.to_string(~format=_get_format(Latex, f), Result.unwrap(a));
+let to_string = _create_formater(String);
+let to_latex = _create_formater(Latex);

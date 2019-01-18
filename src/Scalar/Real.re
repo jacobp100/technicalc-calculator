@@ -93,6 +93,7 @@ let of_z = (~constant=Constant.none, v) =>
 let to_string = (~format=OutputFormat.default, a) => {
   let value = to_float(a);
   let abs_value = abs_float(value);
+  let value_magnitude = value ==% 0. ? 0. : floor(log10(abs_value));
 
   switch (format.style, a) {
   | (Natural, Value(ar, constant))
@@ -117,17 +118,27 @@ let to_string = (~format=OutputFormat.default, a) => {
     | (Latex, true) =>
       minus ++ "\\frac{" ++ numerator ++ constant ++ "}{" ++ denominator ++ "}"
     };
-  | (Natural | Numerical, Value(_)) =>
-    NumberFormat.format_exponential(
-      NumberFormat.create_format(~max_decimal_places=format.precision, ()),
-      value,
-    )
-  | (Scientific, Value(_)) =>
-    let value_magnitude = value ==% 0. ? 0. : floor(log10(abs_value));
-    let exponent = floor(ceil(value_magnitude) /. 3.) *. 3.;
+  | (Natural | Decimal, Value(_)) =>
+    let outside_magnitude_threshold =
+      value_magnitude
+      <% format.decimal_min_magnitude
+      || value_magnitude
+      >% format.decimal_max_magnitude;
+    let exponent = outside_magnitude_threshold ? value_magnitude : 0.;
     NumberFormat.format_exponential(
       ~exponent,
       NumberFormat.create_format(~max_decimal_places=format.precision, ()),
+      value,
+    );
+  | (Scientific, Value(_)) =>
+    let exponent = floor(ceil(value_magnitude) /. 3.) *. 3.;
+    NumberFormat.format_exponential(
+      ~exponent,
+      NumberFormat.create_format(
+        ~min_decimal_places=format.precision,
+        ~max_decimal_places=format.precision,
+        (),
+      ),
       value,
     );
   | (_, NaN) => "NaN"
