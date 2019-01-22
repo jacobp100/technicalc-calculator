@@ -5,7 +5,7 @@
     "build": "bsb -make-world",
     "start": "bsb -make-world -w",
     "clean": "bsb -clean-world",
-    "bundle": "webpack ./src/SciLine.bs.js --output-library=SciLine",
+    "bundle": "webpack -p ./src/SciLine.bs.js --output-library=SciLine",
     "test": "jest"
   },
   "keywords": [

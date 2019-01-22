@@ -15,6 +15,7 @@ module Make = (V: Types.BaseValue) => {
     | Div(t, t)
     | Pow(t, t)
     | Dot(t, t)
+    | Neg(t)
     | Abs(t)
     | Sqrt(t)
     | Exp(t)
@@ -49,6 +50,7 @@ module Make = (V: Types.BaseValue) => {
   let div = (a, b) => Div(a, b);
   let pow = (a, b) => Pow(a, b);
   let dot = (a, b) => Dot(a, b);
+  let neg = a => Neg(a);
   let abs = a => Abs(a);
   let sqrt = a => Sqrt(a);
   let exp = a => Exp(a);
@@ -86,6 +88,7 @@ module Make = (V: Types.BaseValue) => {
     | Div(a, b) => V.div(eval(a), eval(b))
     | Pow(a, b) => V.pow(eval(a), eval(b))
     | Dot(a, b) => V.dot(eval(a), eval(b))
+    | Neg(a) => V.neg(eval(a))
     | Abs(a) => V.abs(eval(a))
     | Sqrt(a) => V.sqrt(eval(a))
     | Exp(a) => V.exp(eval(a))

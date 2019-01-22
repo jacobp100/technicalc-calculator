@@ -70,7 +70,7 @@ let to_string = (~format=OutputFormat.default, x) =>
   } else if (is_imaginary(x)) {
     Real.to_string(~format, x.im) ++ "i";
   } else {
-    let format = {...format, precision: Pervasives.(/)(format.precision, 2)};
+    let format = {...format, precision: Pervasives.(/)(format.precision, 3)};
     let op = Real.to_float(x.im) >=% 0. ? "+" : "";
     Real.to_string(~format, x.re)
     ++ op

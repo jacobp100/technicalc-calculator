@@ -95,6 +95,12 @@ let to_string = (~format=OutputFormat.default, a) => {
   let abs_value = abs_float(value);
   let value_magnitude = value ==% 0. ? 0. : floor(log10(abs_value));
 
+  let exponent_format =
+    switch (format.mode) {
+    | Latex => Some("\\times10^{$}")
+    | _ => None
+    };
+
   switch (format.style, a) {
   | (Natural, Value(ar, constant))
       when Zt.lt(Qt.den(ar), Zt.of_int(1000000)) && abs_value <% 1e8 =>
@@ -137,6 +143,7 @@ let to_string = (~format=OutputFormat.default, a) => {
     } else {
       NumberFormat.format_exponential(
         ~exponent=value_magnitude,
+        ~exponent_format?,
         NumberFormat.create_format(~max_decimal_places=format.precision, ()),
         value,
       );
@@ -145,6 +152,7 @@ let to_string = (~format=OutputFormat.default, a) => {
     let exponent = floor(ceil(value_magnitude) /. 3.) *. 3.;
     NumberFormat.format_exponential(
       ~exponent,
+      ~exponent_format?,
       NumberFormat.create_format(
         ~min_decimal_places=format.precision,
         ~max_decimal_places=format.precision,
@@ -301,9 +309,9 @@ let pow = (a, b) =>
   | (Value(ar, _), Value(_)) when ar == Qt.zero => zero
   | (Value(ar, None), Value(_)) when ar == Qt.one => one
   | (Value(_), Value(br, None)) when br == Qt.of_ints(1, 2) => sqrt(a)
-  | (Value(_), Value(br, None)) when br == Qt.of_int(2) => mul(a, a)
   | (Value(ar, Exp(ac)), _) when ar == Qt.one && Zt.equal(ac, Zt.one) =>
     exp(b)
+  | (Value(_), Value(br, None)) when br == Qt.of_int(2) => mul(a, a)
   | (Value(ar, None), Value(br, None))
       when q_is_integer(br) && br > Qt.zero =>
     let (an, ad, bn) = (Qt.num(ar), Qt.den(ar), Qt.num(br));

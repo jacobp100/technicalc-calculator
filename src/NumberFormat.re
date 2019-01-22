@@ -98,7 +98,7 @@ let format_exponential = (~exponent=?, ~exponent_format="e$", formatting, num) =
     ++ exponent_part
     ++ String.sub(
          exponent_format,
-         index,
+         index + 1,
          String.length(exponent_format) - 1 - index,
        );
   };
