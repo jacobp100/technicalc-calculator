@@ -159,12 +159,12 @@ let to_string = (~format=OutputFormat.default, a) => {
     let showNumerator = !Zt.equal(num, Zt.one) || !showConstant;
     let showDenominator = !Zt.equal(den, Zt.one);
 
+    let formatting = NumberFormat.create_format(~digit_separators=true, ());
     let minus = !showNumerator && Qt.lt(ar, Qt.zero) ? "-" : "";
     let constant = showConstant ? Constant.to_string(~format, constant) : "";
     let numerator =
-      showNumerator ?
-        NumberFormat.add_digit_separators(Zt.to_string(num)) : "";
-    let denominator = NumberFormat.add_digit_separators(Zt.to_string(den));
+      showNumerator ? NumberFormat.format_integer(formatting, num) : "";
+    let denominator = NumberFormat.format_integer(formatting, den);
 
     switch (format.mode, showDenominator) {
     | (_, false) => minus ++ numerator ++ constant
@@ -173,7 +173,7 @@ let to_string = (~format=OutputFormat.default, a) => {
       minus ++ "\\frac{" ++ numerator ++ constant ++ "}{" ++ denominator ++ "}"
     };
   | (Natural | Decimal, _, Some(aq)) =>
-    let value_magnitude = floor(log10(Qt.to_float(aq)));
+    let value_magnitude = floor(log10(abs_float(Qt.to_float(aq))));
     let inside_magnitude_threshold =
       value_magnitude
       >=% format.decimal_min_magnitude

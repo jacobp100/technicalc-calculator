@@ -58,47 +58,21 @@ let z_magnitude = x =>
   Zt.of_int(String.length(Zt.to_string(Zt.abs(x))) - 1);
 
 let q_magnitude = x => {
-  let two = Zt.of_int(2);
-  let ten = Zt.of_int(10);
+  /*
+   You *could* do something with exponential search (done previously).
+   However, you make so many instances of Zt, that this is likely much faster
+   */
   let abs_x = Qt.abs(x);
-
-  if (Qt.lt(abs_x, Qt.one)) {
-    let upper_bound = ref(Zt.of_int(-1));
-    while (Qt.lt(abs_x, q_exp_10(upper_bound^))) {
-      upper_bound := Zt.mul(upper_bound^, two);
-    };
-
-    let lower_bound = ref(Zt.div(upper_bound^, two));
-    while (Zt.gt(Zt.sub(lower_bound^, upper_bound^), Zt.one)) {
-      let mid = Zt.div(Zt.add(upper_bound^, lower_bound^), two);
-      if (Qt.lt(abs_x, q_exp_10(mid))) {
-        lower_bound := mid;
-      } else {
-        upper_bound := mid;
-      };
-    };
-
-    upper_bound^;
-  } else if (Qt.gte(abs_x, Qt.make(ten, Zt.one))) {
-    let upper_bound = ref(Zt.of_int(1));
-    while (Qt.gte(abs_x, q_exp_10(upper_bound^))) {
-      upper_bound := Zt.mul(upper_bound^, two);
-    };
-
-    let lower_bound = ref(Zt.div(upper_bound^, two));
-    while (Zt.gt(Zt.sub(upper_bound^, lower_bound^), Zt.one)) {
-      let mid = Zt.div(Zt.add(upper_bound^, lower_bound^), two);
-      if (Qt.gte(abs_x, q_exp_10(mid))) {
-        lower_bound := mid;
-      } else {
-        upper_bound := mid;
-      };
-    };
-
-    lower_bound^;
-  } else {
-    Zt.zero;
+  let approx = Zt.sub(z_magnitude(Qt.num(x)), z_magnitude(Qt.den(x)));
+  let approx = ref(approx);
+  while (Qt.lt(abs_x, q_exp_10(approx^))) {
+    approx := Zt.sub(approx^, Zt.one);
   };
+  while (Qt.gt(abs_x, q_exp_10(Zt.add(approx^, Zt.one)))) {
+    approx := Zt.add(approx^, Zt.one);
+  };
+  let exact = approx^;
+  exact;
 };
 
 let q_safe_mod_z = (a, b) => {

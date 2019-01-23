@@ -63,7 +63,7 @@ let add_digit_separators = (~start_index=0, ~end_index=?, string) => {
 let format_integer = (formatting, num) => {
   let str = Zt.to_string(num);
   if (formatting.digit_separators) {
-    add_digit_separators(str);
+    add_digit_separators(~start_index=Zt.lt(num, Zt.zero) ? 1 : 0, str);
   } else {
     str;
   };
@@ -73,18 +73,23 @@ let format_decimal = (formatting, num) => {
   let (min_decimal_places, max_decimal_places) =
     _get_decimal_bounds(formatting);
 
-  let integer = {
-    let integer_part = Util.q_floor(num);
-    let str = Zt.to_string(integer_part);
-    if (formatting.digit_separators) {
-      add_digit_separators(str);
-    } else {
-      str;
-    };
-  };
+  let abs_num = Qt.abs(num);
+
+  let integer =
+    format_integer(
+      formatting,
+      {
+        let abs_integer_part = Util.q_floor(abs_num);
+        if (Qt.lt(num, Qt.zero)) {
+          Zt.neg(abs_integer_part);
+        } else {
+          abs_integer_part;
+        };
+      },
+    );
 
   let decimal = {
-    let decimal_part = Util.q_safe_mod_z(num, Zt.one);
+    let decimal_part = Util.q_safe_mod_z(abs_num, Zt.one);
     let exp =
       Qt.make(
         Zt.pow(Zt.of_int(10), Zt.of_int(max_decimal_places)),

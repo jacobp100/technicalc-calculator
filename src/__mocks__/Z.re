@@ -35,6 +35,7 @@ module Bigint = {
   let pow: (t, t) => t = [%raw "(a, b) => a.pow(b)"];
 
   let abs: t => t = [%raw "(a) => a.abs()"];
+  let neg: t => t = [%raw "(a) => a.neg()"];
 
   let cmp: (t, t) => int = [%raw "(a, b) => a.cmp(b)"];
   let equal = (a, b) => cmp(a, b) == 0;
