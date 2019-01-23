@@ -3,7 +3,7 @@ module Qt = Q.Bigint;
 
 let (==) = Qt.equal;
 let (+) = Qt.add;
-/* let (-) = Qt.sub; */
+let (-) = Qt.sub;
 let ( * ) = Qt.mul;
 let (/) = Qt.div;
 /* let (mod) = Qt.rem; */
@@ -12,11 +12,18 @@ let (<) = Qt.lt;
 let (<=) = Qt.lte;
 let (>) = Qt.gt;
 let (>=) = Qt.gte;
+let (+%) = Pervasives.(+);
+let (-%) = Pervasives.(-);
 let (==%) = Pervasives.(==);
 let (>%) = Pervasives.(>);
 let (<%) = Pervasives.(<);
 let (>=%) = Pervasives.(>=);
 let (<=%) = Pervasives.(<=);
+let (|?) = (x, f) =>
+  switch (x) {
+  | Some(a) => Some(f(a))
+  | None => None
+  };
 
 let _float_is_int = a => Pervasives.(==)(floor(a), a);
 
@@ -49,6 +56,21 @@ let to_int = a =>
   | _ => None
   };
 
+let to_q = a => {
+  switch (a) {
+  | Value(aq, ac) =>
+    let f = Constant.to_float(ac);
+    switch (classify_float(f)) {
+    | FP_normal
+    | FP_subnormal => Some(aq * Qt.of_float(f))
+    | FP_zero => Some(Qt.zero)
+    | FP_infinite
+    | FP_nan => None
+    };
+  | NaN => None
+  };
+};
+
 let normalize = a =>
   /* Note redundant branches are for optimisation */
   switch (a) {
@@ -71,8 +93,7 @@ let of_float = (~constant=Constant.none, v) => {
     let magnitude = 1.e6;
     let int_max_f = float_of_int(max_int);
     let numerator_f = v *. magnitude;
-    if (Pervasives.(<)(abs_float(numerator_f), int_max_f)
-        && _float_is_int(numerator_f)) {
+    if (abs_float(numerator_f) <% int_max_f && _float_is_int(numerator_f)) {
       let numerator = int_of_float(numerator_f);
       let denominator = int_of_float(magnitude);
       normalize(of_int(numerator, ~denominator, ~constant));
@@ -87,23 +108,50 @@ let of_float = (~constant=Constant.none, v) => {
 
 let of_q = (~constant=Constant.none, v) => normalize(Value(v, constant));
 
-let of_z = (~constant=Constant.none, v) =>
-  of_q(~constant, Qt.make(v, Zt.one));
+let of_z = (~constant=Constant.none, ~denominator=Zt.one, v) =>
+  of_q(~constant, Qt.make(v, denominator));
+
+let of_string = (~constant=Constant.none, v) => {
+  let (withoutMagnitude, magnitudePart) = {
+    switch (Util.string_split_on_char('e', String.lowercase(v))) {
+    | [b, baseM] =>
+      let m =
+        baseM.[0] ==% '+' ?
+          String.sub(baseM, 1, String.length(baseM) -% 1) : baseM;
+      (Some(b), Some(m));
+    | [b] => (Some(b), Some("0"))
+    | _ => (None, None)
+    };
+  };
+  let (integerPart, decimalPart) =
+    switch (withoutMagnitude |? Util.string_split_on_char('.')) {
+    | Some([i, d]) => (Some(i), Some(d))
+    | Some([i]) => (Some(i), Some("0"))
+    | _ => (None, None)
+    };
+  switch (integerPart, decimalPart, magnitudePart) {
+  | (Some(integer), Some(decimal), Some(magnitude)) =>
+    let num = Zt.of_string(integer ++ decimal);
+    let denom = Zt.pow(Zt.of_int(10), Zt.of_int(String.length(decimal)));
+    let exponent = Util.q_exp_10(Zt.of_string(magnitude));
+    of_q(Qt.make(num, denom) * exponent, ~constant);
+  | _ => NaN
+  };
+};
 
 let to_string = (~format=OutputFormat.default, a) => {
-  let value = to_float(a);
-  let abs_value = abs_float(value);
-  let value_magnitude = value ==% 0. ? 0. : floor(log10(abs_value));
-
   let exponent_format =
     switch (format.mode) {
     | Latex => Some("\\times10^{$}")
     | _ => None
     };
 
-  switch (format.style, a) {
-  | (Natural, Value(ar, constant))
-      when Zt.lt(Qt.den(ar), Zt.of_int(1000000)) && abs_value <% 1e8 =>
+  switch (format.style, a, to_q(a)) {
+  | (Natural, Value(ar, constant), _)
+      when
+        Zt.lt(Qt.den(ar), Zt.of_int(1000000))
+        && abs_float(to_float(a))
+        <% 1e8 =>
     let num = Qt.num(ar);
     let den = Qt.den(ar);
 
@@ -124,7 +172,8 @@ let to_string = (~format=OutputFormat.default, a) => {
     | (Latex, true) =>
       minus ++ "\\frac{" ++ numerator ++ constant ++ "}{" ++ denominator ++ "}"
     };
-  | (Natural | Decimal, Value(_)) =>
+  | (Natural | Decimal, _, Some(aq)) =>
+    let value_magnitude = floor(log10(Qt.to_float(aq)));
     let inside_magnitude_threshold =
       value_magnitude
       >=% format.decimal_min_magnitude
@@ -138,18 +187,19 @@ let to_string = (~format=OutputFormat.default, a) => {
           ~digit_separators=value_magnitude >=% 5.,
           (),
         ),
-        value,
+        aq,
       );
     } else {
       NumberFormat.format_exponential(
-        ~exponent=value_magnitude,
+        ~exponent=Util.q_magnitude(aq),
         ~exponent_format?,
         NumberFormat.create_format(~max_decimal_places=format.precision, ()),
-        value,
+        aq,
       );
     };
-  | (Scientific, Value(_)) =>
-    let exponent = floor(ceil(value_magnitude) /. 3.) *. 3.;
+  | (Scientific, _, Some(aq)) =>
+    let exponent =
+      Zt.mul(Zt.div(Util.q_magnitude(aq), Zt.of_int(3)), Zt.of_int(3));
     NumberFormat.format_exponential(
       ~exponent,
       ~exponent_format?,
@@ -158,9 +208,10 @@ let to_string = (~format=OutputFormat.default, a) => {
         ~max_decimal_places=format.precision,
         (),
       ),
-      value,
+      aq,
     );
-  | (_, NaN) => "NaN"
+  | (_, NaN, _)
+  | (_, _, None) => "NaN"
   };
 };
 
@@ -189,7 +240,11 @@ let add = (a, b) =>
   | (Value(_), Value(bq, _)) when bq == Qt.zero => a
   | (Value(aq, ac), Value(bq, bc)) when Constant.equal(ac, bc) =>
     of_q(aq + bq, ~constant=ac)
-  | (Value(_), Value(_)) => of_float(to_float(a) +. to_float(b))
+  | (Value(_), Value(_)) =>
+    switch (to_q(a), to_q(b)) {
+    | (Some(aq), Some(bq)) => of_q(aq + bq)
+    | _ => NaN
+    }
   | (NaN, _)
   | (_, NaN) => NaN
   };
@@ -205,7 +260,11 @@ let mul = (a, b) =>
   | (Value(aq, Sqrt(ac)), Value(bq, Sqrt(bc))) =>
     /* Sqrt is simplifed in of_q */
     of_q(aq * bq, ~constant=Sqrt(Zt.mul(ac, bc)))
-  | (Value(_), Value(_)) => of_float(to_float(a) *. to_float(b))
+  | (Value(_), Value(_)) =>
+    switch (to_q(a), to_q(b)) {
+    | (Some(aq), Some(bq)) => of_q(aq * bq)
+    | _ => NaN
+    }
   | (NaN, _)
   | (_, NaN) => NaN
   };
@@ -219,7 +278,11 @@ let div = (a, b) =>
   | (Value(aq, Sqrt(ac)), Value(bq, Sqrt(bc)))
       when Zt.gt(ac, bc) && Zt.equal(Zt.rem(ac, bc), Zt.zero) =>
     of_q(aq / bq, ~constant=Sqrt(Zt.div(ac, bc)))
-  | (Value(_, _), Value(_, _)) => of_float(to_float(a) /. to_float(b))
+  | (Value(_), Value(_)) =>
+    switch (to_q(a), to_q(b)) {
+    | (Some(aq), Some(bq)) => of_q(aq / bq)
+    | _ => NaN
+    }
   | (NaN, _)
   | (_, NaN) => NaN
   };
@@ -250,12 +313,8 @@ let _trig_period = a =>
   switch (a) {
   | Value(aq, _) when aq == Qt.zero => FractionOfPi(0, 1)
   | Value(aq, Pi) =>
-    let denominator = Qt.den(aq);
-    let divisor = Zt.mul(Zt.of_int(2), denominator);
-    let numerator = Zt.rem(Qt.num(aq), divisor);
-    /* Handle negative numerators */
-    let numerator = Zt.rem(Zt.add(numerator, divisor), divisor);
-    switch (Zt.to_int(numerator), Zt.to_int(denominator)) {
+    let q = Util.q_safe_mod_z(aq, Zt.of_int(2));
+    switch (Zt.to_int(Qt.num(q)), Zt.to_int(Qt.den(q))) {
     | (n, d) => FractionOfPi(n, d)
     | exception Zt.Overflow => NoFraction
     };
@@ -337,7 +396,7 @@ let abs = a =>
 
 let factorial = x =>
   switch (to_int(x)) {
-  | Some(i) when Pervasives.(<)(i, 100) =>
+  | Some(i) when Pervasives.(<=)(i, 1000) =>
     let fact = ref(Zt.one);
     for (mul in 2 to i) {
       fact := Zt.mul(fact^, Zt.of_int(mul));

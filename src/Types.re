@@ -16,6 +16,7 @@ module type Scalar = {
   include BasicMath;
   let of_int: int => t;
   let of_float: float => t;
+  let of_string: string => t;
   let to_int: t => option(int);
   let zero: t;
   let one: t;

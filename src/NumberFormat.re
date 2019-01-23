@@ -1,3 +1,6 @@
+module Zt = Z.Bigint;
+module Qt = Q.Bigint;
+
 type formatting = {
   min_decimal_places: option(int),
   max_decimal_places: option(int),
@@ -28,7 +31,7 @@ let trim_trailling_zeros = (~start_index=0, ~end_index=?, string) => {
   let end_index = Util.default(String.length(string) - 1, end_index);
   let slice_index = ref(end_index);
   let break = ref(false);
-  while (slice_index^ > start_index && ! break^) {
+  while (slice_index^ >= start_index && ! break^) {
     switch (string.[slice_index^]) {
     | '0' => slice_index := slice_index^ - 1
     | '.' =>
@@ -43,7 +46,7 @@ let trim_trailling_zeros = (~start_index=0, ~end_index=?, string) => {
 };
 
 let add_digit_separators = (~start_index=0, ~end_index=?, string) => {
-  let end_index = Util.default(String.length(string) - 1, end_index);
+  let end_index = Util.default(String.length(string), end_index);
   let base_str = ref(string);
   let index = ref(end_index - 3);
   while (index^ > start_index) {
@@ -57,41 +60,56 @@ let add_digit_separators = (~start_index=0, ~end_index=?, string) => {
   base_str^;
 };
 
+let format_integer = (formatting, num) => {
+  let str = Zt.to_string(num);
+  if (formatting.digit_separators) {
+    add_digit_separators(str);
+  } else {
+    str;
+  };
+};
+
 let format_decimal = (formatting, num) => {
   let (min_decimal_places, max_decimal_places) =
     _get_decimal_bounds(formatting);
 
-  let (string, decimal_index) =
-    if (max_decimal_places > 0) {
-      let precision = 12;
-      let str = Printf.sprintf("%.12f", num);
-      let index_of_decimal = String.length(str) - 1 - precision;
-      let str = String.sub(str, 0, index_of_decimal + max_decimal_places + 1);
-      let can_remove_decimal = min_decimal_places == 0;
-      let min_index =
-        index_of_decimal + min_decimal_places + (can_remove_decimal ? (-1) : 0);
-      (trim_trailling_zeros(~start_index=min_index, str), index_of_decimal);
-    } else {
-      let str = Printf.sprintf("%.0f", num);
-      (str, String.length(str));
-    };
-
-  let string =
+  let integer = {
+    let integer_part = Util.q_floor(num);
+    let str = Zt.to_string(integer_part);
     if (formatting.digit_separators) {
-      add_digit_separators(~end_index=decimal_index, string);
+      add_digit_separators(str);
     } else {
-      string;
+      str;
     };
+  };
 
-  string;
+  let decimal = {
+    let decimal_part = Util.q_safe_mod_z(num, Zt.one);
+    let exp =
+      Qt.make(
+        Zt.pow(Zt.of_int(10), Zt.of_int(max_decimal_places)),
+        Zt.one,
+      );
+    let decimal_as_integer = Util.q_floor(Qt.mul(decimal_part, exp));
+    let baseStr = Zt.to_string(decimal_as_integer);
+    let str =
+      String.make(max_decimal_places - String.length(baseStr), '0')
+      ++ baseStr;
+    trim_trailling_zeros(~start_index=min_decimal_places, str);
+  };
+
+  if (decimal != "") {
+    integer ++ "." ++ decimal;
+  } else {
+    integer;
+  };
 };
 
 let format_exponential = (~exponent=?, ~exponent_format="e$", formatting, num) => {
-  let num_magnitude = num == 0. ? 0. : floor(log10(abs_float(num)));
-  let exponent = Util.default(num_magnitude, exponent);
-  let decimal_part = format_decimal(formatting, num /. 10. ** exponent);
-  let exponent_part =
-    format_decimal(create_format(~max_decimal_places=0, ()), exponent);
+  let exponent = Util.default(Util.q_magnitude(num), exponent);
+  let decimal_part =
+    format_decimal(formatting, Qt.div(num, Util.q_exp_10(exponent)));
+  let exponent_part = Zt.to_string(exponent);
   let formatted_exponent = {
     let index = String.index(exponent_format, '$');
     String.sub(exponent_format, 0, index)

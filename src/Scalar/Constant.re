@@ -62,14 +62,37 @@ let simplify = a =>
 let to_string = (~format=OutputFormat.default, a) =>
   switch (format.mode, a) {
   | (_, None) => ""
-  | (_, Pi) => "pi"
+  | (String, Pi) => "pi"
   | (String, Exp(v)) =>
-    "exp(" ++ NumberFormat.add_digit_separators(Zt.to_string(v)) ++ ")"
+    "exp("
+    ++ NumberFormat.format_integer(
+         NumberFormat.create_format(~digit_separators=false, ()),
+         v,
+       )
+    ++ ")"
   | (String, Sqrt(v)) =>
-    "sqrt(" ++ NumberFormat.add_digit_separators(Zt.to_string(v)) ++ ")"
+    "sqrt("
+    ++ NumberFormat.format_integer(
+         NumberFormat.create_format(~digit_separators=false, ()),
+         v,
+       )
+    ++ ")"
+  | (Latex, Pi) => "\\pi"
   | (Latex, Exp(v)) when Zt.equal(v, Zt.one) => "e"
   | (Latex, Exp(v)) =>
-    "e^{" ++ NumberFormat.add_digit_separators(Zt.to_string(v)) ++ "}"
+    "e^{"
+    ++ NumberFormat.format_integer(
+         NumberFormat.create_format(~digit_separators=false, ()),
+         v,
+       )
+    ++ "}"
   | (Latex, Sqrt(v)) =>
-    "\\sqrt{" ++ NumberFormat.add_digit_separators(Zt.to_string(v)) ++ "}"
+    "\\sqrt{"
+    ++ NumberFormat.(
+         format_integer(
+           NumberFormat.create_format(~digit_separators=true, ()),
+           v,
+         )
+       )
+    ++ "}"
   };

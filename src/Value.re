@@ -46,6 +46,7 @@ module Make = (Number: Types.Scalar) => {
   let of_number = a => of_scalar(a);
   let of_int = a => of_scalar(Number.of_int(a));
   let of_float = a => of_scalar(Number.of_float(a));
+  let of_string = a => of_scalar(Number.of_string(a));
   let of_matrix_elements = (~rows, ~columns, elements) => {
     let to_scalar = element =>
       switch (element) {

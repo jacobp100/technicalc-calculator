@@ -30,6 +30,7 @@ let resolveWithContext = (jsContext, a) =>
   Result.wrap(eval(~context=_convert_context(jsContext), a));
 
 let of_float = value_of_float;
+let of_string = value_of_string;
 let of_complex_floats = (re, im) =>
   value_of_t(SciLineValue.of_number(Complex.of_floats(re, im)));
 
@@ -129,10 +130,10 @@ let _decode_value: string => SciLineValue.t = [%raw
         const arr = Array.from(value);
         arr.tag = value.tag;
         return arr;
-      } else if (typeof value === "string" && /^\d+\/\d+$/.test(value)) {
+      } else if (typeof value === "string" && /^-?\d+\/\d+$/.test(value)) {
         const [num, den] = value.split("/");
         return rat(num, den);
-      } else if (typeof value === "string" && /^\d+$/.test(value)) {
+      } else if (typeof value === "string" && /^-?\d+$/.test(value)) {
         return new BN(value);
       }
       return value;

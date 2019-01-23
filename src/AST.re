@@ -40,6 +40,7 @@ module Make = (V: Types.BaseValue) => {
 
   let value_of_int = a => Value(V.of_int(a));
   let value_of_float = a => Value(V.of_float(a));
+  let value_of_string = a => Value(V.of_string(a));
   let value_of_t = a => Value(a);
   let matrix_of_elements = (rows, columns, elements) =>
     Matrix(rows, columns, elements);
