@@ -101,20 +101,27 @@ let to_latex = _create_formater(Latex);
 
 let _encode_value: SciLineValue.t => string = [%raw
   {|
-  x => {
-    const BN = require("bn.js");
-    const isRat = require("big-rat/is-rat");
-    return JSON.stringify(x, (key, value) => {
-      if (Array.isArray(value) && value.tag != null) {
-        return { ...value, tag: value.tag, length: value.length };
-      } else if (isRat(value)) {
-        return `${value[0]}/${value[1]}`;
-      } else if (BN.isBN(value)) {
-        return value.toString();
-      }
-      return value;
-    });
-  }
+    x => {
+      const BN = require("bn.js");
+      const isRat = require("big-rat/is-rat");
+
+      const transform = (key, value) => {
+        if (Array.isArray(value) && value.tag != null) {
+          return {
+            ...value.map((value, key) => transform(key, value)),
+            tag: value.tag,
+            length: value.length
+          };
+        } else if (isRat(value)) {
+          return `${value[0]}/${value[1]}`;
+        } else if (BN.isBN(value)) {
+          return value.toString();
+        }
+        return value;
+      };
+
+      return JSON.stringify(x, transform);
+    }
   |}
 ];
 
@@ -122,23 +129,26 @@ let encode = x => _encode_value(Result.unwrap(x));
 
 let _decode_value: string => SciLineValue.t = [%raw
   {|
-  x => {
-    const BN = require("bn.js");
-    const rat = require("big-rat");
-    return JSON.parse(x, (key, value) => {
-      if (value.tag != null) {
-        const arr = Array.from(value);
-        arr.tag = value.tag;
-        return arr;
-      } else if (typeof value === "string" && /^-?\d+\/\d+$/.test(value)) {
-        const [num, den] = value.split("/");
-        return rat(num, den);
-      } else if (typeof value === "string" && /^-?\d+$/.test(value)) {
-        return new BN(value);
-      }
-      return value;
-    });
-  }
+    x => {
+      const BN = require("bn.js");
+      const rat = require("big-rat");
+
+      const transform = (key, value) => {
+        if (value.tag != null) {
+          const arr = Array.from(value);
+          arr.tag = value.tag;
+          return arr;
+        } else if (typeof value === "string" && /^-?\d+\/\d+$/.test(value)) {
+          const [num, den] = value.split("/");
+          return rat(num, den);
+        } else if (typeof value === "string" && /^-?\d+$/.test(value)) {
+          return new BN(value);
+        }
+        return value;
+      };
+
+      return JSON.parse(x, transform);
+    }
   |}
 ];
 
