@@ -23,9 +23,7 @@ trigValues.forEach(v => {
   it(`tan ${v.title}`, () => {
     const sciLineValue = SciLine.tan(v.sciLineValue);
     if (tanInfiniteValues.has(v.title)) {
-      expect(SciLine.to_string(SciLine.resolve(sciLineValue))).toBe(
-        "Math Error"
-      );
+      expect(SciLine.to_string(SciLine.resolve(sciLineValue))).toBe("NaN");
     } else {
       expect(sciLineValue).toMatchJsValue(Math.tan(v.jsValue));
     }

@@ -9,6 +9,8 @@ module Bigint = {
   let of_int = of_int;
   [@bs.module] external of_float: float => t = "big-rat";
   let of_float = of_float;
+  /* Much faster than the standard big-rat constructor */
+  let of_bigint: Z.Bigint.t => t = [%raw "x => [x, new x.constructor(1)]"];
 
   let one = of_int(1);
   let zero = of_int(0);
@@ -34,6 +36,9 @@ module Bigint = {
 
   [@bs.module] external abs: t => t = "big-rat/abs";
   let abs = abs;
+
+  [@bs.module] external inv: t => t = "big-rat/recip";
+  let inv = inv;
 
   [@bs.module] external to_string: t => string = "big-rat/to-string";
   let to_string = to_string;

@@ -30,6 +30,6 @@ describe("Type checking", () => {
         )
       )
     );
-    expect(SciLine.to_string(value)).toBe("Math Error");
+    expect(SciLine.to_string(value)).toBe("NaN");
   });
 });

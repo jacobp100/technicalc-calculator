@@ -31,6 +31,6 @@ describe("Type checking", () => {
     const value = SciLine.resolve(
       SciLine.dot(vector3[0].sciLineValue, vector2[0].sciLineValue)
     );
-    expect(SciLine.to_string(value)).toBe("Math Error");
+    expect(SciLine.to_string(value)).toBe("NaN");
   });
 });

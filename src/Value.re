@@ -150,6 +150,6 @@ module Make = (Number: Types.Scalar) => {
     switch (x) {
     | Scalar(xS) => Number.to_string(~format, xS)
     | Matrix(xM) => NumberMatrix.to_string(~format, xM)
-    | NaN => "Math Error"
+    | NaN => "NaN"
     };
 };

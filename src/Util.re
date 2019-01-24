@@ -49,8 +49,8 @@ let rec string_split_on_char = (c, v) =>
 let q_exp_10 = a =>
   switch (Zt.cmp(a, Zt.zero)) {
   | 0 => Qt.one
-  | 1 => Qt.make(Zt.pow(Zt.of_int(10), a), Zt.one)
-  | (-1) => Qt.make(Zt.one, Zt.pow(Zt.of_int(10), Zt.abs(a)))
+  | 1 => Qt.of_bigint(Zt.pow(Zt.of_int(10), a))
+  | (-1) => Qt.of_bigint(Zt.pow(Zt.of_int(10), Zt.abs(a))) |> Qt.inv
   | _ => raise(Not_found)
   };
 

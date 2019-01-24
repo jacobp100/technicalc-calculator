@@ -91,10 +91,7 @@ let format_decimal = (formatting, num) => {
   let decimal = {
     let decimal_part = Util.q_safe_mod_z(abs_num, Zt.one);
     let exp =
-      Qt.make(
-        Zt.pow(Zt.of_int(10), Zt.of_int(max_decimal_places)),
-        Zt.one,
-      );
+      Qt.of_bigint(Zt.pow(Zt.of_int(10), Zt.of_int(max_decimal_places)));
     let decimal_as_integer = Util.q_floor(Qt.mul(decimal_part, exp));
     let baseStr = Zt.to_string(decimal_as_integer);
     let str =

@@ -79,7 +79,7 @@ let normalize = a =>
   | Value(_, Pi) => a
   | Value(aq, ac) =>
     let (multiplier, constant) = Constant.simplify(ac);
-    Value(aq * Qt.make(multiplier, Zt.one), constant);
+    Value(aq * Qt.of_bigint(multiplier), constant);
   | _ => a
   };
 
@@ -108,8 +108,11 @@ let of_float = (~constant=Constant.none, v) => {
 
 let of_q = (~constant=Constant.none, v) => normalize(Value(v, constant));
 
-let of_z = (~constant=Constant.none, ~denominator=Zt.one, v) =>
-  of_q(~constant, Qt.make(v, denominator));
+let of_z = (~constant=Constant.none, ~denominator=?, v) =>
+  switch (denominator) {
+  | Some(denominator) => of_q(~constant, Qt.make(v, denominator))
+  | None => of_q(~constant, Qt.of_bigint(v))
+  };
 
 let of_string = (~constant=Constant.none, v) => {
   let (withoutMagnitude, magnitudePart) = {
