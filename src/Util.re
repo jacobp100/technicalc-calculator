@@ -1,6 +1,10 @@
 module Zt = Z.Bigint;
 module Qt = Q.Bigint;
 
+let asinh = f => log(f +. sqrt(f *. f +. 1.0));
+let acosh = f => log(f +. sqrt(f *. f -. 1.0));
+let atanh = f => log((1.0 +. f) /. (1.0 -. f)) /. 2.0;
+
 let default = (defaultValue, arg) =>
   switch (arg) {
   | Some(v) => v

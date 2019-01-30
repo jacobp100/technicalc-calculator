@@ -483,21 +483,17 @@ let _check_bounds = (~lower=?, ~upper=?, x) =>
   };
 
 let sinh = _map_float(sinh);
-let asinh = x => {
-  let f = to_float(x);
-  of_float(Pervasives.log(f +. Pervasives.sqrt(f *. f +. 1.0)));
-};
+let asinh = _map_float(Util.asinh);
 let cosh = _map_float(cosh);
 let acosh = x =>
   switch (_check_bounds(~lower=1.0, x)) {
-  | Inside(f) =>
-    of_float(Pervasives.log(f +. Pervasives.sqrt(f *. f -. 1.0)))
+  | Inside(f) => of_float(Util.acosh(f))
   | LowerBound => zero
   | _ => NaN
   };
 let tanh = _map_float(tanh);
 let atanh = x =>
   switch (_check_bounds(~lower=-1.0, ~upper=1.0, x)) {
-  | Inside(f) => of_float(Pervasives.log((1.0 +. f) /. (1.0 -. f)) /. 2.0)
+  | Inside(f) => of_float(Util.atanh(f))
   | _ => NaN
   };
