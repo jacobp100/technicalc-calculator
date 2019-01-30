@@ -19,9 +19,9 @@ const negateRealValues = new Set([
 ]);
 
 imagValues.forEach(v => {
-  it(`arctan ${v.title}`, () => {
+  it(`atan ${v.title}`, () => {
     const mathJsValue = mathjs.atan(v.jsValue);
     if (negateRealValues.has(v.title)) mathJsValue.re *= -1;
-    expect(SciLine.arctan(v.sciLineValue)).toMatchJsValue(mathJsValue);
+    expect(SciLine.atan(v.sciLineValue)).toMatchJsValue(mathJsValue);
   });
 });

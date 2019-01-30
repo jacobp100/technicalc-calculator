@@ -33,11 +33,11 @@ it("Cannot handle imaginary numbers", () => {
   expect(resultString(Real.sqrt(float(-1)))).toBe("NaN");
   expect(resultString(Real.log(float(-1)))).toBe("NaN");
   expect(resultString(Real.pow(float(-1), float(0.5)))).toBe("NaN");
-  expect(resultString(Real.arcsin(float(-2)))).toBe("NaN");
-  expect(resultString(Real.arcsin(float(2)))).toBe("NaN");
-  expect(resultString(Real.arccos(float(-2)))).toBe("NaN");
-  expect(resultString(Real.arccos(float(2)))).toBe("NaN");
-  expect(resultString(Real.arccosh(float(0)))).toBe("NaN");
+  expect(resultString(Real.asin(float(-2)))).toBe("NaN");
+  expect(resultString(Real.asin(float(2)))).toBe("NaN");
+  expect(resultString(Real.acos(float(-2)))).toBe("NaN");
+  expect(resultString(Real.acos(float(2)))).toBe("NaN");
+  expect(resultString(Real.acosh(float(0)))).toBe("NaN");
 });
 
 it("Simplifies division by two square roots", () => {

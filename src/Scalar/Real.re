@@ -1,9 +1,12 @@
+open PervasivesNoPoly;
+open PervasivesMath;
+
 module Zt = Z.Bigint;
 module Qt = Q.Bigint;
 
 let (==) = Qt.equal;
 let (+) = Qt.add;
-let (-) = Qt.sub;
+/* let (-) = Qt.sub; */
 let ( * ) = Qt.mul;
 let (/) = Qt.div;
 /* let (mod) = Qt.rem; */
@@ -11,14 +14,8 @@ let (~-) = Qt.neg;
 let (<) = Qt.lt;
 let (<=) = Qt.lte;
 let (>) = Qt.gt;
-let (>=) = Qt.gte;
-let (+%) = Pervasives.(+);
-let (-%) = Pervasives.(-);
-let (==%) = Pervasives.(==);
-let (>%) = Pervasives.(>);
-let (<%) = Pervasives.(<);
-let (>=%) = Pervasives.(>=);
-let (<=%) = Pervasives.(<=);
+/* let (>=) = Qt.gte; */
+
 let (|?) = (x, f) =>
   switch (x) {
   | Some(a) => Some(f(a))
@@ -85,6 +82,8 @@ let normalize = a =>
 
 let of_int = (~denominator=1, ~constant=Constant.none, numerator) =>
   normalize(Value(Qt.of_ints(numerator, denominator), constant));
+let of_ints = (~constant=Constant.none, numerator, denominator) =>
+  of_int(numerator, ~denominator, ~constant);
 
 let of_float = (~constant=Constant.none, v) => {
   switch (classify_float(v)) {
@@ -96,7 +95,7 @@ let of_float = (~constant=Constant.none, v) => {
     if (abs_float(numerator_f) <% int_max_f && _float_is_int(numerator_f)) {
       let numerator = int_of_float(numerator_f);
       let denominator = int_of_float(magnitude);
-      normalize(of_int(numerator, ~denominator, ~constant));
+      normalize(of_ints(numerator, denominator, ~constant));
     } else {
       normalize(Value(Qt.of_float(v), constant));
     };
@@ -237,6 +236,12 @@ let neg = a =>
   | NaN => a
   };
 
+let abs = a =>
+  switch (a) {
+  | Value(ar, ac) => Value(Qt.abs(ar), ac)
+  | _ => NaN
+  };
+
 let add = (a, b) =>
   switch (a, b) {
   | (Value(aq, _), Value(_)) when aq == Qt.zero => b
@@ -307,64 +312,6 @@ let exp = a =>
   | NaN => NaN
   };
 
-type trig_period =
-  | FractionOfPi(int, int)
-  | NoFraction
-  | ValueNaN;
-
-let _trig_period = a =>
-  switch (a) {
-  | Value(aq, _) when aq == Qt.zero => FractionOfPi(0, 1)
-  | Value(aq, Pi) =>
-    let q = Util.q_safe_mod_z(aq, Zt.of_int(2));
-    switch (Zt.to_int(Qt.num(q)), Zt.to_int(Qt.den(q))) {
-    | (n, d) => FractionOfPi(n, d)
-    | exception Zt.Overflow => NoFraction
-    };
-  | Value(_, _) => NoFraction
-  | NaN => ValueNaN
-  };
-
-let sin = a =>
-  switch (_trig_period(a)) {
-  | FractionOfPi(0 | 1 | 2, 1) => of_q(Qt.zero)
-  | FractionOfPi(1 | 5, 2) => of_q(Qt.one)
-  | FractionOfPi(3 | 7, 2) => of_q(Qt.minus_one)
-  | FractionOfPi(1 | 2, 3) =>
-    of_int(1, ~denominator=2, ~constant=Sqrt(Zt.of_int(3)))
-  | FractionOfPi(4 | 5, 3) =>
-    of_int(-1, ~denominator=2, ~constant=Sqrt(Zt.of_int(3)))
-  | FractionOfPi(1 | 3, 4) =>
-    of_int(1, ~denominator=2, ~constant=Sqrt(Zt.of_int(2)))
-  | FractionOfPi(5 | 7, 4) =>
-    of_int(-1, ~denominator=2, ~constant=Sqrt(Zt.of_int(2)))
-  | FractionOfPi(1 | 5, 6) => of_int(1, ~denominator=2)
-  | FractionOfPi(7 | 11, 6) => of_int(-1, ~denominator=2)
-  | FractionOfPi(_, _)
-  | NoFraction => of_float(sin(to_float(a)))
-  | ValueNaN => NaN
-  };
-
-let cos = a => sin(add(a, of_int(1, ~denominator=2, ~constant=Pi)));
-
-let tan = a =>
-  switch (_trig_period(a)) {
-  | FractionOfPi(0 | 1 | 2, 1) => of_q(Qt.zero)
-  | FractionOfPi(1 | 5, 4) => of_q(Qt.one)
-  | FractionOfPi(3 | 7, 4) => of_q(Qt.minus_one)
-  | FractionOfPi(1 | 4, 3) => of_q(Qt.one, ~constant=Sqrt(Zt.of_int(3)))
-  | FractionOfPi(2 | 5, 3) =>
-    of_q(Qt.minus_one, ~constant=Sqrt(Zt.of_int(3)))
-  | FractionOfPi(1 | 7, 6) =>
-    of_int(1, ~denominator=3, ~constant=Sqrt(Zt.of_int(3)))
-  | FractionOfPi(5 | 11, 6) =>
-    of_int(-1, ~denominator=3, ~constant=Sqrt(Zt.of_int(3)))
-  | FractionOfPi(1 | 3, 2) => NaN
-  | FractionOfPi(_, _)
-  | NoFraction => of_float(tan(to_float(a)))
-  | ValueNaN => NaN
-  };
-
 let pow = (a, b) =>
   switch (a, b) {
   | (Value(ar, _), Value(br, _)) when ar == Qt.zero && br == Qt.zero => NaN
@@ -391,10 +338,125 @@ let log = a =>
   | NaN => NaN
   };
 
-let abs = a =>
+let _trig_period = a =>
   switch (a) {
-  | Value(ar, ac) => of_q(Qt.abs(ar), ~constant=ac)
-  | _ => NaN
+  | Value(aq, Pi) =>
+    of_q(Util.q_safe_mod_z(aq, Zt.of_int(2)), ~constant=Pi)
+  | _ => a
+  };
+
+let _to_comparable = a =>
+  switch (a) {
+  | Value(aq, ac) =>
+    switch (
+      Zt.to_int(Qt.num(aq)),
+      Zt.to_int(Qt.den(aq)),
+      switch (ac) {
+      | None => `None
+      | Pi => `Pi
+      | Sqrt(cc) => `Sqrt(Zt.to_int(cc))
+      | Exp(cc) => `Exp(Zt.to_int(cc))
+      },
+    ) {
+    | (n, d, c) => `Value((n, d, c))
+    | exception Zt.Overflow => `Overflow
+    }
+  | NaN => `NaN
+  };
+
+let sin = a =>
+  switch (a |> _trig_period |> _to_comparable) {
+  | `Value(0, 1, `None)
+  | `Value(1 | 2, 1, `Pi) => of_q(Qt.zero)
+  | `Value(1, 2, `Pi) => of_q(Qt.one)
+  | `Value(3, 2, `Pi) => of_q(Qt.minus_one)
+  | `Value(1 | 2, 3, `Pi) => of_ints(1, 2, ~constant=Sqrt(Zt.of_int(3)))
+  | `Value(4 | 5, 3, `Pi) => of_ints(-1, 2, ~constant=Sqrt(Zt.of_int(3)))
+  | `Value(1 | 3, 4, `Pi) => of_ints(1, 2, ~constant=Sqrt(Zt.of_int(2)))
+  | `Value(5 | 7, 4, `Pi) => of_ints(-1, 2, ~constant=Sqrt(Zt.of_int(2)))
+  | `Value(1 | 5, 6, `Pi) => of_ints(1, 2)
+  | `Value(7 | 11, 6, `Pi) => of_ints(-1, 2)
+  | `Value(_)
+  | `Overflow => of_float(sin(to_float(a)))
+  | `NaN => NaN
+  };
+
+let cos = a =>
+  switch (a |> _trig_period |> _to_comparable) {
+  | `Value(0, 1, `None) => of_q(Qt.one)
+  | `Value(2, 1, `Pi) => of_q(Qt.one)
+  | `Value(1, 1, `Pi) => of_q(Qt.minus_one)
+  | `Value(1 | 3, 2, `Pi) => of_q(Qt.zero)
+  | `Value(1 | 5, 3, `Pi) => of_ints(1, 2)
+  | `Value(2 | 4, 3, `Pi) => of_ints(-1, 2)
+  | `Value(1 | 7, 4, `Pi) => of_ints(1, 2, ~constant=Sqrt(Zt.of_int(2)))
+  | `Value(3 | 5, 4, `Pi) => of_ints(-1, 2, ~constant=Sqrt(Zt.of_int(2)))
+  | `Value(1 | 11, 6, `Pi) => of_ints(1, 2, ~constant=Sqrt(Zt.of_int(3)))
+  | `Value(5 | 7, 6, `Pi) => of_ints(-1, 2, ~constant=Sqrt(Zt.of_int(3)))
+  | `Value(_)
+  | `Overflow => of_float(cos(to_float(a)))
+  | `NaN => NaN
+  };
+
+let tan = a =>
+  switch (a |> _trig_period |> _to_comparable) {
+  | `Value(0 | 1 | 2, 1, `Pi) => of_q(Qt.zero)
+  | `Value(1 | 5, 4, `Pi) => of_q(Qt.one)
+  | `Value(3 | 7, 4, `Pi) => of_q(Qt.minus_one)
+  | `Value(1 | 4, 3, `Pi) => of_int(1, ~constant=Sqrt(Zt.of_int(3)))
+  | `Value(2 | 5, 3, `Pi) => of_int(-1, ~constant=Sqrt(Zt.of_int(3)))
+  | `Value(1 | 7, 6, `Pi) => of_ints(1, 3, ~constant=Sqrt(Zt.of_int(3)))
+  | `Value(5 | 11, 6, `Pi) => of_ints(-1, 3, ~constant=Sqrt(Zt.of_int(3)))
+  | `Value(1 | 3, 2, `Pi) => NaN
+  | `Value(_)
+  | `Overflow => of_float(tan(to_float(a)))
+  | `NaN => NaN
+  };
+
+let asin = a =>
+  switch (_to_comparable(a)) {
+  | `Value((-1), 1, `None) => of_ints(-1, 2, ~constant=Pi)
+  | `Value((-1), 2, `Sqrt(3)) => of_ints(-1, 3, ~constant=Pi)
+  | `Value((-1), 2, `Sqrt(2)) => of_ints(-1, 4, ~constant=Pi)
+  | `Value((-1), 2, `None) => of_ints(-1, 6, ~constant=Pi)
+  | `Value(0, 1, `None) => of_q(Qt.zero)
+  | `Value(1, 2, `None) => of_ints(1, 6, ~constant=Pi)
+  | `Value(1, 2, `Sqrt(2)) => of_ints(1, 4, ~constant=Pi)
+  | `Value(1, 2, `Sqrt(3)) => of_ints(1, 3, ~constant=Pi)
+  | `Value(1, 1, `None) => of_ints(1, 2, ~constant=Pi)
+  | `Value(_)
+  | `Overflow => of_float(asin(to_float(a)))
+  | `NaN => NaN
+  };
+
+let acos = a =>
+  switch (_to_comparable(a)) {
+  | `Value((-1), 1, `None) => of_int(1, ~constant=Pi)
+  | `Value((-1), 2, `Sqrt(3)) => of_ints(5, 6, ~constant=Pi)
+  | `Value((-1), 2, `Sqrt(2)) => of_ints(3, 4, ~constant=Pi)
+  | `Value((-1), 2, `None) => of_ints(2, 3, ~constant=Pi)
+  | `Value(0, 1, `None) => of_ints(1, 2, ~constant=Pi)
+  | `Value(1, 2, `None) => of_ints(1, 3, ~constant=Pi)
+  | `Value(1, 2, `Sqrt(2)) => of_ints(1, 4, ~constant=Pi)
+  | `Value(1, 2, `Sqrt(3)) => of_ints(1, 6, ~constant=Pi)
+  | `Value(1, 1, `None) => of_q(Qt.zero)
+  | `Value(_)
+  | `Overflow => of_float(acos(to_float(a)))
+  | `NaN => NaN
+  };
+
+let atan = a =>
+  switch (_to_comparable(a)) {
+  | `Value((-1), 1, `Sqrt(3)) => of_ints(-1, 3, ~constant=Pi)
+  | `Value((-1), 1, `None) => of_ints(-1, 4, ~constant=Pi)
+  | `Value((-1), 3, `Sqrt(3)) => of_ints(-1, 6, ~constant=Pi)
+  | `Value(0, 1, `None) => of_q(Qt.zero)
+  | `Value(1, 3, `Sqrt(3)) => of_ints(1, 6, ~constant=Pi)
+  | `Value(1, 1, `None) => of_ints(1, 4, ~constant=Pi)
+  | `Value(1, 1, `Sqrt(3)) => of_ints(1, 3, ~constant=Pi)
+  | `Value(_)
+  | `Overflow => of_float(atan(to_float(a)))
+  | `NaN => NaN
   };
 
 let factorial = x =>
@@ -420,36 +482,21 @@ let _check_bounds = (~lower=?, ~upper=?, x) =>
   | NaN => Outside
   };
 
-let arcsin = x =>
-  switch (_check_bounds(~lower=-1.0, ~upper=1.0, x)) {
-  | LowerBound => of_int(-1, ~denominator=2, ~constant=Pi)
-  | UpperBound => of_int(1, ~denominator=2, ~constant=Pi)
-  | Inside(f) => of_float(asin(f))
-  | _ => NaN
-  };
 let sinh = _map_float(sinh);
-let arcsinh = x => {
+let asinh = x => {
   let f = to_float(x);
   of_float(Pervasives.log(f +. Pervasives.sqrt(f *. f +. 1.0)));
 };
-let arccos = x =>
-  switch (_check_bounds(~lower=-1.0, ~upper=1.0, x)) {
-  | LowerBound => of_int(1, ~constant=Pi)
-  | UpperBound => zero
-  | Inside(f) => of_float(acos(f))
-  | _ => NaN
-  };
 let cosh = _map_float(cosh);
-let arccosh = x =>
+let acosh = x =>
   switch (_check_bounds(~lower=1.0, x)) {
   | Inside(f) =>
     of_float(Pervasives.log(f +. Pervasives.sqrt(f *. f -. 1.0)))
   | LowerBound => zero
   | _ => NaN
   };
-let arctan = _map_float(atan);
 let tanh = _map_float(tanh);
-let arctanh = x =>
+let atanh = x =>
   switch (_check_bounds(~lower=-1.0, ~upper=1.0, x)) {
   | Inside(f) => of_float(Pervasives.log((1.0 +. f) /. (1.0 -. f)) /. 2.0)
   | _ => NaN

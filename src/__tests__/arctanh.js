@@ -10,9 +10,9 @@ expect.extend({ toMatchJsValue });
 const negateImaginaryValues = new Set(["2+0i", "3+0i", "4+0i", "5+0i"]);
 
 imagValues.forEach(v => {
-  it(`arctanh ${v.title}`, () => {
+  it(`atanh ${v.title}`, () => {
     const mathJsValue = mathjs.atanh(v.jsValue);
     if (negateImaginaryValues.has(v.title)) mathJsValue.im *= -1;
-    expect(SciLine.arctanh(v.sciLineValue)).toMatchJsValue(mathJsValue);
+    expect(SciLine.atanh(v.sciLineValue)).toMatchJsValue(mathJsValue);
   });
 });

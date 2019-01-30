@@ -1,18 +1,11 @@
+open PervasivesNoPoly;
+
 let (==) = Real.equal;
 let (+) = Real.add;
 let (-) = Real.sub;
 let ( * ) = Real.mul;
 let (/) = Real.div;
 let (~-) = Real.neg;
-let (>) = None;
-let (<) = None;
-let (>=) = None;
-let (<=) = None;
-let (==%) = Pervasives.(==);
-let (>%) = Pervasives.(>);
-let (<%) = Pervasives.(<);
-let (>=%) = Pervasives.(>=);
-let (<=%) = Pervasives.(<=);
 
 type t = {
   re: Real.t,
@@ -192,9 +185,9 @@ let factorial = x =>
   } else {
     nan;
   };
-let arcsin = x =>
+let asin = x =>
   if (between_one_minus_one(x)) {
-    of_real(Real.arcsin(x.re));
+    of_real(Real.asin(x.re));
   } else {
     ~-$i *$ log(i *$ x +$ sqrt(one -$ x *$ x));
   };
@@ -204,17 +197,17 @@ let sinh = x =>
   } else {
     (exp(x) -$ exp(~-$x)) /$ of_int(2);
   };
-let arcsinh = x =>
+let asinh = x =>
   if (is_real(x)) {
-    of_real(Real.arcsinh(x.re));
+    of_real(Real.asinh(x.re));
   } else {
     log(x +$ sqrt(x *$ x +$ one));
   };
-let arccos = x =>
+let acos = x =>
   if (between_one_minus_one(x)) {
-    of_real(Real.arccos(x.re));
+    of_real(Real.acos(x.re));
   } else {
-    of_real(Real.pi / Real.of_int(2)) -$ arcsin(x);
+    of_real(Real.pi / Real.of_int(2)) -$ asin(x);
   };
 let cosh = x =>
   if (is_real(x)) {
@@ -222,21 +215,21 @@ let cosh = x =>
   } else {
     (exp(x) +$ exp(~-$x)) /$ of_int(2);
   };
-let arccosh = x =>
+let acosh = x =>
   if (is_real(x) && Real.to_float(x.re) >=% 1.0) {
-    of_real(Real.arccosh(x.re));
+    of_real(Real.acosh(x.re));
   } else {
     /* From complex.js library */
-    let res = arccos(x);
+    let res = acos(x);
     if (Real.to_float(res.im) <=% 0.) {
       of_components(- res.im, res.re);
     } else {
       of_components(res.im, - res.re);
     };
   };
-let arctan = x =>
+let atan = x =>
   if (is_real(x)) {
-    of_real(Real.arctan(x.re));
+    of_real(Real.atan(x.re));
   } else {
     let {re: a, im: b} = x;
     let c = Real.one - b;
@@ -252,9 +245,9 @@ let tanh = x =>
   } else {
     (exp(x) -$ exp(~-$x)) /$ (exp(x) +$ exp(~-$x));
   };
-let arctanh = x =>
+let atanh = x =>
   if (between_one_minus_one(x)) {
-    of_real(Real.arctanh(x.re));
+    of_real(Real.atanh(x.re));
   } else {
     log((one +$ x) /$ (one -$ x)) /$ of_int(2);
   };

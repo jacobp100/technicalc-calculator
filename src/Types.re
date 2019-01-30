@@ -29,17 +29,17 @@ module type Scalar = {
   let log: t => t;
   let factorial: t => t;
   let sin: t => t;
-  let arcsin: t => t;
+  let asin: t => t;
   let sinh: t => t;
-  let arcsinh: t => t;
+  let asinh: t => t;
   let cos: t => t;
-  let arccos: t => t;
+  let acos: t => t;
   let cosh: t => t;
-  let arccosh: t => t;
+  let acosh: t => t;
   let tan: t => t;
-  let arctan: t => t;
+  let atan: t => t;
   let tanh: t => t;
-  let arctanh: t => t;
+  let atanh: t => t;
 };
 
 module type BaseValue = {

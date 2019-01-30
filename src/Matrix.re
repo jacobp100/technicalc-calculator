@@ -4,18 +4,15 @@ let _joined_elements = (elements, join, fn) =>
   String.concat(join, Array.to_list(Array.init(elements, fn)));
 
 module Make = (Number: Types.Scalar) => {
+  open PervasivesNoPoly;
+  open PervasivesMath;
+
   let (==) = Number.equal;
   let (+) = Number.add;
   let (-) = Number.sub;
   let ( * ) = Number.mul;
   let (/) = Number.div;
   let (~-) = Number.neg;
-  let (==%) = Pervasives.(==);
-  let (+%) = Pervasives.(+);
-  let (-%) = Pervasives.(-);
-  let ( *% ) = Pervasives.( * );
-  let (/%) = Pervasives.(/);
-  let (~-%) = Pervasives.(~-);
 
   type t = {
     numRows: int,
@@ -78,7 +75,7 @@ module Make = (Number: Types.Scalar) => {
     normalize({numRows, numColumns, elements});
   let from_matrix = elements => {
     let numRows = Array.length(elements);
-    if (numRows > 0) {
+    if (numRows >% 0) {
       let numColumns = Array.length(elements[0]);
       let elements = Array.concat(Array.to_list(elements));
       normalize({numRows, numColumns, elements});
@@ -190,7 +187,7 @@ module Make = (Number: Types.Scalar) => {
     | Some((-1)) => inverse(a)
     | Some(0) => from_identity(~rows=a.numRows, ~columns=a.numColumns)
     | Some(1) => a
-    | Some(pow) when pow < 20 && pow > 0 =>
+    | Some(pow) when pow <% 20 && pow >% 0 =>
       let m = ref(a);
       for (_ in 2 to pow) {
         m := mul(m^, m^);

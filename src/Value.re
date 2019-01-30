@@ -134,17 +134,17 @@ module Make = (Number: Types.Scalar) => {
   let log = _map_scalar(Number.log);
   let factorial = _map_scalar(Number.factorial);
   let sin = _map_scalar(Number.sin);
-  let arcsin = _map_scalar(Number.arcsin);
+  let asin = _map_scalar(Number.asin);
   let sinh = _map_scalar(Number.sinh);
-  let arcsinh = _map_scalar(Number.arcsinh);
+  let asinh = _map_scalar(Number.asinh);
   let cos = _map_scalar(Number.cos);
-  let arccos = _map_scalar(Number.arccos);
+  let acos = _map_scalar(Number.acos);
   let cosh = _map_scalar(Number.cosh);
-  let arccosh = _map_scalar(Number.arccosh);
+  let acosh = _map_scalar(Number.acosh);
   let tan = _map_scalar(Number.tan);
-  let arctan = _map_scalar(Number.arctan);
+  let atan = _map_scalar(Number.atan);
   let tanh = _map_scalar(Number.tanh);
-  let arctanh = _map_scalar(Number.arctanh);
+  let atanh = _map_scalar(Number.atanh);
 
   let to_string = (~format=OutputFormat.default, x) =>
     switch (x) {

@@ -21,17 +21,17 @@ module Make = (V: Types.BaseValue) => {
     | Exp(t)
     | Log(t)
     | Sin(t)
-    | Arcsin(t)
+    | Asin(t)
     | Sinh(t)
-    | Arcsinh(t)
+    | Asinh(t)
     | Cos(t)
-    | Arccos(t)
+    | Acos(t)
     | Cosh(t)
-    | Arccosh(t)
+    | Acosh(t)
     | Tan(t)
-    | Arctan(t)
+    | Atan(t)
     | Tanh(t)
-    | Arctanh(t)
+    | Atanh(t)
     | Factorial(t)
     | Sum(iter_range(t))
     | Product(iter_range(t));
@@ -57,17 +57,17 @@ module Make = (V: Types.BaseValue) => {
   let exp = a => Exp(a);
   let log = a => Log(a);
   let sin = a => Sin(a);
-  let arcsin = a => Arcsin(a);
+  let asin = a => Asin(a);
   let sinh = a => Sinh(a);
-  let arcsinh = a => Arcsinh(a);
+  let asinh = a => Asinh(a);
   let cos = a => Cos(a);
-  let arccos = a => Arccos(a);
+  let acos = a => Acos(a);
   let cosh = a => Cosh(a);
-  let arccosh = a => Arccosh(a);
+  let acosh = a => Acosh(a);
   let tan = a => Tan(a);
-  let arctan = a => Arctan(a);
+  let atan = a => Atan(a);
   let tanh = a => Tanh(a);
-  let arctanh = a => Arctanh(a);
+  let atanh = a => Atanh(a);
   let factorial = a => Factorial(a);
   let sum = (s, t, b) => Sum({start: s, upTo: t, body: b});
   let product = (s, t, b) => Product({start: s, upTo: t, body: b});
@@ -96,17 +96,17 @@ module Make = (V: Types.BaseValue) => {
     | Log(a) => V.log(eval(a))
     | Factorial(a) => V.factorial(eval(a))
     | Sin(a) => V.sin(eval(a))
-    | Arcsin(a) => V.arcsin(eval(a))
+    | Asin(a) => V.asin(eval(a))
     | Sinh(a) => V.sinh(eval(a))
-    | Arcsinh(a) => V.arcsinh(eval(a))
+    | Asinh(a) => V.asinh(eval(a))
     | Cos(a) => V.cos(eval(a))
-    | Arccos(a) => V.arccos(eval(a))
+    | Acos(a) => V.acos(eval(a))
     | Cosh(a) => V.cosh(eval(a))
-    | Arccosh(a) => V.arccosh(eval(a))
+    | Acosh(a) => V.acosh(eval(a))
     | Tan(a) => V.tan(eval(a))
-    | Arctan(a) => V.arctan(eval(a))
+    | Atan(a) => V.atan(eval(a))
     | Tanh(a) => V.tanh(eval(a))
-    | Arctanh(a) => V.arctanh(eval(a))
+    | Atanh(a) => V.atanh(eval(a))
     | Sum(range) => reduce_range(~context, V.add, V.zero, range)
     | Product(range) => reduce_range(~context, V.mul, V.one, range)
     }
