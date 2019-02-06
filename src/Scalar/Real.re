@@ -154,25 +154,24 @@ let to_string = (~format=OutputFormat.default, a) => {
         Zt.lt(Qt.den(ar), Zt.of_int(1000000))
         && abs_float(to_float(a))
         <% 1e8 =>
-    let num = Qt.num(ar);
-    let den = Qt.den(ar);
-
-    let showConstant = !Constant.equal(constant, None);
-    let showNumerator = !Zt.equal(num, Zt.one) || !showConstant;
-    let showDenominator = !Zt.equal(den, Zt.one);
-
+    let (num, den) = (Qt.num(ar), Qt.den(ar));
     let formatting = NumberFormat.create_format(~digit_separators=true, ());
-    let minus = !showNumerator && Qt.lt(ar, Qt.zero) ? "-" : "";
-    let constant = showConstant ? Constant.to_string(~format, constant) : "";
-    let numerator =
-      showNumerator ? NumberFormat.format_integer(formatting, num) : "";
-    let denominator = NumberFormat.format_integer(formatting, den);
+    let minus = Zt.lt(num, Zt.zero) ? "-" : "";
+    let top =
+      switch (
+        NumberFormat.format_integer(formatting, Zt.abs(num)),
+        Constant.to_string(~format, constant),
+      ) {
+      | ("1", "") => "1"
+      | ("1", constant) => constant
+      | (numerator, constant) => numerator ++ constant
+      };
 
-    switch (format.mode, showDenominator) {
-    | (_, false) => minus ++ numerator ++ constant
-    | (String, true) => minus ++ numerator ++ constant ++ "/" ++ denominator
-    | (Latex, true) =>
-      minus ++ "\\frac{" ++ numerator ++ constant ++ "}{" ++ denominator ++ "}"
+    switch (format.mode, NumberFormat.format_integer(formatting, den)) {
+    | (_, "1") => minus ++ top
+    | (String, denominator) => minus ++ top ++ "/" ++ denominator
+    | (Latex, denominator) =>
+      minus ++ "\\frac{" ++ top ++ "}{" ++ denominator ++ "}"
     };
   | (Natural | Decimal, _, Some(aq)) =>
     let value_magnitude = floor(log10(abs_float(Qt.to_float(aq))));

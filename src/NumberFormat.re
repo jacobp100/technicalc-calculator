@@ -88,17 +88,20 @@ let format_decimal = (formatting, num) => {
       },
     );
 
-  let decimal = {
-    let decimal_part = Util.q_safe_mod_z(abs_num, Zt.one);
-    let exp =
-      Qt.of_bigint(Zt.pow(Zt.of_int(10), Zt.of_int(max_decimal_places)));
-    let decimal_as_integer = Util.q_floor(Qt.mul(decimal_part, exp));
-    let baseStr = Zt.to_string(decimal_as_integer);
-    let str =
-      String.make(max_decimal_places - String.length(baseStr), '0')
-      ++ baseStr;
-    trim_trailling_zeros(~start_index=min_decimal_places, str);
-  };
+  let decimal =
+    if (Util.q_is_int(num)) {
+      String.make(min_decimal_places, '0');
+    } else {
+      let decimal_part = Util.q_safe_mod_z(abs_num, Zt.one);
+      let exp =
+        Qt.of_bigint(Zt.pow(Zt.of_int(10), Zt.of_int(max_decimal_places)));
+      let decimal_as_integer = Util.q_floor(Qt.mul(decimal_part, exp));
+      let baseStr = Zt.to_string(decimal_as_integer);
+      let str =
+        String.make(max_decimal_places - String.length(baseStr), '0')
+        ++ baseStr;
+      trim_trailling_zeros(~start_index=min_decimal_places, str);
+    };
 
   if (decimal != "") {
     integer ++ "." ++ decimal;

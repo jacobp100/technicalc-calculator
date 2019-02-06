@@ -58,18 +58,29 @@ let _arg = ({re: x, im: y}) =>
 
 let to_int = a => is_real(a) ? Real.to_int(a.re) : None;
 
+let _format_imaginary = (~format, im) =>
+  switch (Real.to_string(~format, im)) {
+  | "1" => "i"
+  | "-1" => "-i"
+  | x => x ++ "i"
+  };
+
 let to_string = (~format=OutputFormat.default, x) =>
   if (is_real(x)) {
     Real.to_string(~format, x.re);
   } else if (is_imaginary(x)) {
-    Real.to_string(~format, x.im) ++ "i";
+    _format_imaginary(~format, x.im);
   } else {
     let format = {...format, precision: Pervasives.(/)(format.precision, 3)};
-    let op = Real.to_float(x.im) >=% 0. ? "+" : "";
-    Real.to_string(~format, x.re)
-    ++ op
-    ++ Real.to_string(~format, x.im)
-    ++ "i";
+    let re = Real.to_string(~format, x.re);
+    let im = _format_imaginary(~format, x.im);
+    let (im, op) =
+      if (Pervasives.(==)(im.[0], '-')) {
+        (String.sub(im, 1, Pervasives.(-)(String.length(im), 1)), "-");
+      } else {
+        (im, "+");
+      };
+    re ++ op ++ im;
   };
 
 let neg = a => of_components(- a.re, - a.im);

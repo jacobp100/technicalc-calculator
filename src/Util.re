@@ -88,13 +88,14 @@ let q_safe_mod_z = (a, b) => {
   Qt.make(numerator, denominator);
 };
 
-let q_floor = a => {
-  let integer_part = q_safe_mod_z(a, Zt.one);
-  let floored = Qt.sub(a, integer_part);
+let q_is_int = a => Zt.equal(Qt.den(a), Zt.one);
 
-  if (!Zt.equal(Qt.den(floored), Zt.one)) {
-    raise(Not_found);
-  };
-
-  Qt.num(floored);
-};
+let q_floor = a =>
+  Qt.num(
+    if (q_is_int(a)) {
+      a;
+    } else {
+      let integer_part = q_safe_mod_z(a, Zt.one);
+      Qt.sub(a, integer_part);
+    },
+  );
