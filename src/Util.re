@@ -1,6 +1,4 @@
-module Zt = Z.Bigint;
-module Qt = Q.Bigint;
-
+let pi = 4.0 *. atan(1.0);
 let asinh = f => log(f +. sqrt(f *. f +. 1.0));
 let acosh = f => log(f +. sqrt(f *. f -. 1.0));
 let atanh = f => log((1.0 +. f) /. (1.0 -. f)) /. 2.0;
@@ -11,12 +9,7 @@ let default = (defaultValue, arg) =>
   | None => defaultValue
   };
 
-type boundary =
-  | BothBound
-  | UpperBound
-  | LowerBound
-  | Inside(float)
-  | Outside;
+let f_is_int = f => floor(f) == f;
 
 let bounds = (~lower=?, ~upper=?, f) => {
   let lowerCompare =
@@ -30,11 +23,11 @@ let bounds = (~lower=?, ~upper=?, f) => {
     | None => 1
     };
   switch (lowerCompare, upperCompare) {
-  | (0, 0) => BothBound
-  | (0, _) => LowerBound
-  | (_, 0) => UpperBound
-  | ((-1), 1) => Inside(f)
-  | _ => Outside
+  | (0, 0) => `BothBound
+  | (0, _) => `LowerBound
+  | (_, 0) => `UpperBound
+  | ((-1), 1) => `Inside(f)
+  | _ => `Outside
   };
 };
 
@@ -51,51 +44,51 @@ let rec string_split_on_char = (c, v) =>
   };
 
 let q_exp_10 = a =>
-  switch (Zt.cmp(a, Zt.zero)) {
-  | 0 => Qt.one
-  | 1 => Qt.of_bigint(Zt.pow(Zt.of_int(10), a))
-  | (-1) => Qt.of_bigint(Zt.pow(Zt.of_int(10), Zt.abs(a))) |> Qt.inv
+  switch (Z.cmp(a, Z.zero)) {
+  | 0 => Q.one
+  | 1 => Q.of_bigint(Z.pow(Z.of_int(10), a))
+  | (-1) => Q.of_bigint(Z.pow(Z.of_int(10), Z.abs(a))) |> Q.inv
   | _ => raise(Not_found)
   };
 
 let z_magnitude = x =>
-  Zt.of_int(String.length(Zt.to_string(Zt.abs(x))) - 1);
+  Z.of_int(String.length(Z.to_string(Z.abs(x))) - 1);
 
 let q_magnitude = x => {
   /*
    You *could* do something with exponential search (done previously).
-   However, you make so many instances of Zt, that this is likely much faster
+   However, you make so many instances of Z, that this is likely much faster
    */
-  let abs_x = Qt.abs(x);
-  let approx = Zt.sub(z_magnitude(Qt.num(x)), z_magnitude(Qt.den(x)));
+  let abs_x = Q.abs(x);
+  let approx = Z.sub(z_magnitude(Q.num(x)), z_magnitude(Q.den(x)));
   let approx = ref(approx);
-  while (Qt.lt(abs_x, q_exp_10(approx^))) {
-    approx := Zt.sub(approx^, Zt.one);
+  while (Q.lt(abs_x, q_exp_10(approx^))) {
+    approx := Z.sub(approx^, Z.one);
   };
-  while (Qt.gt(abs_x, q_exp_10(Zt.add(approx^, Zt.one)))) {
-    approx := Zt.add(approx^, Zt.one);
+  while (Q.gt(abs_x, q_exp_10(Z.add(approx^, Z.one)))) {
+    approx := Z.add(approx^, Z.one);
   };
   let exact = approx^;
   exact;
 };
 
 let q_safe_mod_z = (a, b) => {
-  let denominator = Qt.den(a);
-  let divisor = Zt.mul(b, denominator);
-  let numerator = Zt.rem(Qt.num(a), divisor);
+  let denominator = Q.den(a);
+  let divisor = Z.mul(b, denominator);
+  let numerator = Z.rem(Q.num(a), divisor);
   /* Handle negative numerators */
-  let numerator = Zt.rem(Zt.add(numerator, divisor), divisor);
-  Qt.make(numerator, denominator);
+  let numerator = Z.rem(Z.add(numerator, divisor), divisor);
+  Q.make(numerator, denominator);
 };
 
-let q_is_int = a => Zt.equal(Qt.den(a), Zt.one);
+let q_is_int = a => Z.equal(Q.den(a), Z.one);
 
 let q_floor = a =>
-  Qt.num(
+  Q.num(
     if (q_is_int(a)) {
       a;
     } else {
-      let integer_part = q_safe_mod_z(a, Zt.one);
-      Qt.sub(a, integer_part);
+      let integer_part = q_safe_mod_z(a, Z.one);
+      Q.sub(a, integer_part);
     },
   );

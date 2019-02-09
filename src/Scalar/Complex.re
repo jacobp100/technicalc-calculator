@@ -190,12 +190,31 @@ let between_one_minus_one = x =>
     false;
   };
 
-let factorial = x =>
-  if (is_real(x)) {
-    of_real(Real.factorial(x.re));
+let factorial = n =>
+  if (is_real(n) && Real.to_float(n.re) >% 0.) {
+    of_real(Real.factorial(n.re));
   } else {
-    nan;
+    /* See https://github.com/josdejong/mathjs/blob/c5971b371a5610caf37de0d6507a1c7150280f09/src/function/probability/gamma.js */
+    let (p, g) = (FactorialUtil.p, FactorialUtil.g);
+    let x = ref(of_float(p[0]));
+    for (i in 1 to Pervasives.(-)(Array.length(p), 1)) {
+      let p_i = Real.of_float(p[i]);
+      let real = n.re + Real.of_int(i);
+      let den = real * real + n.im * n.im;
+      x := add(x^, of_components(p_i * real / den, - (p_i * n.im) / den));
+    };
+
+    let t = add(n, of_float(g +. 0.5));
+    let n = add(n, of_float(0.5));
+
+    let result = mul(pow(t, n), of_float(Pervasives.sqrt(2. *. Util.pi)));
+
+    let r = Real.exp(- t.re);
+    let t = of_components(r * Real.cos(- t.im), r * Real.sin(- t.im));
+
+    mul(mul(result, t), x^);
   };
+
 let asin = x =>
   if (between_one_minus_one(x)) {
     of_real(Real.asin(x.re));

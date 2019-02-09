@@ -1,6 +1,3 @@
-module Zt = Z.Bigint;
-module Qt = Q.Bigint;
-
 type formatting = {
   min_decimal_places: option(int),
   max_decimal_places: option(int),
@@ -61,9 +58,9 @@ let add_digit_separators = (~start_index=0, ~end_index=?, string) => {
 };
 
 let format_integer = (formatting, num) => {
-  let str = Zt.to_string(num);
+  let str = Z.to_string(num);
   if (formatting.digit_separators) {
-    add_digit_separators(~start_index=Zt.lt(num, Zt.zero) ? 1 : 0, str);
+    add_digit_separators(~start_index=Z.lt(num, Z.zero) ? 1 : 0, str);
   } else {
     str;
   };
@@ -73,15 +70,15 @@ let format_decimal = (formatting, num) => {
   let (min_decimal_places, max_decimal_places) =
     _get_decimal_bounds(formatting);
 
-  let abs_num = Qt.abs(num);
+  let abs_num = Q.abs(num);
 
   let integer =
     format_integer(
       formatting,
       {
         let abs_integer_part = Util.q_floor(abs_num);
-        if (Qt.lt(num, Qt.zero)) {
-          Zt.neg(abs_integer_part);
+        if (Q.lt(num, Q.zero)) {
+          Z.neg(abs_integer_part);
         } else {
           abs_integer_part;
         };
@@ -92,11 +89,11 @@ let format_decimal = (formatting, num) => {
     if (Util.q_is_int(num)) {
       String.make(min_decimal_places, '0');
     } else {
-      let decimal_part = Util.q_safe_mod_z(abs_num, Zt.one);
+      let decimal_part = Util.q_safe_mod_z(abs_num, Z.one);
       let exp =
-        Qt.of_bigint(Zt.pow(Zt.of_int(10), Zt.of_int(max_decimal_places)));
-      let decimal_as_integer = Util.q_floor(Qt.mul(decimal_part, exp));
-      let baseStr = Zt.to_string(decimal_as_integer);
+        Q.of_bigint(Z.pow(Z.of_int(10), Z.of_int(max_decimal_places)));
+      let decimal_as_integer = Util.q_floor(Q.mul(decimal_part, exp));
+      let baseStr = Z.to_string(decimal_as_integer);
       let str =
         String.make(max_decimal_places - String.length(baseStr), '0')
         ++ baseStr;
@@ -113,8 +110,8 @@ let format_decimal = (formatting, num) => {
 let format_exponential = (~exponent=?, ~exponent_format="e$", formatting, num) => {
   let exponent = Util.default(Util.q_magnitude(num), exponent);
   let decimal_part =
-    format_decimal(formatting, Qt.div(num, Util.q_exp_10(exponent)));
-  let exponent_part = Zt.to_string(exponent);
+    format_decimal(formatting, Q.div(num, Util.q_exp_10(exponent)));
+  let exponent_part = Z.to_string(exponent);
   let formatted_exponent = {
     let index = String.index(exponent_format, '$');
     String.sub(exponent_format, 0, index)

@@ -1,46 +1,45 @@
-module Bigint = {
-  exception Overflow;
-  type t;
+exception Overflow;
+type t;
 
-  [@bs.new] [@bs.module] external of_int: int => t = "bn.js";
-  let of_int = of_int;
-  [@bs.new] [@bs.module] external of_float: float => t = "bn.js";
-  let of_float = of_float;
-  [@bs.new] [@bs.module] external of_string: string => t = "bn.js";
-  let of_string = of_string;
+[@bs.new] [@bs.module] external of_int: int => t = "bn.js";
+[@bs.new] [@bs.module] external of_float: float => t = "bn.js";
+[@bs.new] [@bs.module] external _of_string_base: (string, int) => t = "bn.js";
+let _trim_leading_plus = Js.String.replaceByRe([%re "/$\+/"], "");
+let of_string_base = (base: int, s: string) =>
+  _of_string_base(_trim_leading_plus(s), base);
+let of_string = s => _of_string_base(_trim_leading_plus(s), 10);
 
-  let zero = of_int(0);
-  let one = of_int(1);
-  let minus_one = of_int(-1);
+let zero = of_int(0);
+let one = of_int(1);
+let minus_one = of_int(-1);
 
-  let _to_float: t => float = [%raw "x => x.toNumber()"];
-  let to_float = a =>
-    switch (_to_float(a)) {
-    | v => v
-    | exception _ => raise(Overflow)
-    };
-  let _to_int: t => int = [%raw "x => (x.toNumber() | 0)"];
-  let to_int = a =>
-    switch (_to_int(a)) {
-    | v => v
-    | exception _ => raise(Overflow)
-    };
-  let to_string: t => string = [%raw "x => x.toString(10)"];
+[@bs.send] external _to_float: t => float = "toNumber";
+let to_float = a =>
+  switch (_to_float(a)) {
+  | v => v
+  | exception _ => infinity
+  };
+let to_int = a =>
+  switch (int_of_float(_to_float(a))) {
+  | v => v
+  | exception _ => raise(Overflow)
+  };
+[@bs.send.pipe: t] external to_string_base: int => t = "toString";
+[@bs.send] external to_string: (t, [@bs.as 10] _) => string = "toString";
 
-  let add: (t, t) => t = [%raw "(a, b) => a.add(b)"];
-  let sub: (t, t) => t = [%raw "(a, b) => a.sub(b)"];
-  let mul: (t, t) => t = [%raw "(a, b) => a.mul(b)"];
-  let div: (t, t) => t = [%raw "(a, b) => a.div(b)"];
-  let rem: (t, t) => t = [%raw "(a, b) => a.mod(b)"];
-  let pow: (t, t) => t = [%raw "(a, b) => a.pow(b)"];
+[@bs.send] external add: (t, t) => t = "add";
+[@bs.send] external sub: (t, t) => t = "sub";
+[@bs.send] external mul: (t, t) => t = "mul";
+[@bs.send] external div: (t, t) => t = "div";
+[@bs.send] external rem: (t, t) => t = "mod";
+[@bs.send] external pow: (t, t) => t = "pow";
 
-  let abs: t => t = [%raw "(a) => a.abs()"];
-  let neg: t => t = [%raw "(a) => a.neg()"];
+[@bs.send] external abs: t => t = "abs";
+[@bs.send] external neg: t => t = "neg";
 
-  let cmp: (t, t) => int = [%raw "(a, b) => a.cmp(b)"];
-  let equal = (a, b) => cmp(a, b) == 0;
-  let lt = (a, b) => cmp(a, b) == (-1);
-  let lte = (a, b) => cmp(a, b) != 1;
-  let gt = (a, b) => cmp(a, b) == 1;
-  let gte = (a, b) => cmp(a, b) != (-1);
-};
+[@bs.send] external cmp: (t, t) => int = "cmp";
+[@bs.send] external equal: (t, t) => bool = "eq";
+[@bs.send] external lt: (t, t) => bool = "lt";
+[@bs.send] external leq: (t, t) => bool = "lte";
+[@bs.send] external gt: (t, t) => bool = "gt";
+[@bs.send] external geq: (t, t) => bool = "gte";

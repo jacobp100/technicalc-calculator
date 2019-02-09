@@ -1,19 +1,17 @@
-module Zt = Z.Bigint;
-
 type t =
   | None
   | Pi
-  | Exp(Zt.t)
-  | Sqrt(Zt.t);
+  | Exp(Z.t)
+  | Sqrt(Z.t);
 
 let none = None;
 
 let to_float = a =>
   switch (a) {
   | None => 1.0
-  | Pi => 4.0 *. atan(1.0)
-  | Exp(v) => exp(Zt.to_float(v))
-  | Sqrt(v) => sqrt(Zt.to_float(v))
+  | Pi => Util.pi
+  | Exp(v) => exp(Z.to_float(v))
+  | Sqrt(v) => sqrt(Z.to_float(v))
   };
 
 let equal = (a, b) =>
@@ -21,42 +19,42 @@ let equal = (a, b) =>
   | (None, None)
   | (Pi, Pi) => true
   | (Sqrt(ac), Sqrt(bc))
-  | (Exp(ac), Exp(bc)) => Zt.equal(ac, bc)
+  | (Exp(ac), Exp(bc)) => Z.equal(ac, bc)
   | _ => false
   };
 
 let simplify_sqrt = ac =>
-  if (Zt.equal(ac, Zt.zero)) {
-    (Zt.zero, None);
-  } else if (Zt.equal(ac, Zt.one)) {
-    (Zt.one, None);
+  if (Z.equal(ac, Z.zero)) {
+    (Z.zero, None);
+  } else if (Z.equal(ac, Z.one)) {
+    (Z.one, None);
   } else {
-    let upper = ac |> Zt.to_float |> sqrt |> Zt.of_float;
+    let upper = ac |> Z.to_float |> sqrt |> Z.of_float;
 
     let sqrt_arg = ref(ac);
-    let multiplier = ref(Zt.one);
+    let multiplier = ref(Z.one);
 
-    let current_sqrt_value = ref(Zt.of_int(2));
-    while (Zt.lte(current_sqrt_value^, upper)) {
-      let factor = Zt.mul(current_sqrt_value^, current_sqrt_value^);
+    let current_sqrt_value = ref(Z.of_int(2));
+    while (Z.leq(current_sqrt_value^, upper)) {
+      let factor = Z.mul(current_sqrt_value^, current_sqrt_value^);
 
-      while (Zt.equal(Zt.rem(sqrt_arg^, factor), Zt.zero)) {
-        sqrt_arg := Zt.div(sqrt_arg^, factor);
-        multiplier := Zt.mul(multiplier^, current_sqrt_value^);
+      while (Z.equal(Z.rem(sqrt_arg^, factor), Z.zero)) {
+        sqrt_arg := Z.div(sqrt_arg^, factor);
+        multiplier := Z.mul(multiplier^, current_sqrt_value^);
       };
 
-      current_sqrt_value := Zt.add(current_sqrt_value^, Zt.one);
+      current_sqrt_value := Z.add(current_sqrt_value^, Z.one);
     };
 
-    let constant = Zt.equal(sqrt_arg^, Zt.one) ? None : Sqrt(sqrt_arg^);
+    let constant = Z.equal(sqrt_arg^, Z.one) ? None : Sqrt(sqrt_arg^);
     (multiplier^, constant);
   };
 
 let simplify = a =>
   switch (a) {
   | Sqrt(ac) => simplify_sqrt(ac)
-  | Exp(ac) when Zt.equal(ac, Zt.zero) => (Zt.one, None)
-  | v => (Zt.one, v)
+  | Exp(ac) when Z.equal(ac, Z.zero) => (Z.one, None)
+  | v => (Z.one, v)
   };
 
 let to_string = (~format=OutputFormat.default, a) =>
@@ -78,7 +76,7 @@ let to_string = (~format=OutputFormat.default, a) =>
        )
     ++ ")"
   | (Latex, Pi) => "\\pi"
-  | (Latex, Exp(v)) when Zt.equal(v, Zt.one) => "e"
+  | (Latex, Exp(v)) when Z.equal(v, Z.one) => "e"
   | (Latex, Exp(v)) =>
     "e^{"
     ++ NumberFormat.format_integer(
