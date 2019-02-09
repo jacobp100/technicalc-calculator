@@ -35,9 +35,10 @@ let of_real = a => normalize({re: a, im: Real.zero});
 let of_imaginary = a => normalize({re: Real.zero, im: a});
 let of_components = (re, im) => normalize({re, im});
 
-let of_float = re => normalize({re: Real.of_float(re), im: Real.zero});
-let of_string = re => normalize({re: Real.of_string(re), im: Real.zero});
-let of_int = re => normalize({re: Real.of_int(re), im: Real.zero});
+let of_float = f => of_real(Real.of_float(f));
+let of_string = s => of_real(Real.of_string(s));
+let of_string_base = (base, s) => of_real(Real.of_string_base(base, s));
+let of_int = i => of_real(Real.of_int(i));
 let of_floats = (re, im) =>
   normalize({re: Real.of_float(re), im: Real.of_float(im)});
 

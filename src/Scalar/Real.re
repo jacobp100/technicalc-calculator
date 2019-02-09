@@ -1,5 +1,5 @@
 open PervasivesNoPoly;
-open PervasivesMath;
+/* open PervasivesMath; */
 
 let (==) = Q.equal;
 let (+) = Q.add;
@@ -108,14 +108,10 @@ let of_z = (~constant=Constant.none, ~denominator=?, v) =>
   | None => of_q(~constant, Q.of_bigint(v))
   };
 
-let of_string = (~constant=Constant.none, v) => {
+let of_string_base = (~constant=Constant.none, base, v) => {
   let (withoutMagnitude, magnitudePart) =
     switch (Util.string_split_on_char('e', String.lowercase(v))) {
-    | [b, baseM] =>
-      let m =
-        baseM.[0] ==% '+' ?
-          String.sub(baseM, 1, String.length(baseM) -% 1) : baseM;
-      (Some(b), Some(m));
+    | [b, m] => (Some(b), Some(m))
     | [b] => (Some(b), Some("0"))
     | _ => (None, None)
     };
@@ -127,13 +123,16 @@ let of_string = (~constant=Constant.none, v) => {
     };
   switch (integerPart, decimalPart, magnitudePart) {
   | (Some(integer), Some(decimal), Some(magnitude)) =>
-    let num = Z.of_string(integer ++ decimal);
-    let denom = Z.pow(Z.of_int(10), Z.of_int(String.length(decimal)));
+    let num = Z.of_string_base(base, integer ++ decimal);
+    let denom = Z.pow(Z.of_int(base), Z.of_int(String.length(decimal)));
     let exponent = Util.q_exp_10(Z.of_string(magnitude));
     of_q(Q.make(num, denom) * exponent, ~constant);
   | _ => NaN
   };
 };
+
+let of_string = (~constant=Constant.none, v) =>
+  of_string_base(~constant, 10, v);
 
 let to_string = (~format=OutputFormat.default, a) => {
   let exponent_format =
@@ -463,7 +462,7 @@ let factorial = n =>
     /* See https://github.com/josdejong/mathjs/blob/c5971b371a5610caf37de0d6507a1c7150280f09/src/function/probability/gamma.js */
     let (p, g) = (FactorialUtil.p, FactorialUtil.g);
     let x = ref(p[0]);
-    for (i in 1 to (Pervasives.(-)(Array.length(p), 1))) {
+    for (i in 1 to Pervasives.(-)(Array.length(p), 1)) {
       x := x^ +. p[i] /. (f +. float_of_int(i));
     };
     let t = f +. g +. 0.5;

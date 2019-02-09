@@ -10,13 +10,13 @@ module Result =
 
 include SciLineAst;
 
-let zero = value_of_t(SciLineValue.zero);
-let one = value_of_t(SciLineValue.one);
-let minus_one = value_of_t(SciLineValue.minus_one);
-let pi = value_of_t(SciLineValue.pi);
-let e = value_of_t(SciLineValue.e);
-let i = value_of_t(SciLineValue.of_number(Complex.i));
-let minus_i = value_of_t(SciLineValue.of_number(Complex.minus_i));
+let zero = of_t(SciLineValue.zero);
+let one = of_t(SciLineValue.one);
+let minus_one = of_t(SciLineValue.minus_one);
+let pi = of_t(SciLineValue.pi);
+let e = of_t(SciLineValue.e);
+let i = of_t(SciLineValue.of_number(Complex.i));
+let minus_i = of_t(SciLineValue.of_number(Complex.minus_i));
 
 let _convert_context = jsContext =>
   Array.fold_left(
@@ -29,10 +29,8 @@ let resolve = a => Result.wrap(eval(a));
 let resolveWithContext = (jsContext, a) =>
   Result.wrap(eval(~context=_convert_context(jsContext), a));
 
-let of_float = value_of_float;
-let of_string = value_of_string;
 let of_complex_floats = (re, im) =>
-  value_of_t(SciLineValue.of_number(Complex.of_floats(re, im)));
+  of_t(SciLineValue.of_number(Complex.of_floats(re, im)));
 
 let to_float = a =>
   switch (SciLineValue.to_number(Result.unwrap(a))) {

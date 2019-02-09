@@ -38,10 +38,11 @@ module Make = (V: Types.BaseValue) => {
 
   module Context = Map.Make(String);
 
-  let value_of_int = a => Value(V.of_int(a));
-  let value_of_float = a => Value(V.of_float(a));
-  let value_of_string = a => Value(V.of_string(a));
-  let value_of_t = a => Value(a);
+  let of_int = a => Value(V.of_int(a));
+  let of_float = a => Value(V.of_float(a));
+  let of_string = a => Value(V.of_string(a));
+  let of_string_base = (base, a) => Value(V.of_string_base(base, a));
+  let of_t = a => Value(a);
   let matrix_of_elements = (rows, columns, elements) =>
     Matrix(rows, columns, elements);
   let variable = name => Variable(name);
