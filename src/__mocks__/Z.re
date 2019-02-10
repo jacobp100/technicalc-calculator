@@ -24,7 +24,7 @@ let to_int = a =>
   | v => v
   | exception _ => raise(Overflow)
   };
-[@bs.send.pipe: t] external to_string_base: int => t = "toString";
+[@bs.send.pipe: t] external to_string_base: int => string = "toString";
 [@bs.send] external to_string: (t, [@bs.as 10] _) => string = "toString";
 
 [@bs.send] external add: (t, t) => t = "add";

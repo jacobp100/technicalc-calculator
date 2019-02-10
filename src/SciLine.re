@@ -62,6 +62,8 @@ type format = {
   [@bs.optional]
   precision: int,
   [@bs.optional]
+  base: int,
+  [@bs.optional]
   decimal_min_magnitude: float,
   [@bs.optional]
   decimal_max_magnitude: float,
@@ -80,6 +82,7 @@ let _create_formater = mode =>
         },
       precision:
         Util.default(OutputFormat.default.precision, precisionGet(f)),
+      base: Util.default(OutputFormat.default.base, baseGet(f)),
       decimal_min_magnitude:
         Util.default(
           OutputFormat.default.decimal_min_magnitude,
