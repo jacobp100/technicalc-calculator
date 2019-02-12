@@ -337,7 +337,7 @@ let log = a =>
 
 let _trig_period = a =>
   switch (a) {
-  | Value(aq, Pi) => of_q(QUtil.safe_mod_z(aq, Z.of_int(2)), ~constant=Pi)
+  | Value(aq, Pi) => of_q(QUtil.safe_mod(aq, Z.of_int(2)), ~constant=Pi)
   | _ => a
   };
 

@@ -92,7 +92,7 @@ let format_decimal = (~base=10, formatting, num) => {
     } else if (QUtil.is_int(num)) {
       String.make(min_decimal_places, '0');
     } else {
-      let decimal_part = QUtil.safe_mod_z(abs_num, Z.one);
+      let decimal_part = QUtil.safe_mod(abs_num, Z.one);
       let exp = Q.of_bigint(Z.pow(Z.of_int(base), max_decimal_places));
       let decimal_as_integer = QUtil.floor(Q.mul(decimal_part, exp));
       let baseStr = Z.to_string_base(base, decimal_as_integer);

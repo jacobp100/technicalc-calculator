@@ -40,23 +40,25 @@ let magnitude = x =>
     lower_bound^;
   };
 
-let safe_mod_z = (a, b) => {
+let safe_mod = (a, b) => {
   let denominator = Q.den(a);
   let divisor = Z.mul(b, denominator);
   let numerator = Z.rem(Q.num(a), divisor);
-  /* Handle negative numerators */
-  let numerator = Z.rem(Z.add(numerator, divisor), divisor);
+  let numerator =
+    switch (Z.sign(numerator)) {
+    | 0
+    | 1 => numerator
+    | (-1) => Z.rem(Z.add(numerator, divisor), divisor)
+    | _ => raise(Not_found)
+    };
   Q.make(numerator, denominator);
 };
 
 let is_int = a => Z.equal(Q.den(a), Z.one);
 
 let floor = a =>
-  Q.num(
-    if (is_int(a)) {
-      a;
-    } else {
-      let integer_part = safe_mod_z(a, Z.one);
-      Q.sub(a, integer_part);
-    },
-  );
+  if (is_int(a)) {
+    Q.num(a);
+  } else {
+    Z.div(Q.num(a), Q.den(a));
+  };
