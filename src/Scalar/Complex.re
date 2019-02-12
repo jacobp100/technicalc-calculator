@@ -208,7 +208,8 @@ let factorial = n =>
     let t = add(n, of_float(g +. 0.5));
     let n = add(n, of_float(0.5));
 
-    let result = mul(pow(t, n), of_float(Pervasives.sqrt(2. *. Util.pi)));
+    let result =
+      mul(pow(t, n), of_float(Pervasives.sqrt(2. *. FloatUtil.pi)));
 
     let r = Real.exp(- t.re);
     let t = of_components(r * Real.cos(- t.im), r * Real.sin(- t.im));

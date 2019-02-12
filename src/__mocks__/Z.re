@@ -4,8 +4,8 @@ type t;
 [@bs.new] [@bs.module] external of_int: int => t = "bn.js";
 [@bs.new] [@bs.module] external of_float: float => t = "bn.js";
 [@bs.new] [@bs.module] external _of_string_base: (string, int) => t = "bn.js";
-let _trim_leading_plus = Js.String.replaceByRe([%re "/$\+/"], "");
-let of_string_base = (base: int, s: string) =>
+let _trim_leading_plus = Js.String.replaceByRe([%re "/$\\+/"], "");
+let of_string_base = (base, s) =>
   _of_string_base(_trim_leading_plus(s), base);
 let of_string = s => _of_string_base(_trim_leading_plus(s), 10);
 
@@ -32,14 +32,33 @@ let to_int = a =>
 [@bs.send] external mul: (t, t) => t = "mul";
 [@bs.send] external div: (t, t) => t = "div";
 [@bs.send] external rem: (t, t) => t = "mod";
-[@bs.send] external pow: (t, t) => t = "pow";
+[@bs.send] external _pow_z: (t, t) => t = "pow";
+let pow = (a, b) => _pow_z(a, of_int(b));
 
 [@bs.send] external abs: t => t = "abs";
 [@bs.send] external neg: t => t = "neg";
 
-[@bs.send] external cmp: (t, t) => int = "cmp";
+[@bs.send] external compare: (t, t) => int = "cmp";
 [@bs.send] external equal: (t, t) => bool = "eq";
 [@bs.send] external lt: (t, t) => bool = "lt";
 [@bs.send] external leq: (t, t) => bool = "lte";
 [@bs.send] external gt: (t, t) => bool = "gt";
 [@bs.send] external geq: (t, t) => bool = "gte";
+
+[@bs.send] external pred: (t, [@bs.as 1] _) => t = "subn";
+[@bs.send] external succ: (t, [@bs.as 1] _) => t = "addn";
+[@bs.send] external sign: (t, [@bs.as 0] _) => int = "cmpn";
+[@bs.send] external numbits: t => int = "bitLength";
+
+let log2 = x =>
+  if (sign(x) > 0) {
+    numbits(x) - 1;
+  } else {
+    invalid_arg("Z.log2");
+  };
+let log2up = x =>
+  if (sign(x) > 0) {
+    numbits(pred(x));
+  } else {
+    invalid_arg("Z.log2up");
+  };

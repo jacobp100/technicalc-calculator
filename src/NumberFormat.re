@@ -77,7 +77,7 @@ let format_decimal = (~base=10, formatting, num) => {
       ~base,
       formatting,
       {
-        let abs_integer_part = Util.q_floor(abs_num);
+        let abs_integer_part = QUtil.floor(abs_num);
         if (Q.lt(num, Q.zero)) {
           Z.neg(abs_integer_part);
         } else {
@@ -89,12 +89,12 @@ let format_decimal = (~base=10, formatting, num) => {
   let decimal =
     if (max_decimal_places == 0) {
       "";
-    } else if (Util.q_is_int(num)) {
+    } else if (QUtil.is_int(num)) {
       String.make(min_decimal_places, '0');
     } else {
-      let decimal_part = Util.q_safe_mod_z(abs_num, Z.one);
+      let decimal_part = QUtil.safe_mod_z(abs_num, Z.one);
       let exp = Q.of_bigint(Z.pow(Z.of_int(base), max_decimal_places));
-      let decimal_as_integer = Util.q_floor(Q.mul(decimal_part, exp));
+      let decimal_as_integer = QUtil.floor(Q.mul(decimal_part, exp));
       let baseStr = Z.to_string_base(base, decimal_as_integer);
       let str =
         String.make(max_decimal_places - String.length(baseStr), '0')
@@ -111,12 +111,12 @@ let format_decimal = (~base=10, formatting, num) => {
 
 let format_exponential =
     (~base=10, ~exponent=?, ~exponent_format="e$", formatting, num) => {
-  let exponent = Util.default(Util.q_magnitude(num), exponent);
+  let exponent = Util.default(QUtil.magnitude(num), exponent);
   let decimal_part =
     format_decimal(
       ~base,
       formatting,
-      Q.div(num, Util.q_exp_ints(10, exponent)),
+      Q.div(num, QUtil.exp_ints(10, exponent)),
     );
   let exponent_part = string_of_int(exponent);
   let formatted_exponent = {

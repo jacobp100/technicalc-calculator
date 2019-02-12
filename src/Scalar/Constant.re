@@ -9,7 +9,7 @@ let none = None;
 let to_float = a =>
   switch (a) {
   | None => 1.0
-  | Pi => Util.pi
+  | Pi => FloatUtil.pi
   | Exp(v) => exp(Z.to_float(v))
   | Sqrt(v) => sqrt(Z.to_float(v))
   };
@@ -57,40 +57,21 @@ let simplify = a =>
   | v => (Z.one, v)
   };
 
+let _number_string = (format, v) =>
+  NumberFormat.format_integer(
+    ~base=OutputFormat.(format.base),
+    NumberFormat.create_format(~digit_separators=false, ()),
+    v,
+  );
+
 let to_string = (~format=OutputFormat.default, a) =>
   switch (format.mode, a) {
   | (_, None) => ""
   | (String, Pi) => "pi"
-  | (String, Exp(v)) =>
-    "exp("
-    ++ NumberFormat.format_integer(
-         NumberFormat.create_format(~digit_separators=false, ()),
-         v,
-       )
-    ++ ")"
-  | (String, Sqrt(v)) =>
-    "sqrt("
-    ++ NumberFormat.format_integer(
-         NumberFormat.create_format(~digit_separators=false, ()),
-         v,
-       )
-    ++ ")"
+  | (String, Exp(v)) => "exp(" ++ _number_string(format, v) ++ ")"
+  | (String, Sqrt(v)) => "sqrt(" ++ _number_string(format, v) ++ ")"
   | (Latex, Pi) => "\\pi"
   | (Latex, Exp(v)) when Z.equal(v, Z.one) => "e"
-  | (Latex, Exp(v)) =>
-    "e^{"
-    ++ NumberFormat.format_integer(
-         NumberFormat.create_format(~digit_separators=false, ()),
-         v,
-       )
-    ++ "}"
-  | (Latex, Sqrt(v)) =>
-    "\\sqrt{"
-    ++ NumberFormat.(
-         format_integer(
-           NumberFormat.create_format(~digit_separators=true, ()),
-           v,
-         )
-       )
-    ++ "}"
+  | (Latex, Exp(v)) => "e^{" ++ _number_string(format, v) ++ "}"
+  | (Latex, Sqrt(v)) => "\\sqrt{" ++ _number_string(format, v) ++ "}"
   };

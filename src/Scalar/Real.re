@@ -124,8 +124,8 @@ let of_string_base = (~constant=Constant.none, base, v) => {
   switch (integerPart, decimalPart, magnitudePart) {
   | (Some(integer), Some(decimal), Some(magnitude)) =>
     let num = Z.of_string_base(base, integer ++ decimal);
-    let denom = Z.pow(Z.of_int(base), Z.of_int(String.length(decimal)));
-    let exponent = Util.q_exp_10(Z.of_string(magnitude));
+    let denom = Z.pow(Z.of_int(base), String.length(decimal));
+    let exponent = QUtil.exp_ints(10, int_of_string(magnitude));
     of_q(Q.make(num, denom) * exponent, ~constant);
   | _ => NaN
   };
@@ -188,15 +188,16 @@ let to_string = (~format=OutputFormat.default, a) => {
     } else {
       NumberFormat.format_exponential(
         ~base,
-        ~exponent=Util.q_magnitude(aq),
+        ~exponent=QUtil.magnitude(aq),
         ~exponent_format?,
         NumberFormat.create_format(~max_decimal_places=format.precision, ()),
         aq,
       );
     };
   | (Scientific, _, Some(aq)) =>
+    /* Round to multiple of 3 */
     let exponent =
-      Z.mul(Z.div(Util.q_magnitude(aq), Z.of_int(3)), Z.of_int(3));
+      Pervasives.( * )(Pervasives.(/)(QUtil.magnitude(aq), 3), 3);
     NumberFormat.format_exponential(
       ~base,
       ~exponent,
@@ -213,10 +214,9 @@ let to_string = (~format=OutputFormat.default, a) => {
   };
 };
 
-let q_is_integer = a => Z.equal(Q.den(a), Z.one);
 let is_integer = a =>
   switch (a) {
-  | Value(ar, None) => q_is_integer(ar)
+  | Value(ar, None) => QUtil.is_int(ar)
   | _ => false
   };
 
@@ -317,9 +317,11 @@ let pow = (a, b) =>
   | (Value(ar, Exp(ac)), _) when ar == Q.one && Z.equal(ac, Z.one) =>
     exp(b)
   | (Value(_), Value(br, None)) when br == Q.of_int(2) => mul(a, a)
-  | (Value(ar, None), Value(br, None)) when q_is_integer(br) && br > Q.zero =>
-    let (an, ad, bn) = (Q.num(ar), Q.den(ar), Q.num(br));
-    of_q(Q.make(Z.pow(an, bn), Z.pow(ad, bn)));
+  | (Value(ar, None), Value(br, None)) when QUtil.is_int(br) && br > Q.zero =>
+    switch (Z.to_int(Q.num(br))) {
+    | bn => of_z(Z.pow(Q.num(ar), bn), ~denominator=Z.pow(Q.den(ar), bn))
+    | exception Z.Overflow => NaN
+    }
   | (Value(_), Value(_)) => of_float(to_float(a) ** to_float(b))
   | (NaN, _)
   | (_, NaN) => NaN
@@ -335,7 +337,7 @@ let log = a =>
 
 let _trig_period = a =>
   switch (a) {
-  | Value(aq, Pi) => of_q(Util.q_safe_mod_z(aq, Z.of_int(2)), ~constant=Pi)
+  | Value(aq, Pi) => of_q(QUtil.safe_mod_z(aq, Z.of_int(2)), ~constant=Pi)
   | _ => a
   };
 
@@ -455,7 +457,7 @@ let atan = a =>
 
 let factorial = n =>
   switch (to_float(n)) {
-  | f when Util.f_is_int(f) && f >=% 0. && f <=% 1000. =>
+  | f when FloatUtil.is_int(f) && f >=% 0. && f <=% 1000. =>
     let i = int_of_float(f);
     let fact = ref(Z.one);
     for (mul in 2 to i) {
@@ -471,7 +473,7 @@ let factorial = n =>
     };
     let t = f +. g +. 0.5;
     let value =
-      Pervasives.sqrt(2.0 *. Util.pi)
+      Pervasives.sqrt(2.0 *. FloatUtil.pi)
       *. t
       ** (f +. 0.5)
       *. Pervasives.exp(-. t)
@@ -488,22 +490,22 @@ let _map_float = (fn, x) =>
 
 let _check_bounds = (~lower=?, ~upper=?, x) =>
   switch (x) {
-  | Value(_) => Util.bounds(~lower?, ~upper?, to_float(x))
+  | Value(_) => FloatUtil.bounds(~lower?, ~upper?, to_float(x))
   | NaN => `Outside
   };
 
 let sinh = _map_float(sinh);
-let asinh = _map_float(Util.asinh);
+let asinh = _map_float(FloatUtil.asinh);
 let cosh = _map_float(cosh);
 let acosh = x =>
   switch (_check_bounds(~lower=1.0, x)) {
-  | `Inside(f) => of_float(Util.acosh(f))
+  | `Inside(f) => of_float(FloatUtil.acosh(f))
   | `LowerBound => zero
   | _ => NaN
   };
 let tanh = _map_float(tanh);
 let atanh = x =>
   switch (_check_bounds(~lower=-1.0, ~upper=1.0, x)) {
-  | `Inside(f) => of_float(Util.atanh(f))
+  | `Inside(f) => of_float(FloatUtil.atanh(f))
   | _ => NaN
   };
