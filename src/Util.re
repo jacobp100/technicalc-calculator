@@ -43,34 +43,49 @@ let rec string_split_on_char = (c, v) =>
   | exception Not_found => [v]
   };
 
-let q_exp_10 = a =>
-  switch (Z.cmp(a, Z.zero)) {
-  | 0 => Q.one
-  | 1 => Q.of_bigint(Z.pow(Z.of_int(10), a))
-  | (-1) => Q.of_bigint(Z.pow(Z.of_int(10), Z.abs(a))) |> Q.inv
+let q_exp_ints = (base, a) =>
+  if (a == 0) {
+    Q.one;
+  } else if (a > 0) {
+    Q.of_bigint(Z.pow(Z.of_int(base), a));
+  } else {
+    Q.of_bigint(Z.pow(Z.of_int(base), abs(a))) |> Q.inv;
+  };
+
+let rec _find_q_magnitude = (base, q, approx) =>
+  switch (
+    Q.compare(q, q_exp_ints(base, approx)),
+    Q.compare(q, q_exp_ints(base, approx + 1)),
+  ) {
+  | (1 | 0, (-1)) => approx
+  | (1, 0) => approx + 1
+  | ((-1), _) => _find_q_magnitude(base, q, approx - 1)
+  | (_, 1) => _find_q_magnitude(base, q, approx + 1)
   | _ => raise(Not_found)
   };
 
-let z_magnitude = x =>
-  Z.of_int(String.length(Z.to_string(Z.abs(x))) - 1);
+let q_magnitude_base = (base, x) =>
+  if (Q.equal(x, Q.zero)) {
+    0;
+  } else {
+    let abs_x = Q.abs(x);
+    let log2_base = log(float_of_int(base)) /. log(2.);
+    let approx_log2_q =
+      float_of_int(Z.log2(Q.num(abs_x)) - Z.log2(Q.den(abs_x)));
+    let approx_magnitude = int_of_float(approx_log2_q /. log2_base);
 
-let q_magnitude = x => {
-  /*
-   You *could* do something with exponential search (done previously).
-   However, you make so many instances of Z, that this is likely much faster
-   */
-  let abs_x = Q.abs(x);
-  let approx = Z.sub(z_magnitude(Q.num(x)), z_magnitude(Q.den(x)));
-  let approx = ref(approx);
-  while (Q.lt(abs_x, q_exp_10(approx^))) {
-    approx := Z.sub(approx^, Z.one);
+    let approx = ref(approx_magnitude);
+    while (Q.lt(abs_x, q_exp_ints(10, approx^))) {
+      approx := approx^ - 1;
+    };
+    while (Q.geq(abs_x, q_exp_ints(10, approx^ + 1))) {
+      approx := approx^ + 1;
+    };
+
+    let exact = approx^;
+    exact;
   };
-  while (Q.gt(abs_x, q_exp_10(Z.add(approx^, Z.one)))) {
-    approx := Z.add(approx^, Z.one);
-  };
-  let exact = approx^;
-  exact;
-};
+let q_magnitude = q_magnitude_base(10);
 
 let q_safe_mod_z = (a, b) => {
   let denominator = Q.den(a);

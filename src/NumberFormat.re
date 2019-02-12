@@ -91,7 +91,7 @@ let format_decimal = (formatting, num) => {
     } else {
       let decimal_part = Util.q_safe_mod_z(abs_num, Z.one);
       let exp =
-        Q.of_bigint(Z.pow(Z.of_int(10), Z.of_int(max_decimal_places)));
+        Q.of_bigint(Z.pow(Z.of_int(10), max_decimal_places));
       let decimal_as_integer = Util.q_floor(Q.mul(decimal_part, exp));
       let baseStr = Z.to_string(decimal_as_integer);
       let str =
@@ -110,17 +110,17 @@ let format_decimal = (formatting, num) => {
 let format_exponential = (~exponent=?, ~exponent_format="e$", formatting, num) => {
   let exponent = Util.default(Util.q_magnitude(num), exponent);
   let decimal_part =
-    format_decimal(formatting, Q.div(num, Util.q_exp_10(exponent)));
-  let exponent_part = Z.to_string(exponent);
+  format_decimal(formatting, Q.div(num, Util.q_exp_ints(10, exponent)));
+  let exponent_part = string_of_int(exponent);
   let formatted_exponent = {
     let index = String.index(exponent_format, '$');
     String.sub(exponent_format, 0, index)
     ++ exponent_part
     ++ String.sub(
-         exponent_format,
-         index + 1,
-         String.length(exponent_format) - 1 - index,
-       );
-  };
+      exponent_format,
+      index + 1,
+      String.length(exponent_format) - 1 - index,
+      );
+    };
   decimal_part ++ formatted_exponent;
 };
