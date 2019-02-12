@@ -1,5 +1,5 @@
 module SciLineValue = Value.Make(Complex);
-module NumberMatrix = Matrix.Make(Complex);
+module NumberMatrix = SciLineValue.NumberMatrix;
 module SciLineAst = AST.Make(SciLineValue);
 
 module Result =
