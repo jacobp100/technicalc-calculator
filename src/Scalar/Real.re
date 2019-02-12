@@ -140,6 +140,7 @@ let to_string = (~format=OutputFormat.default, a) => {
     | Latex => Some("\\times10^{$}")
     | _ => None
     };
+  let base = format.base;
 
   switch (format.style, a, to_q(a)) {
   | (Natural, Value(ar, constant), _)
@@ -152,7 +153,7 @@ let to_string = (~format=OutputFormat.default, a) => {
     let minus = Z.lt(num, Z.zero) ? "-" : "";
     let top =
       switch (
-        NumberFormat.format_integer(formatting, Z.abs(num)),
+        NumberFormat.format_integer(~base, formatting, Z.abs(num)),
         Constant.to_string(~format, constant),
       ) {
       | ("1", "") => "1"
@@ -160,7 +161,7 @@ let to_string = (~format=OutputFormat.default, a) => {
       | (numerator, constant) => numerator ++ constant
       };
 
-    switch (format.mode, NumberFormat.format_integer(formatting, den)) {
+    switch (format.mode, NumberFormat.format_integer(~base, formatting, den)) {
     | (_, "1") => minus ++ top
     | (String, denominator) => minus ++ top ++ "/" ++ denominator
     | (Latex, denominator) =>
@@ -176,6 +177,7 @@ let to_string = (~format=OutputFormat.default, a) => {
 
     if (inside_magnitude_threshold) {
       NumberFormat.format_decimal(
+        ~base,
         NumberFormat.create_format(
           ~max_decimal_places=format.precision,
           ~digit_separators=value_magnitude >=% 5.,
@@ -185,6 +187,7 @@ let to_string = (~format=OutputFormat.default, a) => {
       );
     } else {
       NumberFormat.format_exponential(
+        ~base,
         ~exponent=Util.q_magnitude(aq),
         ~exponent_format?,
         NumberFormat.create_format(~max_decimal_places=format.precision, ()),
@@ -195,6 +198,7 @@ let to_string = (~format=OutputFormat.default, a) => {
     let exponent =
       Z.mul(Z.div(Util.q_magnitude(aq), Z.of_int(3)), Z.of_int(3));
     NumberFormat.format_exponential(
+      ~base,
       ~exponent,
       ~exponent_format?,
       NumberFormat.create_format(

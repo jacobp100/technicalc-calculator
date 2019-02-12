@@ -57,8 +57,8 @@ let add_digit_separators = (~start_index=0, ~end_index=?, string) => {
   base_str^;
 };
 
-let format_integer = (formatting, num) => {
-  let str = Z.to_string(num);
+let format_integer = (~base=10, formatting, num) => {
+  let str = Z.to_string_base(base, num);
   if (formatting.digit_separators) {
     add_digit_separators(~start_index=Z.lt(num, Z.zero) ? 1 : 0, str);
   } else {
@@ -66,7 +66,7 @@ let format_integer = (formatting, num) => {
   };
 };
 
-let format_decimal = (formatting, num) => {
+let format_decimal = (~base=10, formatting, num) => {
   let (min_decimal_places, max_decimal_places) =
     _get_decimal_bounds(formatting);
 
@@ -74,6 +74,7 @@ let format_decimal = (formatting, num) => {
 
   let integer =
     format_integer(
+      ~base,
       formatting,
       {
         let abs_integer_part = Util.q_floor(abs_num);
@@ -86,14 +87,15 @@ let format_decimal = (formatting, num) => {
     );
 
   let decimal =
-    if (Util.q_is_int(num)) {
+    if (max_decimal_places == 0) {
+      "";
+    } else if (Util.q_is_int(num)) {
       String.make(min_decimal_places, '0');
     } else {
       let decimal_part = Util.q_safe_mod_z(abs_num, Z.one);
-      let exp =
-        Q.of_bigint(Z.pow(Z.of_int(10), max_decimal_places));
+      let exp = Q.of_bigint(Z.pow(Z.of_int(base), max_decimal_places));
       let decimal_as_integer = Util.q_floor(Q.mul(decimal_part, exp));
-      let baseStr = Z.to_string(decimal_as_integer);
+      let baseStr = Z.to_string_base(base, decimal_as_integer);
       let str =
         String.make(max_decimal_places - String.length(baseStr), '0')
         ++ baseStr;
@@ -107,20 +109,25 @@ let format_decimal = (formatting, num) => {
   };
 };
 
-let format_exponential = (~exponent=?, ~exponent_format="e$", formatting, num) => {
+let format_exponential =
+    (~base=10, ~exponent=?, ~exponent_format="e$", formatting, num) => {
   let exponent = Util.default(Util.q_magnitude(num), exponent);
   let decimal_part =
-  format_decimal(formatting, Q.div(num, Util.q_exp_ints(10, exponent)));
+    format_decimal(
+      ~base,
+      formatting,
+      Q.div(num, Util.q_exp_ints(10, exponent)),
+    );
   let exponent_part = string_of_int(exponent);
   let formatted_exponent = {
     let index = String.index(exponent_format, '$');
     String.sub(exponent_format, 0, index)
     ++ exponent_part
     ++ String.sub(
-      exponent_format,
-      index + 1,
-      String.length(exponent_format) - 1 - index,
-      );
-    };
+         exponent_format,
+         index + 1,
+         String.length(exponent_format) - 1 - index,
+       );
+  };
   decimal_part ++ formatted_exponent;
 };
