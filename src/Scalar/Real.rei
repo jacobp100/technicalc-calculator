@@ -7,4 +7,4 @@ let of_string: (~constant: Constant.t=?, string) => t;
 
 let to_float: t => float;
 
-let is_integer: t => bool;
+let is_int: t => bool;

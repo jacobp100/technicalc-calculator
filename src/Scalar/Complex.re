@@ -45,19 +45,44 @@ let of_floats = (re, im) =>
 let to_float = a => is_real(a) ? Real.to_float(a.re) : Pervasives.nan;
 let to_floats = a => (Real.to_float(a.re), Real.to_float(a.im));
 
+let to_int = a => is_real(a) ? Real.to_int(a.re) : None;
+
 let _magnitude2 = a => a.re * a.re + a.im * a.im;
 let _arg = ({re: x, im: y}) =>
   if (x == Real.zero) {
     switch (Pervasives.compare(Real.to_float(y), 0.0)) {
-    | 1 => Real.pi / Real.of_int(2)
-    | (-1) => Real.pi / Real.of_int(-2)
+    | 1 => Real.of_int(1, ~denominator=2, ~constant=Pi)
+    | (-1) => Real.of_int(-1, ~denominator=2, ~constant=Pi)
     | _ => Real.nan
     };
   } else {
     Real.of_float(atan2(Real.to_float(y), Real.to_float(x)));
   };
-
-let to_int = a => is_real(a) ? Real.to_int(a.re) : None;
+let _classify = a =>
+  switch (a.re == Real.zero, a.im == Real.zero) {
+  | (true, true) => `Zero
+  | (false, true) => `Real
+  | (true, false) => `Imaginary
+  | (false, false) => `Complex
+  };
+let _sign = a =>
+  if (is_real(a)) {
+    if (a.re == Real.zero) {
+      `Zero;
+    } else if (Real.to_float(a.re) >% 0.) {
+      `Positive;
+    } else {
+      `Negative;
+    };
+  } else {
+    `Undefined;
+  };
+let _bounds = (~lower=?, ~upper=?, x) =>
+  if (is_real(x)) {
+    FloatUtil.bounds(~lower?, ~upper?, Real.to_float(x.re));
+  } else {
+    `Outside;
+  };
 
 let _format_imaginary = (~format, im) =>
   switch (Real.to_string(~format, im)) {
@@ -67,16 +92,16 @@ let _format_imaginary = (~format, im) =>
   };
 
 let to_string = (~format=OutputFormat.default, x) =>
-  if (is_real(x)) {
-    Real.to_string(~format, x.re);
-  } else if (is_imaginary(x)) {
-    _format_imaginary(~format, x.im);
-  } else {
+  switch (_classify(x)) {
+  | `Real
+  | `Zero => Real.to_string(~format, x.re)
+  | `Imaginary => _format_imaginary(~format, x.im)
+  | `Complex =>
     let format = {...format, precision: Pervasives.(/)(format.precision, 3)};
     let re = Real.to_string(~format, x.re);
     let im = _format_imaginary(~format, x.im);
     let (im, op) =
-      if (Pervasives.(==)(im.[0], '-')) {
+      if (im.[0] ==% '-') {
         (String.sub(im, 1, Pervasives.(-)(String.length(im), 1)), "-");
       } else {
         (im, "+");
@@ -85,32 +110,37 @@ let to_string = (~format=OutputFormat.default, x) =>
   };
 
 let neg = a => of_components(- a.re, - a.im);
-let abs = a => of_components(Real.abs(a.re), Real.abs(a.im));
+let abs = a =>
+  of_real(is_real(a) ? Real.abs(a.re) : Real.sqrt(_magnitude2(a)));
 let add = (a, b) => of_components(a.re + b.re, a.im + b.im);
 let sub = (a, b) => of_components(a.re - b.re, a.im - b.im);
 
 let mul = (a, b) =>
-  if (is_real(a) && is_real(b)) {
-    of_real(a.re * b.re);
-  } else if (is_imaginary(a) && is_real(b)) {
-    of_imaginary(a.im * b.re);
-  } else if (is_real(a) && is_imaginary(b)) {
-    of_imaginary(a.re * b.im);
-  } else if (is_imaginary(a) && is_imaginary(b)) {
-    of_real(- (a.im * b.im));
-  } else {
-    of_components(a.re * b.re - a.im * b.im, a.re * b.im + a.im * b.re);
+  switch (_classify(a), _classify(b)) {
+  | (`Zero, _)
+  | (_, `Zero) => zero
+  | (`Real, `Real) => of_real(a.re * b.re)
+  | (`Real, `Imaginary) => of_imaginary(a.re * b.im)
+  | (`Imaginary, `Real) => of_imaginary(a.im * b.re)
+  | (`Imaginary, `Imaginary) => of_real(- (a.im * b.im))
+  | _ => of_components(a.re * b.re - a.im * b.im, a.re * b.im + a.im * b.re)
   };
 
 let div = (a, b) =>
-  if (equal(b, zero)) {
-    nan;
-  } else if (is_real(a) && is_real(b)) {
-    of_real(a.re / b.re);
-  } else {
-    /* More precision than _magnitude */
+  switch (_classify(a), _classify(b)) {
+  | (_, `Zero) => nan
+  | (`Zero, _) => zero
+  | (_, `Real) => of_components(a.re / b.re, a.im / b.re)
+  | (_, `Imaginary) => of_components(a.im / b.im, - a.re / b.im)
+  | (`Real, _) =>
     let s = _magnitude2(b);
-    let bReciprocal = of_components(b.re / s, - (b.im / s));
+    of_components(a.re * b.re / s, - a.re * b.im / s);
+  | (`Imaginary, _) =>
+    let s = _magnitude2(b);
+    of_components(a.im * b.im / s, a.im * b.re / s);
+  | _ =>
+    let s = _magnitude2(b);
+    let bReciprocal = of_components(b.re / s, - b.im / s);
     mul(a, bReciprocal);
   };
 
@@ -153,48 +183,36 @@ let tan = a =>
   };
 
 let log = a =>
-  if (is_real(a) && Real.to_float(a.re) >% 0.) {
-    of_real(Real.log(a.re));
-  } else if (is_real(a) && Real.to_float(a.re) ==% (-1.)) {
-    of_imaginary(Real.pi);
-  } else {
-    of_components(Real.log(_magnitude2(a)) / Real.of_int(2), _arg(a));
+  switch (_sign(a)) {
+  | `Positive => of_real(Real.log(a.re))
+  | `Zero => nan
+  | `Negative when a.re == Real.minus_one => of_imaginary(Real.pi)
+  | _ => of_components(Real.log(_magnitude2(a)) / Real.of_int(2), _arg(a))
   };
 
 let pow = (a, b) =>
-  if (is_real(a)
-      && is_real(b)
-      && (Real.is_integer(b.re) || Real.to_float(a.re) >=% 0.)) {
-    of_real(Real.pow(a.re, b.re));
-  } else if (is_real(a) && a.re == Real.e) {
+  switch (_sign(a), _sign(b)) {
+  | (`Zero, `Zero) => nan
+  | (_, `Zero) => one
+  | (`Zero, _) => zero
+  | (`Positive, `Positive | `Negative)
+  | (`Negative, `Positive) when Real.is_int(b.re) =>
+    of_real(Real.pow(a.re, b.re))
+  | (`Positive, _) when a.re == Real.e =>
     let multiplier = Real.exp(b.re);
     of_components(multiplier * Real.cos(b.im), multiplier * Real.sin(b.im));
-  } else if (is_real(a)
-             && is_real(b)
-             && Pervasives.(<)(Real.to_float(a.re), 0.)
-             && Pervasives.(==)(Real.to_float(b.re), 0.5)) {
-    of_imaginary(Real.sqrt(- a.re));
-  } else if (equal(a, zero)) {
-    /* b == 0 => NaN case handled in first branch */
-    zero;
-  } else {
-    exp(log(a) *$ b);
+  | (`Negative, `Positive) when b.re == Real.of_int(1, ~denominator=2) =>
+    of_imaginary(Real.sqrt(- a.re))
+  | _ => exp(log(a) *$ b)
   };
 
 let sqrt = a => pow(a, of_real(Real.of_int(1, ~denominator=2)));
 
-let between_one_minus_one = x =>
-  if (is_real(x)) {
-    let f = Pervasives.abs_float(Real.to_float(x.re));
-    f <=% 1.0;
-  } else {
-    false;
-  };
-
 let factorial = n =>
-  if (is_real(n) && Real.to_float(n.re) >% 0.) {
-    of_real(Real.factorial(n.re));
-  } else {
+  switch (_sign(n)) {
+  | `Zero
+  | `Positive => of_real(Real.factorial(n.re))
+  | _ =>
     /* See https://github.com/josdejong/mathjs/blob/c5971b371a5610caf37de0d6507a1c7150280f09/src/function/probability/gamma.js */
     let (p, g) = (FactorialUtil.p, FactorialUtil.g);
     let x = ref(of_float(p[0]));
@@ -218,10 +236,9 @@ let factorial = n =>
   };
 
 let asin = x =>
-  if (between_one_minus_one(x)) {
-    of_real(Real.asin(x.re));
-  } else {
-    ~-$i *$ log(i *$ x +$ sqrt(one -$ x *$ x));
+  switch (_bounds(~lower=-1., ~upper=1., x)) {
+  | `Outside => ~-$i *$ log(i *$ x +$ sqrt(one -$ x *$ x))
+  | _ => of_real(Real.asin(x.re))
   };
 let sinh = x =>
   if (is_real(x)) {
@@ -236,10 +253,10 @@ let asinh = x =>
     log(x +$ sqrt(x *$ x +$ one));
   };
 let acos = x =>
-  if (between_one_minus_one(x)) {
-    of_real(Real.acos(x.re));
-  } else {
-    of_real(Real.pi / Real.of_int(2)) -$ asin(x);
+  switch (_bounds(~lower=-1., ~upper=1., x)) {
+  | `Outside =>
+    of_real(Real.of_int(1, ~denominator=2, ~constant=Pi)) -$ asin(x)
+  | _ => of_real(Real.acos(x.re))
   };
 let cosh = x =>
   if (is_real(x)) {
@@ -278,8 +295,7 @@ let tanh = x =>
     (exp(x) -$ exp(~-$x)) /$ (exp(x) +$ exp(~-$x));
   };
 let atanh = x =>
-  if (between_one_minus_one(x)) {
-    of_real(Real.atanh(x.re));
-  } else {
-    log((one +$ x) /$ (one -$ x)) /$ of_int(2);
+  switch (_bounds(~lower=-1., ~upper=1., x)) {
+  | `Outside => log((one +$ x) /$ (one -$ x)) /$ of_int(2)
+  | _ => of_real(Real.atanh(x.re))
   };

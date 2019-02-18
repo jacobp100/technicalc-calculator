@@ -59,11 +59,13 @@ let add_digit_separators = (~start_index=0, ~end_index=?, string) => {
 
 let format_integer = (~base=10, formatting, num) => {
   let str = Z.to_string_base(base, num);
-  if (formatting.digit_separators) {
-    add_digit_separators(~start_index=Z.lt(num, Z.zero) ? 1 : 0, str);
-  } else {
-    str;
-  };
+  let str =
+    if (formatting.digit_separators) {
+      add_digit_separators(~start_index=Z.lt(num, Z.zero) ? 1 : 0, str);
+    } else {
+      str;
+    };
+  String.uppercase(str);
 };
 
 let format_decimal = (~base=10, formatting, num) => {
@@ -95,7 +97,8 @@ let format_decimal = (~base=10, formatting, num) => {
       let decimal_part = QUtil.safe_mod(abs_num, Z.one);
       let exp = Q.of_bigint(Z.pow(Z.of_int(base), max_decimal_places));
       let decimal_as_integer = QUtil.floor(Q.mul(decimal_part, exp));
-      let baseStr = Z.to_string_base(base, decimal_as_integer);
+      let baseStr =
+        Z.to_string_base(base, decimal_as_integer) |> String.uppercase;
       let str =
         String.make(max_decimal_places - String.length(baseStr), '0')
         ++ baseStr;

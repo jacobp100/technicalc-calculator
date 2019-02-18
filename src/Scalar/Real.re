@@ -108,6 +108,18 @@ let of_z = (~constant=Constant.none, ~denominator=?, v) =>
   | None => of_q(~constant, Q.of_bigint(v))
   };
 
+let is_int = a =>
+  switch (a) {
+  | Value(ar, None) => QUtil.is_int(ar)
+  | _ => false
+  };
+
+let equal = (a, b) =>
+  switch (a, b) {
+  | (Value(aq, ac), Value(bq, bc)) => aq == bq && Constant.equal(ac, bc)
+  | _ => false
+  };
+
 let of_string_base = (~constant=Constant.none, base, v) => {
   let (withoutMagnitude, magnitudePart) =
     switch (Util.string_split_on_char('e', String.lowercase(v))) {
@@ -214,18 +226,6 @@ let to_string = (~format=OutputFormat.default, a) => {
   };
 };
 
-let is_integer = a =>
-  switch (a) {
-  | Value(ar, None) => QUtil.is_int(ar)
-  | _ => false
-  };
-
-let equal = (a, b) =>
-  switch (a, b) {
-  | (Value(aq, ac), Value(bq, bc)) => aq == bq && Constant.equal(ac, bc)
-  | _ => false
-  };
-
 let neg = a =>
   switch (a) {
   | Value(ar, ac) => Value(- ar, ac)
@@ -308,7 +308,7 @@ let exp = a =>
   | NaN => NaN
   };
 
-let pow = (a, b) =>
+let rec pow = (a, b) =>
   switch (a, b) {
   | (Value(ar, _), Value(br, _)) when ar == Q.zero && br == Q.zero => NaN
   | (Value(ar, _), Value(_)) when ar == Q.zero => zero
@@ -322,6 +322,8 @@ let pow = (a, b) =>
     | bn => of_z(Z.pow(Q.num(ar), bn), ~denominator=Z.pow(Q.den(ar), bn))
     | exception Z.Overflow => NaN
     }
+  | (Value(ar, None), Value(br, None)) when br < Q.zero =>
+    pow(of_q(Q.inv(ar)), of_q(Q.neg(br)))
   | (Value(_), Value(_)) => of_float(to_float(a) ** to_float(b))
   | (NaN, _)
   | (_, NaN) => NaN
@@ -488,7 +490,7 @@ let _map_float = (fn, x) =>
   | NaN => NaN
   };
 
-let _check_bounds = (~lower=?, ~upper=?, x) =>
+let _bounds = (~lower=?, ~upper=?, x) =>
   switch (x) {
   | Value(_) => FloatUtil.bounds(~lower?, ~upper?, to_float(x))
   | NaN => `Outside
@@ -498,14 +500,14 @@ let sinh = _map_float(sinh);
 let asinh = _map_float(FloatUtil.asinh);
 let cosh = _map_float(cosh);
 let acosh = x =>
-  switch (_check_bounds(~lower=1.0, x)) {
+  switch (_bounds(~lower=1.0, x)) {
   | `Inside(f) => of_float(FloatUtil.acosh(f))
   | `LowerBound => zero
   | _ => NaN
   };
 let tanh = _map_float(tanh);
 let atanh = x =>
-  switch (_check_bounds(~lower=-1.0, ~upper=1.0, x)) {
+  switch (_bounds(~lower=-1.0, ~upper=1.0, x)) {
   | `Inside(f) => of_float(FloatUtil.atanh(f))
   | _ => NaN
   };
