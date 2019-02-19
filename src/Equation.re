@@ -8,6 +8,8 @@ let (/) = div;
 let (~-) = neg;
 let ( ** ) = pow;
 
+let ( **. ) = Pervasives.( ** );
+
 let (_1, _2, _3, _6, _4, _9, _27) = (
   of_int(1),
   of_int(2),
@@ -18,47 +20,15 @@ let (_1, _2, _3, _6, _4, _9, _27) = (
   of_int(27),
 );
 let epsilon = 1.e-4;
-let base = of_int(1000);
+let base = 100;
 let round_to_precision = x =>
-  x * base |> to_float |> int_of_float |> of_int |> div(_, base);
+  x *. float_of_int(base) |> int_of_float |> of_int |> div(_, of_int(base));
 
 let quadratic = (a, b, c) => {
   let determinant = sqrt(b ** _2 - _4 * a * c);
   let x1 = (- b + determinant) / (_2 * a);
   let x2 = (- b - determinant) / (_2 * a);
   (x1, x2);
-};
-
-let _cubic_raphson = (a, b, c, d, start) => {
-  let x = ref(start);
-  let i = ref(0);
-  let maxI = 6;
-
-  while (i^ < maxI) {
-    let f'x = _3 * a * x^ ** _2 + _2 * b * x^ + c;
-
-    if (f'x == zero) {
-      i := maxI;
-    } else {
-      let fx = a * x^ ** _3 + b * x^ ** _2 + c * x^ + d;
-      let dx = fx / f'x;
-      x := x^ - dx;
-      if (abs_float(to_float(dx)) < epsilon) {
-        i := maxI;
-      } else {
-        i := Pervasives.(+)(i^, 1);
-      };
-    };
-  };
-
-  let x0 = round_to_precision(x^);
-  let fx = a * x0 ** _3 + b * x0 ** _2 + c * x0 + d;
-  if (fx == zero) {
-    let (x1, x2) = quadratic(a, a * x0 + b, a * x0 ** _2 + b * x0 + c);
-    Some((x0, x1, x2));
-  } else {
-    None;
-  };
 };
 
 let _cubic_raphson = (a, b, c, d) => {
@@ -71,19 +41,37 @@ let _cubic_raphson = (a, b, c, d) => {
    the cubic
    */
   let (m0, m1) = quadratic(_3 * a, _2 * b, c);
-  let midpoint = (m0 + m1) / _2;
-  let (range_re, range_im) = to_components(m0 - m1);
-  let range = of_components(Real.abs(range_re), Real.abs(range_im));
-  let values = [midpoint, midpoint - range, midpoint + range];
-  List.fold_left(
-    (current, value) =>
-      switch (current) {
-      | None => _cubic_raphson(a, b, c, d, value)
-      | v => v
-      },
-    None,
-    values,
-  );
+  switch (to_floats(m0), to_floats(m1)) {
+  | ((m0, 0.), (m1, 0.)) =>
+    let midpoint = (m0 +. m1) /. 2.;
+    let range = abs_float(m0 -. m1);
+    let values = [midpoint, midpoint -. range, midpoint +. range];
+
+    let af = to_float(a);
+    let bf = to_float(b);
+    let cf = to_float(c);
+    let df = to_float(d);
+
+    List.fold_left(
+      (current, value) =>
+        switch (current) {
+        | None =>
+          let x0 = Raphson.cubic(af, bf, cf, df, value) |> round_to_precision;
+          let fx = a * x0 ** _3 + b * x0 ** _2 + c * x0 + d;
+          if (fx == zero) {
+            let (x1, x2) =
+              quadratic(a, a * x0 + b, a * x0 ** _2 + b * x0 + c);
+            Some((x0, x1, x2));
+          } else {
+            None;
+          };
+        | v => v
+        },
+      None,
+      values,
+    );
+  | _ => None
+  };
 };
 
 let _cubic_numeric = (a, b, c, d) => {
