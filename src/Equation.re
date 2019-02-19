@@ -17,8 +17,8 @@ let (_1, _2, _3, _6, _4, _9, _27) = (
   of_int(9),
   of_int(27),
 );
-let epsilon = 1.e-8;
-let base = of_int(1000000);
+let epsilon = 1.e-4;
+let base = of_int(1000);
 let round_to_precision = x =>
   x * base |> to_float |> int_of_float |> of_int |> div(_, base);
 
@@ -32,7 +32,7 @@ let quadratic = (a, b, c) => {
 let _cubic_raphson = (a, b, c, d, start) => {
   let x = ref(start);
   let i = ref(0);
-  let maxI = 8;
+  let maxI = 6;
 
   while (i^ < maxI) {
     let f'x = _3 * a * x^ ** _2 + _2 * b * x^ + c;
@@ -43,7 +43,7 @@ let _cubic_raphson = (a, b, c, d, start) => {
       let fx = a * x^ ** _3 + b * x^ ** _2 + c * x^ + d;
       let dx = fx / f'x;
       x := x^ - dx;
-      if (to_float(abs(dx)) < epsilon) {
+      if (abs_float(to_float(dx)) < epsilon) {
         i := maxI;
       } else {
         i := Pervasives.(+)(i^, 1);
@@ -62,6 +62,14 @@ let _cubic_raphson = (a, b, c, d, start) => {
 };
 
 let _cubic_raphson = (a, b, c, d) => {
+  /*
+   Attempt to find an exact real root within an amount of decimal places
+   Some roots may be complex, or be of square roots, which this method will not find
+   As long as we find one exact root, we can factor the equation to a quadratic, which
+   will find roots that could be complex or formed of square roots
+   We search three areas to find roots: before, inbetween, and after the two maxima of
+   the cubic
+   */
   let (m0, m1) = quadratic(_3 * a, _2 * b, c);
   let midpoint = (m0 + m1) / _2;
   let (range_re, range_im) = to_components(m0 - m1);
