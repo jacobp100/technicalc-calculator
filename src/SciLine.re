@@ -55,6 +55,24 @@ let to_complex_floats_matrix = _map_matrix(Complex.to_floats);
 
 let is_nan = a => SciLineValue.is_nan(Result.unwrap(a));
 
+let _f = a => SciLineValue.to_number(Result.unwrap(a));
+let _t = a => Result.wrap(SciLineValue.of_scalar(a));
+let _nan = Result.wrap(SciLineValue.nan);
+let solve_quadratic = (a, b, c) =>
+  switch (_f(a), _f(b), _f(c)) {
+  | (Some(a), Some(b), Some(c)) =>
+    let (x0, x1) = Equation.quadratic(a, b, c);
+    (_t(x0), _t(x1));
+  | _ => (_nan, _nan)
+  };
+let solve_cubic = (a, b, c, d) =>
+  switch (_f(a), _f(b), _f(c), _f(d)) {
+  | (Some(a), Some(b), Some(c), Some(d)) =>
+    let (x0, x1, x2) = Equation.cubic(a, b, c, d);
+    (_t(x0), _t(x1), _t(x2));
+  | _ => (_nan, _nan, _nan)
+  };
+
 [@bs.deriving abstract]
 type format = {
   [@bs.optional]

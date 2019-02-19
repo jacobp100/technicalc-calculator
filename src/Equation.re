@@ -63,7 +63,10 @@ let _cubic_raphson = (a, b, c, d, start) => {
 
 let _cubic_raphson = (a, b, c, d) => {
   let (m0, m1) = quadratic(_3 * a, _2 * b, c);
-  let values = [m0 - _1, m0 + _1, m1 - _1, m1 + _1];
+  let midpoint = (m0 + m1) / _2;
+  let (range_re, range_im) = to_components(m0 - m1);
+  let range = of_components(Real.abs(range_re), Real.abs(range_im));
+  let values = [midpoint, midpoint - range, midpoint + range];
   List.fold_left(
     (current, value) =>
       switch (current) {

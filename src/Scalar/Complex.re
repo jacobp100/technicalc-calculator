@@ -42,6 +42,7 @@ let of_int = i => of_real(Real.of_int(i));
 let of_floats = (re, im) =>
   normalize({re: Real.of_float(re), im: Real.of_float(im)});
 
+let to_components = a => (a.re, a.im);
 let to_float = a => is_real(a) ? Real.to_float(a.re) : Pervasives.nan;
 let to_floats = a => (Real.to_float(a.re), Real.to_float(a.im));
 
