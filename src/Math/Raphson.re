@@ -3,7 +3,7 @@ let epsilon = 1e-8;
 let cubic = (a, b, c, d, start) => {
   let x = ref(start);
   let i = ref(0);
-  let maxI = 8;
+  let maxI = 20;
 
   while (i^ < maxI) {
     let fx = a *. x^ ** 3. +. b *. x^ ** 2. +. c *. x^ +. d;

@@ -20,7 +20,7 @@ let (_1, _2, _3, _6, _4, _9, _27) = (
   of_int(27),
 );
 let epsilon = 1.e-4;
-let base = 100;
+let base = 1000;
 let round_to_precision = x =>
   x *. float_of_int(base) |> int_of_float |> of_int |> div(_, of_int(base));
 
