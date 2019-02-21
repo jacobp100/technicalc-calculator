@@ -1,5 +1,6 @@
 open PervasivesNoPoly;
 /* open PervasivesMath; */
+open OptChain;
 
 let (==) = Q.equal;
 let (+) = Q.add;
@@ -13,12 +14,6 @@ let (<=) = Q.leq;
 let (>) = Q.gt;
 /* let (>=) = Q.geq; */
 
-let (|?) = (x, f) =>
-  switch (x) {
-  | Some(a) => Some(f(a))
-  | None => None
-  };
-
 let _float_is_int = a => Pervasives.(==)(floor(a), a);
 
 type t =
@@ -30,7 +25,7 @@ let zero = Value(Q.zero, None);
 let one = Value(Q.one, None);
 let minus_one = Value(Q.minus_one, None);
 let pi = Value(Q.one, Pi);
-let e = Value(Q.one, Exp(Z.one));
+let e = Value(Q.one, Exp(1));
 
 let is_nan = Pervasives.(==)(NaN);
 
@@ -52,16 +47,13 @@ let to_int = a =>
 
 let to_q = a =>
   switch (a) {
-  | Value(aq, ac) =>
-    let f = Constant.to_float(ac);
-    switch (classify_float(f)) {
-    | FP_normal
-    | FP_subnormal => Some(aq * Q.of_float(f))
-    | FP_zero => Some(Q.zero)
-    | FP_infinite
-    | FP_nan => None
-    };
+  | Value(aq, ac) => Some(aq * Constant.to_q(ac))
   | NaN => None
+  };
+let to_z = a =>
+  switch (a) {
+  | Value(aq, None) when Z.equal(Q.den(aq), Z.one) => Some(Q.num(aq))
+  | _ => None
   };
 
 let normalize = a =>
@@ -303,7 +295,10 @@ let sqrt = a =>
 let exp = a =>
   switch (a) {
   | Value(aq, None) when Z.equal(Q.den(aq), Z.one) =>
-    of_q(Q.one, ~constant=Exp(Q.num(aq)))
+    switch (Z.to_int(Q.num(aq))) {
+    | i => of_q(Q.one, ~constant=Exp(i))
+    | exception Z.Overflow => NaN
+    }
   | Value(_) => of_float(exp(to_float(a)))
   | NaN => NaN
   };
@@ -314,8 +309,7 @@ let rec pow = (a, b) =>
   | (Value(ar, _), Value(_)) when ar == Q.zero => zero
   | (Value(ar, None), Value(_)) when ar == Q.one => one
   | (Value(_), Value(br, None)) when br == Q.of_ints(1, 2) => sqrt(a)
-  | (Value(ar, Exp(ac)), _) when ar == Q.one && Z.equal(ac, Z.one) =>
-    exp(b)
+  | (Value(ar, Exp(1)), _) when ar == Q.one => exp(b)
   | (Value(_), Value(br, None)) when br == Q.of_int(2) => mul(a, a)
   | (Value(ar, None), Value(br, None)) when QUtil.is_int(br) && br > Q.zero =>
     switch (Z.to_int(Q.num(br))) {
@@ -332,7 +326,7 @@ let rec pow = (a, b) =>
 let log = a =>
   switch (a) {
   | Value(ar, _) when ar <= Q.zero => NaN
-  | Value(ar, Exp(ac)) when ar == Q.one => of_z(ac)
+  | Value(ar, Exp(ac)) when ar == Q.one => of_int(ac)
   | Value(_) => of_float(log(to_float(a)))
   | NaN => NaN
   };
@@ -353,7 +347,7 @@ let _to_comparable = a =>
       | None => `None
       | Pi => `Pi
       | Sqrt(cc) => `Sqrt(Z.to_int(cc))
-      | Exp(cc) => `Exp(Z.to_int(cc))
+      | Exp(cc) => `Exp(cc)
       },
     ) {
     | (n, d, c) => `Value((n, d, c))

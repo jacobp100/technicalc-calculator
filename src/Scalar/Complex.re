@@ -1,4 +1,5 @@
 open PervasivesNoPoly;
+open OptChain;
 
 let (==) = Real.equal;
 let (+) = Real.add;
@@ -74,6 +75,12 @@ let _sign = a =>
       `Positive;
     } else {
       `Negative;
+    };
+  } else if (is_imaginary(a)) {
+    if (Real.to_float(a.im) >% 0.) {
+      `PositiveI;
+    } else {
+      `NegativeI;
     };
   } else {
     `Undefined;
@@ -196,14 +203,21 @@ let pow = (a, b) =>
   | (`Zero, `Zero) => nan
   | (_, `Zero) => one
   | (`Zero, _) => zero
-  | (`Positive, `Positive | `Negative)
+  | (`Positive, `Positive | `Negative) => of_real(Real.pow(a.re, b.re))
   | (`Negative, `Positive) when Real.is_int(b.re) =>
     of_real(Real.pow(a.re, b.re))
-  | (`Positive, _) when a.re == Real.e =>
-    let multiplier = Real.exp(b.re);
-    of_components(multiplier * Real.cos(b.im), multiplier * Real.sin(b.im));
+  | (`Positive, _) when a.re == Real.e => exp(b)
   | (`Negative, `Positive) when b.re == Real.of_int(1, ~denominator=2) =>
     of_imaginary(Real.sqrt(- a.re))
+  | (`PositiveI | `NegativeI, `Positive | `Negative) when Real.is_int(b.re) =>
+    let a_pow_b = Real.pow(a.im, b.re);
+    switch (b.re |> Real.to_z |? ZUtil.safe_mod(_, Z.of_int(4)) |? Z.to_int) {
+    | Some(0) => of_real(a_pow_b)
+    | Some(1) => of_imaginary(a_pow_b)
+    | Some(2) => of_real(a_pow_b) |> neg
+    | Some(3) => of_imaginary(a_pow_b) |> neg
+    | _ => raise(Not_found)
+    };
   | _ => exp(log(a) *$ b)
   };
 
