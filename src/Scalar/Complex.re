@@ -68,22 +68,16 @@ let _classify = a =>
   | (false, false) => `Complex
   };
 let _sign = a =>
-  if (is_real(a)) {
-    if (a.re == Real.zero) {
-      `Zero;
-    } else if (Real.to_float(a.re) >% 0.) {
-      `Positive;
-    } else {
-      `Negative;
-    };
-  } else if (is_imaginary(a)) {
-    if (Real.to_float(a.im) >% 0.) {
-      `PositiveI;
-    } else {
-      `NegativeI;
-    };
-  } else {
-    `Undefined;
+  switch (
+    a.re == Real.zero ? 0 : Real.to_float(a.re) >% 0. ? 1 : (-1),
+    a.im == Real.zero ? 0 : Real.to_float(a.im) >% 0. ? 1 : (-1),
+  ) {
+  | (0, 0) => `Zero
+  | (1, 0) => `Positive
+  | ((-1), 0) => `Negative
+  | (0, 1) => `PositiveI
+  | (0, (-1)) => `NegativeI
+  | _ => `Undefined
   };
 let _bounds = (~lower=?, ~upper=?, x) =>
   if (is_real(x)) {
