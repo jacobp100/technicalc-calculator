@@ -106,6 +106,12 @@ let is_int = a =>
   | _ => false
   };
 
+let is_negative = a =>
+  switch (a) {
+  | Value(ar, _) => Q.lt(ar, Q.zero)
+  | _ => false
+  };
+
 let equal = (a, b) =>
   switch (a, b) {
   | (Value(aq, ac), Value(bq, bc)) => aq == bq && Constant.equal(ac, bc)
@@ -154,22 +160,42 @@ let to_string = (~format=OutputFormat.default, a) => {
         <% 1e8 =>
     let (num, den) = (Q.num(ar), Q.den(ar));
     let formatting = NumberFormat.create_format(~digit_separators=true, ());
-    let minus = Z.lt(num, Z.zero) ? "-" : "";
-    let top =
+    let wrap_mml = (tag, value) =>
+      "<" ++ tag ++ ">" ++ value ++ "</" ++ tag ++ ">";
+    let minus =
+      switch (format.mode, is_negative(a)) {
+      | (String | Latex, true) => "-"
+      | (MathML, true) => wrap_mml("mo", "-")
+      | (_, false) => ""
+      };
+    let (top, needs_wrap) =
       switch (
+        format.mode,
         NumberFormat.format_integer(~base, formatting, Z.abs(num)),
         Constant.to_string(~format, constant),
       ) {
-      | ("1", "") => "1"
-      | ("1", constant) => constant
-      | (numerator, constant) => numerator ++ constant
+      | (String | Latex, "1", "") => ("1", false)
+      | (String | Latex, "1", constant) => (constant, false)
+      | (String | Latex, numerator, constant) => (
+          numerator ++ constant,
+          false,
+        )
+      | (MathML, "1", "") => (wrap_mml("mn", "1"), false)
+      | (MathML, "1", constant) => (constant, false)
+      | (MathML, numerator, constant) => (
+          wrap_mml("mn", numerator) ++ constant,
+          true,
+        )
       };
 
     switch (format.mode, NumberFormat.format_integer(~base, formatting, den)) {
     | (_, "1") => minus ++ top
-    | (String, denominator) => minus ++ top ++ "/" ++ denominator
-    | (Latex, denominator) =>
-      minus ++ "\\frac{" ++ top ++ "}{" ++ denominator ++ "}"
+    | (String, bottom) => minus ++ top ++ "/" ++ bottom
+    | (Latex, bottom) => minus ++ "\\frac{" ++ top ++ "}{" ++ bottom ++ "}"
+    | (MathML, denominator) =>
+      let top = needs_wrap ? wrap_mml("mrow", top) : top;
+      let bottom = wrap_mml("mn", denominator);
+      minus ++ wrap_mml("mfrac", top ++ bottom);
     };
   | (Natural | Decimal, _, Some(aq)) =>
     let value_magnitude = floor(log10(abs_float(Q.to_float(aq))));

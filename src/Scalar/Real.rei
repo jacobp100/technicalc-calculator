@@ -10,3 +10,4 @@ let to_q: t => option(Q.t);
 let to_z: t => option(Z.t);
 
 let is_int: t => bool;
+let is_negative: t => bool;

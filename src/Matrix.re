@@ -40,6 +40,15 @@ module Make = (Number: Types.Scalar) => {
         );
       let body = _joined_elements(a.numRows, " \\\\\n", create_row);
       "\\begin{bmatrix}\n" ++ body ++ "\n\\end{bmatrix}";
+    | MathML =>
+      let create_row = row =>
+        "<mtr>"
+        ++ _joined_elements(a.numColumns, "", column =>
+             "<mtd>" ++ element_string(row, column) ++ "</mtd>"
+           )
+        ++ "</mtr>";
+      let body = _joined_elements(a.numRows, "", create_row);
+      "<mrow><mtable>" ++ body ++ "</mtable></mrow>";
     };
   };
 

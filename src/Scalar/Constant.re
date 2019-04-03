@@ -88,4 +88,11 @@ let to_string = (~format=OutputFormat.default, a) =>
   | (Latex, Exp(1)) => "e"
   | (Latex, Exp(v)) => "e^{" ++ _number_string(format, Z.of_int(v)) ++ "}"
   | (Latex, Sqrt(v)) => "\\sqrt{" ++ _number_string(format, v) ++ "}"
+  | (MathML, Pi) => "<mi>&pi;</mi>"
+  | (MathML, Exp(1)) => "<mi>e</mi>"
+  | (MathML, Exp(v)) =>
+    "<msup><mi>e</mi><mn>"
+    ++ _number_string(format, Z.of_int(v))
+    ++ "</mn></msup>"
+  | (MathML, Sqrt(v)) => "<msqrt>" ++ _number_string(format, v) ++ "</msqrt>"
   };

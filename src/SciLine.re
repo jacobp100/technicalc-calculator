@@ -117,6 +117,7 @@ let _create_formater = mode =>
 
 let to_string = _create_formater(String);
 let to_latex = _create_formater(Latex);
+let to_mml = _create_formater(MathML);
 
 let _encode_value: SciLineValue.t => string = [%raw
   {|

@@ -1,6 +1,7 @@
 type mode =
   | String
-  | Latex;
+  | Latex
+  | MathML;
 
 type style =
   | Natural

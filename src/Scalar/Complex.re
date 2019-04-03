@@ -86,12 +86,25 @@ let _bounds = (~lower=?, ~upper=?, x) =>
     `Outside;
   };
 
-let _format_imaginary = (~format, im) =>
-  switch (Real.to_string(~format, im)) {
-  | "1" => "i"
-  | "-1" => "-i"
-  | x => x ++ "i"
+let _format_imaginary = (~format: OutputFormat.format, im) => {
+  let special_value =
+    if (im == Real.one) {
+      `One;
+    } else if (im == Real.minus_one) {
+      `MinusOne;
+    } else {
+      `Other;
+    };
+
+  switch (format.mode, special_value) {
+  | (String | Latex, `One) => "i"
+  | (String | Latex, `MinusOne) => "-i"
+  | (String | Latex, `Other) => Real.to_string(~format, im) ++ "i"
+  | (MathML, `One) => "<mi>i</mi>"
+  | (MathML, `MinusOne) => "<mo>-</mo><mi>i</mi>"
+  | (MathML, `Other) => Real.to_string(~format, im) ++ "<mi>i</mi>"
   };
+};
 
 let to_string = (~format=OutputFormat.default, x) =>
   switch (_classify(x)) {
@@ -101,12 +114,13 @@ let to_string = (~format=OutputFormat.default, x) =>
   | `Complex =>
     let format = {...format, precision: Pervasives.(/)(format.precision, 3)};
     let re = Real.to_string(~format, x.re);
-    let im = _format_imaginary(~format, x.im);
-    let (im, op) =
-      if (im.[0] ==% '-') {
-        (String.sub(im, 1, Pervasives.(-)(String.length(im), 1)), "-");
-      } else {
-        (im, "+");
+    let im = _format_imaginary(~format, Real.abs(x.im));
+    let op =
+      switch (format.mode, !Real.is_negative(x.im)) {
+      | (String | Latex, true) => "+"
+      | (String | Latex, false) => "-"
+      | (MathML, true) => "<mo>+</mo>"
+      | (MathML, false) => "<mo>-</mo>"
       };
     re ++ op ++ im;
   };
