@@ -87,37 +87,43 @@ type format = {
   decimal_max_magnitude: float,
 };
 
-let _create_formater = mode =>
-  (. x, maybeFormat) => {
-    let f = Util.default(format(), maybeFormat);
-    let format = {
-      OutputFormat.mode,
-      style:
-        switch (styleGet(f)) {
-        | Some("decimal") => Decimal
-        | Some("scientific") => Scientific
-        | _ => Natural
-        },
-      precision:
-        Util.default(OutputFormat.default.precision, precisionGet(f)),
-      base: Util.default(OutputFormat.default.base, baseGet(f)),
-      decimal_min_magnitude:
-        Util.default(
-          OutputFormat.default.decimal_min_magnitude,
-          decimal_min_magnitudeGet(f),
-        ),
-      decimal_max_magnitude:
-        Util.default(
-          OutputFormat.default.decimal_max_magnitude,
-          decimal_max_magnitudeGet(f),
-        ),
-    };
-    SciLineValue.to_string(~format, Result.unwrap(x));
+let _format_with_mode = (mode, x, maybeFormat) => {
+  let f = Util.default(format(), maybeFormat);
+  let format = {
+    OutputFormat.mode,
+    style:
+      switch (styleGet(f)) {
+      | Some("decimal") => Decimal
+      | Some("scientific") => Scientific
+      | _ => Natural
+      },
+    precision: Util.default(OutputFormat.default.precision, precisionGet(f)),
+    base: Util.default(OutputFormat.default.base, baseGet(f)),
+    decimal_min_magnitude:
+      Util.default(
+        OutputFormat.default.decimal_min_magnitude,
+        decimal_min_magnitudeGet(f),
+      ),
+    decimal_max_magnitude:
+      Util.default(
+        OutputFormat.default.decimal_max_magnitude,
+        decimal_max_magnitudeGet(f),
+      ),
   };
+  SciLineValue.to_string(~format, Result.unwrap(x));
+};
 
-let to_string = _create_formater(String);
-let to_latex = _create_formater(Latex);
-let to_mml = _create_formater(MathML);
+let to_string = (x, maybeFormat) =>
+  _format_with_mode(String, x, maybeFormat);
+let to_latex = (x, maybeFormat) => _format_with_mode(Latex, x, maybeFormat);
+let to_mml = (x, maybeFormat, inline) => {
+  let display = inline ? "inline" : "block";
+  "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\""
+  ++ display
+  ++ "\">"
+  ++ _format_with_mode(MathML, x, maybeFormat)
+  ++ "</math>";
+};
 
 let _encode_value: SciLineValue.t => string = [%raw
   {|
