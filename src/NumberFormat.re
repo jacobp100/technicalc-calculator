@@ -112,8 +112,7 @@ let format_decimal = (~base=10, formatting, num) => {
   };
 };
 
-let format_exponential =
-    (~base=10, ~exponent=?, ~exponent_format="e$", formatting, num) => {
+let format_exponential = (~base=10, ~exponent=?, formatting, num) => {
   let exponent = Util.default(QUtil.magnitude(num), exponent);
   let decimal_part =
     format_decimal(
@@ -122,15 +121,5 @@ let format_exponential =
       Q.div(num, QUtil.exp_ints(10, exponent)),
     );
   let exponent_part = string_of_int(exponent);
-  let formatted_exponent = {
-    let index = String.index(exponent_format, '$');
-    String.sub(exponent_format, 0, index)
-    ++ exponent_part
-    ++ String.sub(
-         exponent_format,
-         index + 1,
-         String.length(exponent_format) - 1 - index,
-       );
-  };
-  decimal_part ++ formatted_exponent;
+  (decimal_part, exponent_part);
 };

@@ -145,12 +145,24 @@ let of_string = (~constant=Constant.none, v) =>
   of_string_base(~constant, 10, v);
 
 let to_string = (~format=OutputFormat.default, a) => {
-  let exponent_format =
-    switch (format.mode) {
-    | Tex => Some("\\times10^{$}")
-    | _ => None
-    };
   let base = format.base;
+
+  let format_number = x =>
+    switch (format.mode) {
+    | String
+    | Tex => x
+    | MathML => "<mn>" ++ x ++ "</mn>"
+    };
+  let format_exponential = ((base, exponent)) =>
+    switch (format.mode) {
+    | String => base ++ "e" ++ exponent
+    | Tex => base ++ "*10^{" ++ exponent ++ "}"
+    | MathML =>
+      format_number(base)
+      ++ "<msup><mn>10</mn>"
+      ++ format_number(exponent)
+      ++ "</msup>"
+    };
 
   switch (format.style, a, to_q(a)) {
   | (Natural, Value(ar, constant), _)
@@ -160,30 +172,21 @@ let to_string = (~format=OutputFormat.default, a) => {
         <% 1e8 =>
     let (num, den) = (Q.num(ar), Q.den(ar));
     let formatting = NumberFormat.create_format(~digit_separators=true, ());
-    let wrap_mml = (tag, value) =>
-      "<" ++ tag ++ ">" ++ value ++ "</" ++ tag ++ ">";
     let minus =
       switch (format.mode, is_negative(a)) {
       | (String | Tex, true) => "-"
-      | (MathML, true) => wrap_mml("mo", "-")
+      | (MathML, true) => "<mo>-</mo>"
       | (_, false) => ""
       };
     let (top, needs_wrap) =
       switch (
-        format.mode,
         NumberFormat.format_integer(~base, formatting, Z.abs(num)),
         Constant.to_string(~format, constant),
       ) {
-      | (String | Tex, "1", "") => ("1", false)
-      | (String | Tex, "1", constant) => (constant, false)
-      | (String | Tex, numerator, constant) => (
-          numerator ++ constant,
-          false,
-        )
-      | (MathML, "1", "") => (wrap_mml("mn", "1"), false)
-      | (MathML, "1", constant) => (constant, false)
-      | (MathML, numerator, constant) => (
-          wrap_mml("mn", numerator) ++ constant,
+      | ("1", "") => (format_number("1"), false)
+      | ("1", constant) => (constant, false)
+      | (numerator, constant) => (
+          format_number(numerator) ++ constant,
           true,
         )
       };
@@ -193,9 +196,9 @@ let to_string = (~format=OutputFormat.default, a) => {
     | (String, bottom) => minus ++ top ++ "/" ++ bottom
     | (Tex, bottom) => minus ++ "\\frac{" ++ top ++ "}{" ++ bottom ++ "}"
     | (MathML, denominator) =>
-      let top = needs_wrap ? wrap_mml("mrow", top) : top;
-      let bottom = wrap_mml("mn", denominator);
-      minus ++ wrap_mml("mfrac", top ++ bottom);
+      let top = needs_wrap ? "<mrow>" ++ top ++ "</mrow>" : top;
+      let bottom = format_number(denominator);
+      minus ++ "<mfrac>" ++ top ++ bottom ++ "</mfrac>";
     };
   | (Natural | Decimal, _, Some(aq)) =>
     let value_magnitude = floor(log10(abs_float(Q.to_float(aq))));
@@ -214,33 +217,36 @@ let to_string = (~format=OutputFormat.default, a) => {
           (),
         ),
         aq,
-      );
+      )
+      |> format_number;
     } else {
       NumberFormat.format_exponential(
         ~base,
         ~exponent=QUtil.magnitude(aq),
-        ~exponent_format?,
         NumberFormat.create_format(~max_decimal_places=format.precision, ()),
         aq,
-      );
+      )
+      |> format_exponential;
     };
   | (Scientific, _, Some(aq)) =>
     /* Round to multiple of 3 */
     let exponent =
       Pervasives.( * )(Pervasives.(/)(QUtil.magnitude(aq), 3), 3);
-    NumberFormat.format_exponential(
-      ~base,
-      ~exponent,
-      ~exponent_format?,
+    let formatting =
       NumberFormat.create_format(
         ~min_decimal_places=format.precision,
         ~max_decimal_places=format.precision,
         (),
-      ),
-      aq,
-    );
+      );
+    NumberFormat.format_exponential(~base, ~exponent, formatting, aq)
+    |> format_exponential;
   | (_, NaN, _)
-  | (_, _, None) => "NaN"
+  | (_, _, None) =>
+    switch (format.mode) {
+    | String
+    | Tex => "NaN"
+    | MathML => "<mi>NaN</mi>"
+    }
   };
 };
 
