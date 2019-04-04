@@ -1,6 +1,6 @@
 type mode =
   | String
-  | Latex
+  | Tex
   | MathML;
 
 type style =

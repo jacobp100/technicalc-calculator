@@ -76,6 +76,8 @@ let solve_cubic = (a, b, c, d) =>
 [@bs.deriving abstract]
 type format = {
   [@bs.optional]
+  mode: string,
+  [@bs.optional]
   style: string,
   [@bs.optional]
   precision: int,
@@ -113,16 +115,53 @@ let _format_with_mode = (mode, x, maybeFormat) => {
   SciLineValue.to_string(~format, Result.unwrap(x));
 };
 
-let to_string = (x, maybeFormat) =>
-  _format_with_mode(String, x, maybeFormat);
-let to_latex = (x, maybeFormat) => _format_with_mode(Latex, x, maybeFormat);
-let to_mml = (x, maybeFormat, inline) => {
-  let display = inline ? "inline" : "block";
-  "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\""
-  ++ display
-  ++ "\">"
-  ++ _format_with_mode(MathML, x, maybeFormat)
-  ++ "</math>";
+let to_string = (x, maybeFormat) => {
+  open OutputFormat;
+  let f = Util.default(format(), maybeFormat);
+
+  let (mode, inline) =
+    switch (modeGet(f)) {
+    | Some("tex") => (Tex, false)
+    | Some("mathml") => (MathML, false)
+    | Some("mathml-inline") => (MathML, true)
+    | _ => (String, false)
+    };
+
+  let format = {
+    mode,
+    style:
+      switch (styleGet(f)) {
+      | Some("decimal") => Decimal
+      | Some("scientific") => Scientific
+      | _ => Natural
+      },
+    precision: Util.default(OutputFormat.default.precision, precisionGet(f)),
+    base: Util.default(OutputFormat.default.base, baseGet(f)),
+    decimal_min_magnitude:
+      Util.default(
+        OutputFormat.default.decimal_min_magnitude,
+        decimal_min_magnitudeGet(f),
+      ),
+    decimal_max_magnitude:
+      Util.default(
+        OutputFormat.default.decimal_max_magnitude,
+        decimal_max_magnitudeGet(f),
+      ),
+  };
+
+  let body = SciLineValue.to_string(~format, Result.unwrap(x));
+
+  switch (mode) {
+  | String
+  | Tex => body
+  | MathML =>
+    let display = inline ? "inline" : "block";
+    "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\""
+    ++ display
+    ++ "\">"
+    ++ body
+    ++ "</math>";
+  };
 };
 
 let _encode_value: SciLineValue.t => string = [%raw

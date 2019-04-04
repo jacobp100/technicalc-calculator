@@ -33,7 +33,7 @@ module Make = (Number: Types.Scalar) => {
           element_string(row, column)
         );
       bracketed_elements(a.numRows, create_row);
-    | Latex =>
+    | Tex =>
       let create_row = row =>
         _joined_elements(a.numColumns, " && ", column =>
           element_string(row, column)

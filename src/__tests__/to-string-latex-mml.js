@@ -1,7 +1,5 @@
 const {
   to_string: toString,
-  to_latex: toLatex,
-  to_mml: toMml,
   resolve,
   one,
   minus_one: minusOne,
@@ -21,91 +19,100 @@ const [three, minusThree, threeHalves, minusThreeHalves, half, minusHalf] = [
   "-0.5"
 ].map(ofString);
 
+const format = (value, mode) =>
+  toString(resolve(value), mode != null ? { mode } : undefined);
+
 it("Formats strings", () => {
-  expect(toString(resolve(one))).toBe("1");
-  expect(toString(resolve(minusOne))).toBe("-1");
-  expect(toString(resolve(half))).toBe("1/2");
-  expect(toString(resolve(minusHalf))).toBe("-1/2");
-  expect(toString(resolve(mul(one, i)))).toBe("i");
-  expect(toString(resolve(mul(minusOne, i)))).toBe("-i");
-  expect(toString(resolve(mul(half, i)))).toBe("1/2i");
-  expect(toString(resolve(mul(minusHalf, i)))).toBe("-1/2i");
-  expect(toString(resolve(add(one, mul(one, i))))).toBe("1+i");
-  expect(toString(resolve(add(minusOne, mul(one, i))))).toBe("-1+i");
-  expect(toString(resolve(add(one, mul(minusOne, i))))).toBe("1-i");
-  expect(toString(resolve(add(minusOne, mul(minusOne, i))))).toBe("-1-i");
-  expect(toString(resolve(mul(one, pi)))).toBe("pi");
-  expect(toString(resolve(mul(minusOne, pi)))).toBe("-pi");
-  expect(toString(resolve(mul(half, pi)))).toBe("pi/2");
-  expect(toString(resolve(mul(minusHalf, pi)))).toBe("-pi/2");
-  expect(toString(resolve(mul(three, pi)))).toBe("3pi");
-  expect(toString(resolve(mul(minusThree, pi)))).toBe("-3pi");
-  expect(toString(resolve(mul(threeHalves, pi)))).toBe("3pi/2");
-  expect(toString(resolve(mul(minusThreeHalves, pi)))).toBe("-3pi/2");
+  expect(format(one)).toBe("1");
+  expect(format(minusOne)).toBe("-1");
+  expect(format(half)).toBe("1/2");
+  expect(format(minusHalf)).toBe("-1/2");
+  expect(format(mul(one, i))).toBe("i");
+  expect(format(mul(minusOne, i))).toBe("-i");
+  expect(format(mul(half, i))).toBe("1/2i");
+  expect(format(mul(minusHalf, i))).toBe("-1/2i");
+  expect(format(add(one, mul(one, i)))).toBe("1+i");
+  expect(format(add(minusOne, mul(one, i)))).toBe("-1+i");
+  expect(format(add(one, mul(minusOne, i)))).toBe("1-i");
+  expect(format(add(minusOne, mul(minusOne, i)))).toBe("-1-i");
+  expect(format(mul(one, pi))).toBe("pi");
+  expect(format(mul(minusOne, pi))).toBe("-pi");
+  expect(format(mul(half, pi))).toBe("pi/2");
+  expect(format(mul(minusHalf, pi))).toBe("-pi/2");
+  expect(format(mul(three, pi))).toBe("3pi");
+  expect(format(mul(minusThree, pi))).toBe("-3pi");
+  expect(format(mul(threeHalves, pi))).toBe("3pi/2");
+  expect(format(mul(minusThreeHalves, pi))).toBe("-3pi/2");
 });
 
-it("Formats latex", () => {
-  expect(toLatex(resolve(one))).toBe("1");
-  expect(toLatex(resolve(minusOne))).toBe("-1");
-  expect(toLatex(resolve(half))).toBe("\\frac{1}{2}");
-  expect(toLatex(resolve(minusHalf))).toBe("-\\frac{1}{2}");
-  expect(toLatex(resolve(add(one, mul(one, i))))).toBe("1+i");
-  expect(toLatex(resolve(add(minusOne, mul(one, i))))).toBe("-1+i");
-  expect(toLatex(resolve(add(one, mul(minusOne, i))))).toBe("1-i");
-  expect(toLatex(resolve(add(minusOne, mul(minusOne, i))))).toBe("-1-i");
-  expect(toLatex(resolve(mul(one, pi)))).toBe("\\pi");
-  expect(toLatex(resolve(mul(minusOne, pi)))).toBe("-\\pi");
-  expect(toLatex(resolve(mul(half, pi)))).toBe("\\frac{\\pi}{2}");
-  expect(toLatex(resolve(mul(minusHalf, pi)))).toBe("-\\frac{\\pi}{2}");
-  expect(toLatex(resolve(mul(three, pi)))).toBe("3\\pi");
-  expect(toLatex(resolve(mul(minusThree, pi)))).toBe("-3\\pi");
-  expect(toLatex(resolve(mul(threeHalves, pi)))).toBe("\\frac{3\\pi}{2}");
-  expect(toLatex(resolve(mul(minusThreeHalves, pi)))).toBe("-\\frac{3\\pi}{2}");
+it("Formats Tex", () => {
+  expect(format(one, "tex")).toBe("1");
+  expect(format(minusOne, "tex")).toBe("-1");
+  expect(format(half, "tex")).toBe("\\frac{1}{2}");
+  expect(format(minusHalf, "tex")).toBe("-\\frac{1}{2}");
+  expect(format(add(one, mul(one, i)), "tex")).toBe("1+i");
+  expect(format(add(minusOne, mul(one, i)), "tex")).toBe("-1+i");
+  expect(format(add(one, mul(minusOne, i)), "tex")).toBe("1-i");
+  expect(format(add(minusOne, mul(minusOne, i)), "tex")).toBe("-1-i");
+  expect(format(mul(one, pi), "tex")).toBe("\\pi");
+  expect(format(mul(minusOne, pi), "tex")).toBe("-\\pi");
+  expect(format(mul(half, pi), "tex")).toBe("\\frac{\\pi}{2}");
+  expect(format(mul(minusHalf, pi), "tex")).toBe("-\\frac{\\pi}{2}");
+  expect(format(mul(three, pi), "tex")).toBe("3\\pi");
+  expect(format(mul(minusThree, pi), "tex")).toBe("-3\\pi");
+  expect(format(mul(threeHalves, pi), "tex")).toBe("\\frac{3\\pi}{2}");
+  expect(format(mul(minusThreeHalves, pi), "tex")).toBe("-\\frac{3\\pi}{2}");
 });
 
 it("Formats mathml", () => {
   const math = x =>
     `<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">${x}</math>`;
-  expect(toMml(resolve(one))).toBe(math("<mn>1</mn>"));
-  expect(toMml(resolve(minusOne))).toBe(math("<mo>-</mo><mn>1</mn>"));
-  expect(toMml(resolve(half))).toBe(
+  expect(format(one, "mathml")).toBe(math("<mn>1</mn>"));
+  expect(format(minusOne, "mathml")).toBe(math("<mo>-</mo><mn>1</mn>"));
+  expect(format(half, "mathml")).toBe(
     math("<mfrac><mn>1</mn><mn>2</mn></mfrac>")
   );
-  expect(toMml(resolve(minusHalf))).toBe(
+  expect(format(minusHalf, "mathml")).toBe(
     math("<mo>-</mo><mfrac><mn>1</mn><mn>2</mn></mfrac>")
   );
-  expect(toMml(resolve(add(one, mul(one, i))))).toBe(
+  expect(format(add(one, mul(one, i)), "mathml")).toBe(
     math("<mn>1</mn><mo>+</mo><mi>i</mi>")
   );
-  expect(toMml(resolve(add(minusOne, mul(one, i))))).toBe(
+  expect(format(add(minusOne, mul(one, i)), "mathml")).toBe(
     math("<mo>-</mo><mn>1</mn><mo>+</mo><mi>i</mi>")
   );
-  expect(toMml(resolve(add(one, mul(minusOne, i))))).toBe(
+  expect(format(add(one, mul(minusOne, i)), "mathml")).toBe(
     math("<mn>1</mn><mo>-</mo><mi>i</mi>")
   );
-  expect(toMml(resolve(add(minusOne, mul(minusOne, i))))).toBe(
+  expect(format(add(minusOne, mul(minusOne, i)), "mathml")).toBe(
     math("<mo>-</mo><mn>1</mn><mo>-</mo><mi>i</mi>")
   );
-  expect(toMml(resolve(mul(one, pi)))).toBe(math("<mi>&pi;</mi>"));
-  expect(toMml(resolve(mul(minusOne, pi)))).toBe(
+  expect(format(mul(one, pi), "mathml")).toBe(math("<mi>&pi;</mi>"));
+  expect(format(mul(minusOne, pi), "mathml")).toBe(
     math("<mo>-</mo><mi>&pi;</mi>")
   );
-  expect(toMml(resolve(mul(half, pi)))).toBe(
+  expect(format(mul(half, pi), "mathml")).toBe(
     math("<mfrac><mi>&pi;</mi><mn>2</mn></mfrac>")
   );
-  expect(toMml(resolve(mul(minusHalf, pi)))).toBe(
+  expect(format(mul(minusHalf, pi), "mathml")).toBe(
     math("<mo>-</mo><mfrac><mi>&pi;</mi><mn>2</mn></mfrac>")
   );
-  expect(toMml(resolve(mul(three, pi)))).toBe(math("<mn>3</mn><mi>&pi;</mi>"));
-  expect(toMml(resolve(mul(minusThree, pi)))).toBe(
+  expect(format(mul(three, pi), "mathml")).toBe(
+    math("<mn>3</mn><mi>&pi;</mi>")
+  );
+  expect(format(mul(minusThree, pi), "mathml")).toBe(
     math("<mo>-</mo><mn>3</mn><mi>&pi;</mi>")
   );
-  expect(toMml(resolve(mul(threeHalves, pi)))).toBe(
+  expect(format(mul(threeHalves, pi), "mathml")).toBe(
     math("<mfrac><mrow><mn>3</mn><mi>&pi;</mi></mrow><mn>2</mn></mfrac>")
   );
-  expect(toMml(resolve(mul(minusThreeHalves, pi)))).toBe(
+  expect(format(mul(minusThreeHalves, pi), "mathml")).toBe(
     math(
       "<mo>-</mo><mfrac><mrow><mn>3</mn><mi>&pi;</mi></mrow><mn>2</mn></mfrac>"
     )
+  );
+
+  expect(format(one, "mathml-inline")).toBe(
+    '<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mn>1</mn></math>'
   );
 });

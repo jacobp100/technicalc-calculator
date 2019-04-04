@@ -147,7 +147,7 @@ let of_string = (~constant=Constant.none, v) =>
 let to_string = (~format=OutputFormat.default, a) => {
   let exponent_format =
     switch (format.mode) {
-    | Latex => Some("\\times10^{$}")
+    | Tex => Some("\\times10^{$}")
     | _ => None
     };
   let base = format.base;
@@ -164,7 +164,7 @@ let to_string = (~format=OutputFormat.default, a) => {
       "<" ++ tag ++ ">" ++ value ++ "</" ++ tag ++ ">";
     let minus =
       switch (format.mode, is_negative(a)) {
-      | (String | Latex, true) => "-"
+      | (String | Tex, true) => "-"
       | (MathML, true) => wrap_mml("mo", "-")
       | (_, false) => ""
       };
@@ -174,9 +174,9 @@ let to_string = (~format=OutputFormat.default, a) => {
         NumberFormat.format_integer(~base, formatting, Z.abs(num)),
         Constant.to_string(~format, constant),
       ) {
-      | (String | Latex, "1", "") => ("1", false)
-      | (String | Latex, "1", constant) => (constant, false)
-      | (String | Latex, numerator, constant) => (
+      | (String | Tex, "1", "") => ("1", false)
+      | (String | Tex, "1", constant) => (constant, false)
+      | (String | Tex, numerator, constant) => (
           numerator ++ constant,
           false,
         )
@@ -191,7 +191,7 @@ let to_string = (~format=OutputFormat.default, a) => {
     switch (format.mode, NumberFormat.format_integer(~base, formatting, den)) {
     | (_, "1") => minus ++ top
     | (String, bottom) => minus ++ top ++ "/" ++ bottom
-    | (Latex, bottom) => minus ++ "\\frac{" ++ top ++ "}{" ++ bottom ++ "}"
+    | (Tex, bottom) => minus ++ "\\frac{" ++ top ++ "}{" ++ bottom ++ "}"
     | (MathML, denominator) =>
       let top = needs_wrap ? wrap_mml("mrow", top) : top;
       let bottom = wrap_mml("mn", denominator);

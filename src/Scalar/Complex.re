@@ -97,9 +97,9 @@ let _format_imaginary = (~format: OutputFormat.format, im) => {
     };
 
   switch (format.mode, special_value) {
-  | (String | Latex, `One) => "i"
-  | (String | Latex, `MinusOne) => "-i"
-  | (String | Latex, `Other) => Real.to_string(~format, im) ++ "i"
+  | (String | Tex, `One) => "i"
+  | (String | Tex, `MinusOne) => "-i"
+  | (String | Tex, `Other) => Real.to_string(~format, im) ++ "i"
   | (MathML, `One) => "<mi>i</mi>"
   | (MathML, `MinusOne) => "<mo>-</mo><mi>i</mi>"
   | (MathML, `Other) => Real.to_string(~format, im) ++ "<mi>i</mi>"
@@ -117,8 +117,8 @@ let to_string = (~format=OutputFormat.default, x) =>
     let im = _format_imaginary(~format, Real.abs(x.im));
     let op =
       switch (format.mode, !Real.is_negative(x.im)) {
-      | (String | Latex, true) => "+"
-      | (String | Latex, false) => "-"
+      | (String | Tex, true) => "+"
+      | (String | Tex, false) => "-"
       | (MathML, true) => "<mo>+</mo>"
       | (MathML, false) => "<mo>-</mo>"
       };
