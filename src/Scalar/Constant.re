@@ -94,5 +94,6 @@ let to_string = (~format=OutputFormat.default, a) =>
     "<msup><mi>e</mi><mn>"
     ++ _number_string(format, Z.of_int(v))
     ++ "</mn></msup>"
-  | (MathML, Sqrt(v)) => "<msqrt>" ++ _number_string(format, v) ++ "</msqrt>"
+  | (MathML, Sqrt(v)) =>
+    "<msqrt><mn>" ++ _number_string(format, v) ++ "</mn></msqrt>"
   };
