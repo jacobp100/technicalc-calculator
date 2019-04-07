@@ -149,9 +149,10 @@ module Make = (Number: Types.Scalar) => {
   let atanh = _map_scalar(Number.atanh);
 
   let to_string = (~format=OutputFormat.default, x) =>
-    switch (x) {
-    | Scalar(xS) => Number.to_string(~format, xS)
-    | Matrix(xM) => NumberMatrix.to_string(~format, xM)
-    | NaN => "NaN"
+    switch (format.mode, x) {
+    | (_, Scalar(xS)) => Number.to_string(~format, xS)
+    | (_, Matrix(xM)) => NumberMatrix.to_string(~format, xM)
+    | (String | Tex, NaN) => "NaN"
+    | (MathML, NaN) => "<mi>NaN</mi>"
     };
 };

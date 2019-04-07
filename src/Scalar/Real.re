@@ -159,7 +159,7 @@ let to_string = (~format=OutputFormat.default, a) => {
     | Tex => base ++ "*10^{" ++ exponent ++ "}"
     | MathML =>
       format_number(base)
-      ++ "<msup><mn>10</mn>"
+      ++ "<mo>&times;</mo><msup><mn>10</mn>"
       ++ format_number(exponent)
       ++ "</msup>"
     };
