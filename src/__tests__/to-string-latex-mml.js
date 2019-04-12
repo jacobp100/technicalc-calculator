@@ -1,9 +1,9 @@
 const {
-  to_string: toString,
+  toString,
   resolve,
   one,
-  minus_one: minusOne,
-  of_string: ofString,
+  minusOne,
+  ofString,
   add,
   mul,
   pi,

@@ -11,18 +11,18 @@ let ( ** ) = pow;
 let ( **. ) = Pervasives.( ** );
 
 let (_1, _2, _3, _6, _4, _9, _27) = (
-  of_int(1),
-  of_int(2),
-  of_int(3),
-  of_int(6),
-  of_int(4),
-  of_int(9),
-  of_int(27),
+  ofInt(1),
+  ofInt(2),
+  ofInt(3),
+  ofInt(6),
+  ofInt(4),
+  ofInt(9),
+  ofInt(27),
 );
 let epsilon = 1.e-4;
 let base = 1000;
-let round_to_precision = x =>
-  x *. float_of_int(base) |> int_of_float |> of_int |> div(_, of_int(base));
+let roundToPrecision = x =>
+  (x *. float_of_int(base))->int_of_float->ofInt->div(_, ofInt(base));
 
 let quadratic = (a, b, c) => {
   let determinant = sqrt(b ** _2 - _4 * a * c);
@@ -31,7 +31,7 @@ let quadratic = (a, b, c) => {
   (x1, x2);
 };
 
-let _cubic_raphson = (a, b, c, d) => {
+let _cubicRaphson = (a, b, c, d) => {
   /*
    Attempt to find an exact real root within an amount of decimal places
    Some roots may be complex, or be of square roots, which this method will not find
@@ -41,40 +41,36 @@ let _cubic_raphson = (a, b, c, d) => {
    the cubic
    */
   let (m0, m1) = quadratic(_3 * a, _2 * b, c);
-  switch (to_floats(m0), to_floats(m1)) {
+  switch (toFloats(m0), toFloats(m1)) {
   | ((m0, 0.), (m1, 0.)) =>
     let midpoint = (m0 +. m1) /. 2.;
     let range = abs_float(m0 -. m1);
     let values = [midpoint, midpoint -. range, midpoint +. range];
 
-    let af = to_float(a);
-    let bf = to_float(b);
-    let cf = to_float(c);
-    let df = to_float(d);
+    let af = toFloat(a);
+    let bf = toFloat(b);
+    let cf = toFloat(c);
+    let df = toFloat(d);
 
-    List.fold_left(
-      (current, value) =>
-        switch (current) {
-        | None =>
-          let x0 = Raphson.cubic(af, bf, cf, df, value) |> round_to_precision;
-          let fx = a * x0 ** _3 + b * x0 ** _2 + c * x0 + d;
-          if (fx == zero) {
-            let (x1, x2) =
-              quadratic(a, a * x0 + b, a * x0 ** _2 + b * x0 + c);
-            Some((x0, x1, x2));
-          } else {
-            None;
-          };
-        | v => v
-        },
-      None,
-      values,
+    values->Belt.List.reduce(None, (current, value) =>
+      switch (current) {
+      | None =>
+        let x0 = Raphson.cubic(af, bf, cf, df, value)->roundToPrecision;
+        let fx = a * x0 ** _3 + b * x0 ** _2 + c * x0 + d;
+        if (fx == zero) {
+          let (x1, x2) = quadratic(a, a * x0 + b, a * x0 ** _2 + b * x0 + c);
+          Some((x0, x1, x2));
+        } else {
+          None;
+        };
+      | v => v
+      }
     );
   | _ => None
   };
 };
 
-let _cubic_numeric = (a, b, c, d) => {
+let _cubicNumeric = (a, b, c, d) => {
   /* See https://math.stackexchange.com/questions/61725/is-there-a-systematic-way-of-solving-cubic-equations */
   let q =
     sqrt(
@@ -92,7 +88,7 @@ let _cubic_numeric = (a, b, c, d) => {
   } else {
     let c0 =
       ((q + _2 * b ** _3 - _9 * a * b * c + _27 * a ** _2 * d) / _2)
-      ** of_real(Real.of_int(1, ~denominator=3));
+      ** ofReal(Real.ofInt(1, ~denominator=3));
     let x1 =
       - b / (_3 * a) - c0 / (_3 * a) - (b ** _2 - _3 * a * c) / (_3 * a * c0);
     let x2 =
@@ -123,7 +119,7 @@ let _cubic_numeric = (a, b, c, d) => {
 };
 
 let cubic = (a, b, c, d) =>
-  switch (_cubic_raphson(a, b, c, d)) {
+  switch (_cubicRaphson(a, b, c, d)) {
   | Some(v) => v
-  | None => _cubic_numeric(a, b, c, d)
+  | None => _cubicNumeric(a, b, c, d)
   };

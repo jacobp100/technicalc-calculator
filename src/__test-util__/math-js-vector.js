@@ -8,7 +8,7 @@ const vector2 = cartesian([elements, elements]).map(
   ([a, b]) =>
     new Value(
       [a, b],
-      SciLine.matrix_of_elements(2, 1, [a, b].map(SciLine.of_float)),
+      SciLine.matrixOfElements(2, 1, [a, b].map(SciLine.ofFloat)),
       `[${a}, ${b}]`
     )
 );
@@ -18,7 +18,7 @@ const vector3 = cartesian([elements, elements, elements]).map(
   ([a, b, c]) =>
     new Value(
       [a, b, c],
-      SciLine.matrix_of_elements(3, 1, [a, b, c].map(SciLine.of_float)),
+      SciLine.matrixOfElements(3, 1, [a, b, c].map(SciLine.ofFloat)),
       `[${a}, ${b}, ${c}]`
     )
 );

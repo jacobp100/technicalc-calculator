@@ -11,13 +11,13 @@ module.exports.Value = class Value {
   }
 
   static float(n, title = String(n)) {
-    return new Value(n, SciLine.of_float(n), title);
+    return new Value(n, SciLine.ofFloat(n), title);
   }
 
   static complex(re, im, title = `${re}+${im}i`) {
     return new Value(
       mathjs.complex(re, im),
-      SciLine.of_complex_floats(re, im),
+      SciLine.ofComplexFloats(re, im),
       title
     );
   }
@@ -25,7 +25,7 @@ module.exports.Value = class Value {
   static e(n = 1, title = `${n}e`) {
     return new Value(
       n * Math.E,
-      SciLine.mul(SciLine.of_float(n), SciLine.e),
+      SciLine.mul(SciLine.ofFloat(n), SciLine.e),
       title
     );
   }
@@ -33,13 +33,13 @@ module.exports.Value = class Value {
   static pi(n = 1, title = `${n}pi`) {
     return new Value(
       n * Math.PI,
-      SciLine.mul(SciLine.of_float(n), SciLine.pi),
+      SciLine.mul(SciLine.ofFloat(n), SciLine.pi),
       title
     );
   }
 
   toString() {
-    return `(js: ${this.jsValue}, sciline: ${SciLine.to_string(
+    return `(js: ${this.jsValue}, sciline: ${SciLine.toString(
       this.sciLineValue
     )})`;
   }
@@ -84,7 +84,7 @@ const asComplex = a => {
 module.exports.toMatchJsValue = (received, expected) => {
   const resolved = SciLine.resolve(received);
 
-  const [actualRe, actualIm] = SciLine.to_complex_floats(resolved);
+  const [actualRe, actualIm] = SciLine.toComplexFloats(resolved);
   const [expectedRe, expectedIm] = asComplex(expected);
 
   const pass =
@@ -92,7 +92,7 @@ module.exports.toMatchJsValue = (received, expected) => {
 
   return {
     message: () =>
-      `expected ${SciLine.to_string(resolved)} ${
+      `expected ${SciLine.toString(resolved)} ${
         pass ? "not " : ""
       }to be close to ${expectedRe}+${expectedIm}i`,
     pass
@@ -102,7 +102,7 @@ module.exports.toMatchJsValue = (received, expected) => {
 module.exports.toMatchJsMatrix = (received, expected) => {
   const resolved = SciLine.resolve(received);
 
-  const sciLineElements = SciLine.to_complex_floats_matrix(resolved);
+  const sciLineElements = SciLine.toComplexFloatsMatrix(resolved);
 
   let allPass = true;
   expected.forEach((mathJsElement, [row, column]) => {
@@ -115,7 +115,7 @@ module.exports.toMatchJsMatrix = (received, expected) => {
 
   return {
     message: () =>
-      `expected ${SciLine.to_string(resolved)} ${
+      `expected ${SciLine.toString(resolved)} ${
         allPass ? "not " : ""
       }to be close to ${expected}`,
     pass: allPass

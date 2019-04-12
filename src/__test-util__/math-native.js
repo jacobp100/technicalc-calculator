@@ -10,7 +10,7 @@ const trigPositiveValues = fractionsTo12.map(
     new Value(
       (Math.PI * num) / denom,
       SciLine.mul(
-        SciLine.div(SciLine.of_float(num), SciLine.of_float(denom)),
+        SciLine.div(SciLine.ofFloat(num), SciLine.ofFloat(denom)),
         SciLine.pi
       ),
       `${num}pi/${denom}`
@@ -22,7 +22,7 @@ const trigNegativeValues = fractionsTo12.map(
     new Value(
       -(Math.PI * num) / denom,
       SciLine.mul(
-        SciLine.div(SciLine.of_float(-num), SciLine.of_float(denom)),
+        SciLine.div(SciLine.ofFloat(-num), SciLine.ofFloat(denom)),
         SciLine.pi
       ),
       `${-num}pi/${denom}`

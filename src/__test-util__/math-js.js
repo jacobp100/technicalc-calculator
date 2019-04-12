@@ -10,9 +10,9 @@ const trigValues = cartesian([fractionsTo12, fractionsTo12]).map(
       mathjs.complex((Math.PI * numRe) / denomRe, (Math.PI * numIm) / denomIm),
       SciLine.mul(
         SciLine.add(
-          SciLine.div(SciLine.of_float(numRe), SciLine.of_float(denomRe)),
+          SciLine.div(SciLine.ofFloat(numRe), SciLine.ofFloat(denomRe)),
           SciLine.mul(
-            SciLine.div(SciLine.of_float(numIm), SciLine.of_float(denomIm)),
+            SciLine.div(SciLine.ofFloat(numIm), SciLine.ofFloat(denomIm)),
             SciLine.i
           )
         ),

@@ -10,62 +10,63 @@ module Result =
 
 include SciLineAst;
 
-let zero = of_t(SciLineValue.zero);
-let one = of_t(SciLineValue.one);
-let minus_one = of_t(SciLineValue.minus_one);
-let pi = of_t(SciLineValue.pi);
-let e = of_t(SciLineValue.e);
-let i = of_t(SciLineValue.of_number(Complex.i));
-let minus_i = of_t(SciLineValue.of_number(Complex.minus_i));
+let zero = ofT(SciLineValue.zero);
+let one = ofT(SciLineValue.one);
+let minusOne = ofT(SciLineValue.minusOne);
+let pi = ofT(SciLineValue.pi);
+let e = ofT(SciLineValue.e);
+let i = ofT(SciLineValue.ofNumber(Complex.i));
+let minusI = ofT(SciLineValue.ofNumber(Complex.minusI));
 
-let _convert_context = jsContext =>
-  Array.fold_left(
-    (accum, (key, value)) => Context.add(key, Result.unwrap(value), accum),
-    Context.empty,
-    Js.Dict.entries(jsContext),
-  );
+let _convertContext = jsContext =>
+  Js.Dict.entries(jsContext)
+  ->Belt.Array.reduce(Context.empty, (accum, (key, value)) =>
+      Context.add(key, Result.unwrap(value), accum)
+    );
 
 let resolve = a => Result.wrap(eval(a));
 let resolveWithContext = (jsContext, a) =>
-  Result.wrap(eval(~context=_convert_context(jsContext), a));
+  Result.wrap(eval(~context=_convertContext(jsContext), a));
 
-let of_complex_floats = (re, im) =>
-  of_t(SciLineValue.of_number(Complex.of_floats(re, im)));
+let ofComplexFloats = (re, im) =>
+  ofT(SciLineValue.ofNumber(Complex.ofFloats(re, im)));
 
-let to_float = a =>
-  switch (SciLineValue.to_number(Result.unwrap(a))) {
-  | Some(comp) => Complex.to_float(comp)
+let toFloat = a =>
+  switch (SciLineValue.toNumber(Result.unwrap(a))) {
+  | Some(comp) => Complex.toFloat(comp)
   | None => nan
   };
 
-let to_complex_floats = a =>
-  switch (SciLineValue.to_number(Result.unwrap(a))) {
-  | Some(comp) => Complex.to_floats(comp)
+let toComplexFloats = a =>
+  switch (SciLineValue.toNumber(Result.unwrap(a))) {
+  | Some(comp) => Complex.toFloats(comp)
   | None => (nan, nan)
   };
 
-let _map_matrix = (fn, a) =>
-  switch (SciLineValue.to_matrix(Result.unwrap(a))) {
-  | Some(mat) => Array.map(Array.map(fn), NumberMatrix.to_matrix(mat))
+let _mapMatrix = (fn, a) =>
+  switch (SciLineValue.toMatrix(Result.unwrap(a))) {
+  | Some(mat) =>
+    NumberMatrix.toMatrix(mat)
+    ->Belt.Array.map(row => Belt.Array.map(row, fn))
   | None => [||]
   };
 
-let to_floats_matrix = _map_matrix(Complex.to_float);
-let to_complex_floats_matrix = _map_matrix(Complex.to_floats);
+let toFloatsMatrix = _mapMatrix(Complex.toFloat);
+let toComplexFloatsMatrix = _mapMatrix(Complex.toFloats);
 
-let is_nan = a => SciLineValue.is_nan(Result.unwrap(a));
+let isNan = a => SciLineValue.isNan(Result.unwrap(a));
 
-let _f = a => SciLineValue.to_number(Result.unwrap(a));
-let _t = a => Result.wrap(SciLineValue.of_scalar(a));
+let _f = a => SciLineValue.toNumber(Result.unwrap(a));
+let _t = a => Result.wrap(SciLineValue.ofScalar(a));
 let _nan = Result.wrap(SciLineValue.nan);
-let solve_quadratic = (a, b, c) =>
+let solveQuadratic = (a, b, c) =>
   switch (_f(a), _f(b), _f(c)) {
   | (Some(a), Some(b), Some(c)) =>
     let (x0, x1) = Equation.quadratic(a, b, c);
     (_t(x0), _t(x1));
   | _ => (_nan, _nan)
   };
-let solve_cubic = (a, b, c, d) =>
+let solveCubic = (a, b, c, d) =>
   switch (_f(a), _f(b), _f(c), _f(d)) {
   | (Some(a), Some(b), Some(c), Some(d)) =>
     let (x0, x1, x2) = Equation.cubic(a, b, c, d);
@@ -84,13 +85,13 @@ type format = {
   [@bs.optional]
   base: int,
   [@bs.optional]
-  decimal_min_magnitude: float,
+  decimalMinMagnitude: float,
   [@bs.optional]
-  decimal_max_magnitude: float,
+  decimalMaxMagnitude: float,
 };
 
 let _format_with_mode = (mode, x, maybeFormat) => {
-  let f = Util.default(format(), maybeFormat);
+  let f = maybeFormat->Belt.Option.getWithDefault(format());
   let format = {
     OutputFormat.mode,
     style:
@@ -99,25 +100,23 @@ let _format_with_mode = (mode, x, maybeFormat) => {
       | Some("scientific") => Scientific
       | _ => Natural
       },
-    precision: Util.default(OutputFormat.default.precision, precisionGet(f)),
-    base: Util.default(OutputFormat.default.base, baseGet(f)),
-    decimal_min_magnitude:
-      Util.default(
-        OutputFormat.default.decimal_min_magnitude,
-        decimal_min_magnitudeGet(f),
-      ),
-    decimal_max_magnitude:
-      Util.default(
-        OutputFormat.default.decimal_max_magnitude,
-        decimal_max_magnitudeGet(f),
-      ),
+    precision:
+      precisionGet(f)
+      ->Belt.Option.getWithDefault(OutputFormat.default.precision),
+    base: baseGet(f)->Belt.Option.getWithDefault(OutputFormat.default.base),
+    decimalMinMagnitude:
+      decimalMinMagnitudeGet(f)
+      ->Belt.Option.getWithDefault(OutputFormat.default.decimalMinMagnitude),
+    decimalMaxMagnitude:
+      decimalMaxMagnitudeGet(f)
+      ->Belt.Option.getWithDefault(OutputFormat.default.decimalMaxMagnitude),
   };
-  SciLineValue.to_string(~format, Result.unwrap(x));
+  SciLineValue.toString(~format, Result.unwrap(x));
 };
 
-let to_string = (x, maybeFormat) => {
+let toString = (x, maybeFormat) => {
   open OutputFormat;
-  let f = Util.default(format(), maybeFormat);
+  let f = maybeFormat->Belt.Option.getWithDefault(format());
 
   let (mode, inline) =
     switch (modeGet(f)) {
@@ -135,21 +134,19 @@ let to_string = (x, maybeFormat) => {
       | Some("scientific") => Scientific
       | _ => Natural
       },
-    precision: Util.default(OutputFormat.default.precision, precisionGet(f)),
-    base: Util.default(OutputFormat.default.base, baseGet(f)),
-    decimal_min_magnitude:
-      Util.default(
-        OutputFormat.default.decimal_min_magnitude,
-        decimal_min_magnitudeGet(f),
-      ),
-    decimal_max_magnitude:
-      Util.default(
-        OutputFormat.default.decimal_max_magnitude,
-        decimal_max_magnitudeGet(f),
-      ),
+    precision:
+      precisionGet(f)
+      ->Belt.Option.getWithDefault(OutputFormat.default.precision),
+    base: baseGet(f)->Belt.Option.getWithDefault(OutputFormat.default.base),
+    decimalMinMagnitude:
+      decimalMinMagnitudeGet(f)
+      ->Belt.Option.getWithDefault(OutputFormat.default.decimalMinMagnitude),
+    decimalMaxMagnitude:
+      decimalMaxMagnitudeGet(f)
+      ->Belt.Option.getWithDefault(OutputFormat.default.decimalMaxMagnitude),
   };
 
-  let body = SciLineValue.to_string(~format, Result.unwrap(x));
+  let body = SciLineValue.toString(~format, Result.unwrap(x));
 
   switch (mode) {
   | String
@@ -164,7 +161,7 @@ let to_string = (x, maybeFormat) => {
   };
 };
 
-let _encode_value: SciLineValue.t => string = [%raw
+let _encodeValue: SciLineValue.t => string = [%raw
   {|
     x => {
       const BN = require("bn.js");
@@ -190,9 +187,9 @@ let _encode_value: SciLineValue.t => string = [%raw
   |}
 ];
 
-let encode = x => _encode_value(Result.unwrap(x));
+let encode = x => _encodeValue(Result.unwrap(x));
 
-let _decode_value: string => SciLineValue.t = [%raw
+let _decodeValue: string => SciLineValue.t = [%raw
   {|
     x => {
       const BN = require("bn.js");
@@ -217,4 +214,4 @@ let _decode_value: string => SciLineValue.t = [%raw
   |}
 ];
 
-let decode = x => Result.wrap(_decode_value(x));
+let decode = x => Result.wrap(_decodeValue(x));

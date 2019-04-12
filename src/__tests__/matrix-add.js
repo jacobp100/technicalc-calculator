@@ -33,6 +33,6 @@ describe("Type checking", () => {
     const value = SciLine.resolve(
       SciLine.add(matrix2x2[0].sciLineValue, matrix3x3[0].sciLineValue)
     );
-    expect(SciLine.to_string(value)).toBe("NaN");
+    expect(SciLine.toString(value)).toBe("NaN");
   });
 });

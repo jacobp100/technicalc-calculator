@@ -12,7 +12,7 @@ const matrix2x2 = cartesian([
   ([a, b, c, d]) =>
     new Value(
       mathjs.matrix([[a, b], [c, d]]),
-      SciLine.matrix_of_elements(2, 2, [a, b, c, d].map(SciLine.of_float)),
+      SciLine.matrixOfElements(2, 2, [a, b, c, d].map(SciLine.ofFloat)),
       `[[${a}, ${b}], [${c}, ${d}]]`
     )
 );
@@ -32,10 +32,10 @@ const matrix3x3 = cartesian([
   ([a, b, c, d, e, f, g, h, i]) =>
     new Value(
       mathjs.matrix([[a, b, c], [d, e, f], [g, h, i]]),
-      SciLine.matrix_of_elements(
+      SciLine.matrixOfElements(
         3,
         3,
-        [a, b, c, d, e, f, g, h, i].map(SciLine.of_float)
+        [a, b, c, d, e, f, g, h, i].map(SciLine.ofFloat)
       ),
       `[[${a}, ${b}], [${c}, ${d}]]`
     )

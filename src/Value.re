@@ -9,25 +9,25 @@ module Make = (Number: Types.Scalar) => {
   let nan = NaN;
   let zero = Scalar(Number.zero);
   let one = Scalar(Number.one);
-  let minus_one = Scalar(Number.minus_one);
+  let minusOne = Scalar(Number.minusOne);
   let e = Scalar(Number.e);
   let pi = Scalar(Number.pi);
 
-  let is_nan = a => Pervasives.(==)(a, NaN);
+  let isNan = a => Pervasives.(==)(a, NaN);
 
-  let to_int = a =>
+  let toInt = a =>
     switch (a) {
-    | Scalar(aS) => Number.to_int(aS)
+    | Scalar(aS) => Number.toInt(aS)
     | _ => None
     };
 
-  let to_number = a =>
+  let toNumber = a =>
     switch (a) {
     | Scalar(aS) => Some(aS)
     | _ => None
     };
 
-  let to_matrix = a =>
+  let toMatrix = a =>
     switch (a) {
     | Matrix(aM) => Some(aM)
     | _ => None
@@ -35,29 +35,28 @@ module Make = (Number: Types.Scalar) => {
 
   let normalize = a =>
     switch (a) {
-    | Scalar(aS) => Number.is_nan(aS) ? NaN : a
-    | Matrix(aM) => NumberMatrix.is_nan(aM) ? NaN : a
+    | Scalar(aS) => Number.isNan(aS) ? NaN : a
+    | Matrix(aM) => NumberMatrix.isNan(aM) ? NaN : a
     | NaN => nan
     };
 
-  let of_scalar = a => normalize(Scalar(a));
-  let of_matrix = a => normalize(Matrix(a));
+  let ofScalar = a => normalize(Scalar(a));
+  let ofMatrix = a => normalize(Matrix(a));
 
-  let of_number = a => of_scalar(a);
-  let of_int = a => of_scalar(Number.of_int(a));
-  let of_float = a => of_scalar(Number.of_float(a));
-  let of_string = a => of_scalar(Number.of_string(a));
-  let of_string_base = (base, a) =>
-    of_scalar(Number.of_string_base(base, a));
-  let of_matrix_elements = (~rows, ~columns, elements) => {
-    let to_scalar = element =>
+  let ofNumber = a => ofScalar(a);
+  let ofInt = a => ofScalar(Number.ofInt(a));
+  let ofFloat = a => ofScalar(Number.ofFloat(a));
+  let ofString = a => ofScalar(Number.ofString(a));
+  let ofStringBase = (base, a) => ofScalar(Number.ofStringBase(base, a));
+  let ofMatrixElements = (~rows, ~columns, elements) => {
+    let toScalar = element =>
       switch (element) {
       | Scalar(aS) => aS
       | _ => Number.nan
       };
-    let elements = Array.map(to_scalar, elements);
+    let elements = Belt.Array.map(elements, toScalar);
     /* Normalized to NaN if non-scalar values exist */
-    of_matrix(NumberMatrix.from_elements(~rows, ~columns, elements));
+    ofMatrix(NumberMatrix.fromElements(~rows, ~columns, elements));
   };
 
   let equal = (a, b) =>
@@ -69,89 +68,89 @@ module Make = (Number: Types.Scalar) => {
 
   let add = (a, b) =>
     switch (a, b) {
-    | (Scalar(aS), Scalar(bS)) => of_scalar(Number.add(aS, bS))
-    | (Matrix(aM), Matrix(bM)) => of_matrix(NumberMatrix.add(aM, bM))
+    | (Scalar(aS), Scalar(bS)) => ofScalar(Number.add(aS, bS))
+    | (Matrix(aM), Matrix(bM)) => ofMatrix(NumberMatrix.add(aM, bM))
     | _ => nan
     };
 
   let sub = (a, b) =>
     switch (a, b) {
-    | (Scalar(aS), Scalar(bS)) => of_scalar(Number.sub(aS, bS))
-    | (Matrix(aM), Matrix(bM)) => of_matrix(NumberMatrix.sub(aM, bM))
+    | (Scalar(aS), Scalar(bS)) => ofScalar(Number.sub(aS, bS))
+    | (Matrix(aM), Matrix(bM)) => ofMatrix(NumberMatrix.sub(aM, bM))
     | _ => nan
     };
 
   let mul = (a, b) =>
     switch (a, b) {
-    | (Scalar(aS), Scalar(bS)) => of_scalar(Number.mul(aS, bS))
-    | (Matrix(aM), Matrix(bM)) => of_matrix(NumberMatrix.mul(aM, bM))
+    | (Scalar(aS), Scalar(bS)) => ofScalar(Number.mul(aS, bS))
+    | (Matrix(aM), Matrix(bM)) => ofMatrix(NumberMatrix.mul(aM, bM))
     | (Scalar(aS), Matrix(aM))
-    | (Matrix(aM), Scalar(aS)) => of_matrix(NumberMatrix.mul_const(aM, aS))
+    | (Matrix(aM), Scalar(aS)) => ofMatrix(NumberMatrix.mulConst(aM, aS))
     | _ => nan
     };
 
   let div = (a, b) =>
     switch (a, b) {
-    | (Scalar(aS), Scalar(bS)) => of_scalar(Number.div(aS, bS))
-    | (Matrix(aM), Scalar(aS)) => of_matrix(NumberMatrix.div_const(aM, aS))
+    | (Scalar(aS), Scalar(bS)) => ofScalar(Number.div(aS, bS))
+    | (Matrix(aM), Scalar(aS)) => ofMatrix(NumberMatrix.divConst(aM, aS))
     | _ => nan
     };
 
   let pow = (a, b) =>
     switch (a, b) {
-    | (Scalar(aS), Scalar(bS)) => of_scalar(Number.pow(aS, bS))
-    | (Matrix(aM), Scalar(aS)) => of_matrix(NumberMatrix.pow_const(aM, aS))
+    | (Scalar(aS), Scalar(bS)) => ofScalar(Number.pow(aS, bS))
+    | (Matrix(aM), Scalar(aS)) => ofMatrix(NumberMatrix.powConst(aM, aS))
     | _ => nan
     };
 
   let neg = a =>
     switch (a) {
-    | Scalar(aS) => of_scalar(Number.neg(aS))
-    | Matrix(aM) => of_matrix(NumberMatrix.neg(aM))
+    | Scalar(aS) => ofScalar(Number.neg(aS))
+    | Matrix(aM) => ofMatrix(NumberMatrix.neg(aM))
     | _ => nan
     };
 
   let dot = (a, b) =>
     switch (a, b) {
-    | (Scalar(aS), Scalar(bS)) => of_scalar(Number.mul(aS, bS))
-    | (Matrix(aM), Matrix(bM)) => of_scalar(NumberMatrix.dot(aM, bM))
+    | (Scalar(aS), Scalar(bS)) => ofScalar(Number.mul(aS, bS))
+    | (Matrix(aM), Matrix(bM)) => ofScalar(NumberMatrix.dot(aM, bM))
     | _ => nan
     };
 
   let abs = a =>
     switch (a) {
-    | Scalar(aS) => of_scalar(Number.abs(aS))
-    | Matrix(aM) => of_scalar(NumberMatrix.det(aM))
+    | Scalar(aS) => ofScalar(Number.abs(aS))
+    | Matrix(aM) => ofScalar(NumberMatrix.det(aM))
     | _ => nan
     };
 
-  let _map_scalar = (iteratee, a) =>
+  let _mapScalar = (iteratee, a) =>
     switch (a) {
-    | Scalar(aS) => of_scalar(iteratee(aS))
+    | Scalar(aS) => ofScalar(iteratee(aS))
     | _ => nan
     };
 
-  let sqrt = _map_scalar(Number.sqrt);
-  let exp = _map_scalar(Number.exp);
-  let log = _map_scalar(Number.log);
-  let factorial = _map_scalar(Number.factorial);
-  let sin = _map_scalar(Number.sin);
-  let asin = _map_scalar(Number.asin);
-  let sinh = _map_scalar(Number.sinh);
-  let asinh = _map_scalar(Number.asinh);
-  let cos = _map_scalar(Number.cos);
-  let acos = _map_scalar(Number.acos);
-  let cosh = _map_scalar(Number.cosh);
-  let acosh = _map_scalar(Number.acosh);
-  let tan = _map_scalar(Number.tan);
-  let atan = _map_scalar(Number.atan);
-  let tanh = _map_scalar(Number.tanh);
-  let atanh = _map_scalar(Number.atanh);
+  let sqrt = _mapScalar(Number.sqrt);
+  let exp = _mapScalar(Number.exp);
+  let log = _mapScalar(Number.log);
+  let factorial = _mapScalar(Number.factorial);
+  let sin = _mapScalar(Number.sin);
+  let asin = _mapScalar(Number.asin);
+  let sinh = _mapScalar(Number.sinh);
+  let asinh = _mapScalar(Number.asinh);
+  let cos = _mapScalar(Number.cos);
+  let acos = _mapScalar(Number.acos);
+  let cosh = _mapScalar(Number.cosh);
+  let acosh = _mapScalar(Number.acosh);
+  let tan = _mapScalar(Number.tan);
+  let atan = _mapScalar(Number.atan);
+  let tanh = _mapScalar(Number.tanh);
+  let atanh = _mapScalar(Number.atanh);
 
-  let to_string = (~format=OutputFormat.default, x) =>
+  let toString = (~format=OutputFormat.default, x) =>
     switch (format.mode, x) {
-    | (_, Scalar(xS)) => Number.to_string(~format, xS)
-    | (_, Matrix(xM)) => NumberMatrix.to_string(~format, xM)
+    | (_, Scalar(xS)) => Number.toString(~format, xS)
+    | (_, Matrix(xM)) => NumberMatrix.toString(~format, xM)
     | (String | Tex, NaN) => "NaN"
     | (MathML, NaN) => "<mi>NaN</mi>"
     };

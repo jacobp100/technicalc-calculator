@@ -1,7 +1,7 @@
-let _element_index = (~numColumns, row, column) => column + row * numColumns;
+let _elementIndex = (~numColumns, row, column) => column + row * numColumns;
 
-let _joined_elements = (elements, join, fn) =>
-  String.concat(join, Array.to_list(Array.init(elements, fn)));
+let _joinedElements = (elements, join, fn) =>
+  String.concat(join, Belt.List.fromArray(Belt.Array.makeBy(elements, fn)));
 
 module Make = (Number: Types.Scalar) => {
   open PervasivesNoPoly;
@@ -20,73 +20,63 @@ module Make = (Number: Types.Scalar) => {
     elements: array(Number.t),
   };
 
-  let to_string = (~format=OutputFormat.default, a) => {
-    let element_string = (row, column) =>
-      Number.to_string(~format, a.elements[a.numColumns *% row +% column]);
+  let toString = (~format=OutputFormat.default, a) => {
+    let elementString = (row, column) =>
+      Number.toString(~format, a.elements[a.numColumns *% row +% column]);
 
     switch (format.mode) {
     | String =>
-      let bracketed_elements = (elements, fn) =>
-        "{" ++ _joined_elements(elements, ", ", fn) ++ "}";
-      let create_row = row =>
-        bracketed_elements(a.numColumns, column =>
-          element_string(row, column)
-        );
-      bracketed_elements(a.numRows, create_row);
+      let bracketedElements = (elements, fn) =>
+        "{" ++ _joinedElements(elements, ", ", fn) ++ "}";
+      let createRow = row =>
+        bracketedElements(a.numColumns, column => elementString(row, column));
+      bracketedElements(a.numRows, createRow);
     | Tex =>
-      let create_row = row =>
-        _joined_elements(a.numColumns, " && ", column =>
-          element_string(row, column)
+      let createRow = row =>
+        _joinedElements(a.numColumns, " && ", column =>
+          elementString(row, column)
         );
-      let body = _joined_elements(a.numRows, " \\\\\n", create_row);
+      let body = _joinedElements(a.numRows, " \\\\\n", createRow);
       "\\begin{bmatrix}\n" ++ body ++ "\n\\end{bmatrix}";
     | MathML =>
-      let create_row = row =>
+      let createRow = row =>
         "<mtr>"
-        ++ _joined_elements(a.numColumns, "", column =>
-             "<mtd>" ++ element_string(row, column) ++ "</mtd>"
+        ++ _joinedElements(a.numColumns, "", column =>
+             "<mtd>" ++ elementString(row, column) ++ "</mtd>"
            )
         ++ "</mtr>";
-      let body = _joined_elements(a.numRows, "", create_row);
+      let body = _joinedElements(a.numRows, "", createRow);
       "<mrow><mtable>" ++ body ++ "</mtable></mrow>";
     };
   };
 
   let nan = {numRows: 0, numColumns: 0, elements: [||]};
-  let is_nan = a => Array.length(a.elements) ==% 0;
+  let isNan = a => Belt.Array.length(a.elements) ==% 0;
 
-  let shape_equal = (a, b) =>
+  let shapeEqual = (a, b) =>
     a.numRows ==% b.numRows && a.numColumns ==% b.numColumns;
 
   let equal = (a, b) =>
-    if (shape_equal(a, b)) {
-      let elements_match = ref(true);
-      Array.iteri(
-        (i, _) =>
-          if (!(a.elements[i] == b.elements[i])) {
-            elements_match := false;
-          },
-        a.elements,
+    if (shapeEqual(a, b)) {
+      Belt.Array.reduceWithIndex(a.elements, true, (match, aElem, i) =>
+        match && aElem == b.elements[i]
       );
-      elements_match^;
     } else {
       false;
     };
 
   let normalize = a =>
-    Array.fold_left(
-      (current, e) => Number.is_nan(e) ? nan : current,
-      a,
-      a.elements,
+    Belt.Array.reduce(a.elements, a, (current, e) =>
+      Number.isNan(e) ? nan : current
     );
 
-  let from_elements = (~rows as numRows, ~columns as numColumns, elements) =>
+  let fromElements = (~rows as numRows, ~columns as numColumns, elements) =>
     normalize({numRows, numColumns, elements});
-  let from_matrix = elements => {
-    let numRows = Array.length(elements);
+  let fromMatrix = elements => {
+    let numRows = Belt.Array.length(elements);
     if (numRows >% 0) {
-      let numColumns = Array.length(elements[0]);
-      let elements = Array.concat(Array.to_list(elements));
+      let numColumns = Belt.Array.length(elements[0]);
+      let elements = Belt.Array.concatMany(elements);
       normalize({numRows, numColumns, elements});
     } else {
       nan;
@@ -94,7 +84,7 @@ module Make = (Number: Types.Scalar) => {
   };
   let init = (~rows as numRows, ~columns as numColumns, fn) => {
     let elements =
-      Array.init(
+      Belt.Array.makeBy(
         numRows *% numColumns,
         elementIndex => {
           let column = elementIndex mod numColumns;
@@ -104,26 +94,24 @@ module Make = (Number: Types.Scalar) => {
       );
     normalize({numRows, numColumns, elements});
   };
-  let from_identity = (~rows, ~columns) =>
+  let fromIdentity = (~rows, ~columns) =>
     init(~rows, ~columns, (row, column) =>
       row ==% column ? Number.one : Number.zero
     );
-  let to_elements = a => a.elements;
-  let to_matrix = ({numRows, numColumns, elements}) => {
-    Array.init(numRows, row =>
-      Array.init(numColumns, column =>
-        elements[_element_index(~numColumns, row, column)]
+  let toElements = a => a.elements;
+  let toMatrix = ({numRows, numColumns, elements}) => {
+    Belt.Array.makeBy(numRows, row =>
+      Belt.Array.makeBy(numColumns, column =>
+        elements[_elementIndex(~numColumns, row, column)]
       )
     );
   };
 
   let _combine = (iter, a, b) =>
-    if (shape_equal(a, b)) {
+    if (shapeEqual(a, b)) {
       let elements =
-        Array.mapi(
-          (i, _) => iter(a.elements[i], b.elements[i]),
-          a.elements,
-        );
+        a.elements
+        ->Belt.Array.mapWithIndex((i, aElem) => iter(aElem, b.elements[i]));
       normalize({...a, elements});
     } else {
       nan;
@@ -132,11 +120,11 @@ module Make = (Number: Types.Scalar) => {
   let add = _combine(Number.add);
   let sub = _combine(Number.sub);
 
-  let _map_elements = (iter, a) =>
-    normalize({...a, elements: Array.map(iter, a.elements)});
+  let _mapElements = (iter, a) =>
+    normalize({...a, elements: Belt.Array.map(a.elements, iter)});
 
-  let mul_const = (a, c) => _map_elements(Number.mul(c), a);
-  let div_const = (a, c) => _map_elements(v => Number.div(v, c), a);
+  let mulConst = (a, c) => _mapElements(Number.mul(c), a);
+  let divConst = (a, c) => _mapElements(v => Number.div(v, c), a);
 
   let mul = (a, b) =>
     switch (a, b) {
@@ -156,8 +144,8 @@ module Make = (Number: Types.Scalar) => {
         (row, column) => {
           let element = ref(Number.zero);
           for (i in 0 to shape -% 1) {
-            let aIndex = _element_index(~numColumns=shape, row, i);
-            let bIndex = _element_index(~numColumns=shape, i, column);
+            let aIndex = _elementIndex(~numColumns=shape, row, i);
+            let bIndex = _elementIndex(~numColumns=shape, i, column);
             element := element^ + a.elements[aIndex] * b.elements[bIndex];
           };
           element^;
@@ -171,7 +159,7 @@ module Make = (Number: Types.Scalar) => {
     | {numRows: 2, numColumns: 2, elements: [|a, b, c, d|]} =>
       let factor = a * d - b * c;
       let elements = [|d, - b, - c, a|];
-      div_const({numRows: 2, numColumns: 2, elements}, factor);
+      divConst({numRows: 2, numColumns: 2, elements}, factor);
     | {numRows: 3, numColumns: 3, elements: [|a, b, c, d, e, f, g, h, i|]} =>
       /* https://www.wolframalpha.com/input/?i=%7B%7Ba,b,c%7D,%7Bd,e,f%7D,%7Bg,h,i%7D%7D%5E-1 */
       let factor =
@@ -187,14 +175,14 @@ module Make = (Number: Types.Scalar) => {
         b * g - a * h,
         a * e - b * d,
       |];
-      div_const({numRows: 3, numColumns: 3, elements}, factor);
+      divConst({numRows: 3, numColumns: 3, elements}, factor);
     | _ => nan
     };
 
-  let pow_const = (a, c) => {
-    switch (Number.to_int(c)) {
+  let powConst = (a, c) => {
+    switch (Number.toInt(c)) {
     | Some((-1)) => inverse(a)
-    | Some(0) => from_identity(~rows=a.numRows, ~columns=a.numColumns)
+    | Some(0) => fromIdentity(~rows=a.numRows, ~columns=a.numColumns)
     | Some(1) => a
     | Some(pow) when pow <% 20 && pow >% 0 =>
       let m = ref(a);
@@ -208,11 +196,11 @@ module Make = (Number: Types.Scalar) => {
 
   let dot = (a, b) =>
     switch (a, b) {
-    | ({numColumns: 1, elements: aElem}, {numColumns: 1, elements: bElem})
+    | ({numColumns: 1, elements: aElems}, {numColumns: 1, elements: bElems})
         when a.numRows ==% b.numRows =>
-      let accum = ref(Number.zero);
-      Array.iteri((i, _) => accum := accum^ + aElem[i] * bElem[i], aElem);
-      accum^;
+      Belt.Array.reduceWithIndex(aElems, Number.zero, (accum, aElem, i) =>
+        accum + aElem * bElems[i]
+      )
     | _ => Number.nan
     };
 
@@ -226,5 +214,5 @@ module Make = (Number: Types.Scalar) => {
     | _ => Number.nan
     };
 
-  let neg = _map_elements(Number.neg);
+  let neg = _mapElements(Number.neg);
 };

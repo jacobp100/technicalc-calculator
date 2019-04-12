@@ -1,8 +1,8 @@
 module type BasicMath = {
   type t;
   let nan: t;
-  let is_nan: t => bool;
-  let to_string: (~format: OutputFormat.format=?, t) => string;
+  let isNan: t => bool;
+  let toString: (~format: OutputFormat.format=?, t) => string;
   let equal: (t, t) => bool;
   let add: (t, t) => t;
   let sub: (t, t) => t;
@@ -14,14 +14,14 @@ module type BasicMath = {
 
 module type Scalar = {
   include BasicMath;
-  let of_int: int => t;
-  let of_float: float => t;
-  let of_string: string => t;
-  let of_string_base: (int, string) => t;
-  let to_int: t => option(int);
+  let ofInt: int => t;
+  let ofFloat: float => t;
+  let ofString: string => t;
+  let ofStringBase: (int, string) => t;
+  let toInt: t => option(int);
   let zero: t;
   let one: t;
-  let minus_one: t;
+  let minusOne: t;
   let pi: t;
   let e: t;
   let abs: t => t;
@@ -45,8 +45,8 @@ module type Scalar = {
 
 module type BaseValue = {
   include Scalar;
-  let of_matrix_elements: (~rows: int, ~columns: int, array(t)) => t;
-  let to_int: t => option(int);
+  let ofMatrixElements: (~rows: int, ~columns: int, array(t)) => t;
+  let toInt: t => option(int);
 
   let dot: (t, t) => t;
 };
@@ -55,6 +55,6 @@ module type MakeValue =
   (Number: Scalar) =>
    {
     include BaseValue;
-    let of_number: Number.t => t;
-    let to_number: t => option(Number.t);
+    let ofNumber: Number.t => t;
+    let toNumber: t => option(Number.t);
   };

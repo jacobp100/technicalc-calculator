@@ -23,13 +23,9 @@ describe("Type checking", () => {
   it("Cannot add incompatible sizes", () => {
     const value = SciLine.resolve(
       SciLine.abs(
-        SciLine.matrix_of_elements(
-          3,
-          2,
-          [3, 7, 8, 8, 6, 6].map(SciLine.of_float)
-        )
+        SciLine.matrixOfElements(3, 2, [3, 7, 8, 8, 6, 6].map(SciLine.ofFloat))
       )
     );
-    expect(SciLine.to_string(value)).toBe("NaN");
+    expect(SciLine.toString(value)).toBe("NaN");
   });
 });

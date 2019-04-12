@@ -1,11 +1,11 @@
 const Real = require("../Scalar/Real.bs");
 
-const string = Real.of_string.bind(null, undefined);
-const float = Real.of_float.bind(null, undefined);
-const resultString = Real.to_string.bind(null, undefined);
+const string = Real.ofString.bind(null, undefined);
+const float = Real.ofFloat.bind(null, undefined);
+const resultString = Real.toString.bind(null, undefined);
 
-it("Converts via of_string", () => {
-  const convert = x => resultString(Real.of_string(undefined, x));
+it("Converts via ofString", () => {
+  const convert = x => resultString(Real.ofString(undefined, x));
   expect(convert("1")).toBe("1");
   expect(convert("1e2")).toBe("100");
   expect(convert("1e+2")).toBe("100");
@@ -75,13 +75,13 @@ it("Does not simplify pi", () => {
 });
 
 it("Takes sin of pi + 1", () => {
-  expect(Real.to_string(undefined, Real.sin(Real.add(Real.pi, float(1))))).toBe(
+  expect(Real.toString(undefined, Real.sin(Real.add(Real.pi, float(1))))).toBe(
     "0.841470984807"
   );
 });
 
 it("Formats various numbers correctly", () => {
-  const convert = x => resultString(Real.of_string(undefined, x));
+  const convert = x => resultString(Real.ofString(undefined, x));
   expect(convert("46.47897327055571")).toBe("46.478973270555");
   expect(convert("-47.86759243619015")).toBe("-47.86759243619");
   expect(convert("7.712346515387281")).toBe("7.712346515387");

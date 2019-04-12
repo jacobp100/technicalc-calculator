@@ -21,11 +21,11 @@ describe("3x3", () => {
 describe("Pow -1", () => {
   // Checked on Wolfram Alpha
   it("2x2 ** -1", () => {
-    const out = SciLine.to_string(
+    const out = SciLine.toString(
       SciLine.resolve(
         SciLine.pow(
-          SciLine.matrix_of_elements(2, 2, [3, 7, 8, 9].map(SciLine.of_float)),
-          SciLine.of_float(-1)
+          SciLine.matrixOfElements(2, 2, [3, 7, 8, 9].map(SciLine.ofFloat)),
+          SciLine.ofFloat(-1)
         )
       )
     );
@@ -33,15 +33,15 @@ describe("Pow -1", () => {
   });
 
   it("3x3 ** -1", () => {
-    const out = SciLine.to_string(
+    const out = SciLine.toString(
       SciLine.resolve(
         SciLine.pow(
-          SciLine.matrix_of_elements(
+          SciLine.matrixOfElements(
             3,
             3,
-            [3, 7, 8, 9, 1, 3, 9, 5, 8].map(SciLine.of_float)
+            [3, 7, 8, 9, 1, 3, 9, 5, 8].map(SciLine.ofFloat)
           ),
-          SciLine.of_float(-1)
+          SciLine.ofFloat(-1)
         )
       )
     );

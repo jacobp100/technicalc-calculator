@@ -3,7 +3,7 @@ let asinh = f => log(f +. sqrt(f *. f +. 1.0));
 let acosh = f => log(f +. sqrt(f *. f -. 1.0));
 let atanh = f => log((1.0 +. f) /. (1.0 -. f)) /. 2.0;
 
-let is_int = f => floor(f) == f;
+let isInt = f => floor(f) == f;
 
 let bounds = (~lower=?, ~upper=?, f) => {
   let lowerCompare =

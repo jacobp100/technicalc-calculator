@@ -6,7 +6,7 @@ type t =
 
 let none = None;
 
-let to_float = a =>
+let toFloat = a =>
   switch (a) {
   | None => 1.0
   | Pi => FloatUtil.pi
@@ -14,7 +14,7 @@ let to_float = a =>
   | Sqrt(v) => sqrt(Z.to_float(v))
   };
 
-let to_q = a =>
+let toQ = a =>
   switch (a) {
   | None => Q.one
   | Pi => Q.of_float(FloatUtil.pi)
@@ -23,8 +23,8 @@ let to_q = a =>
     let factor_mag = Z.log2(v) / 2 * 2;
     let factor = Z.pow(Z.of_int(2), factor_mag);
     let float_safe_base = Q.make(v, factor);
-    let float_sqrt = float_safe_base |> Q.to_float |> sqrt |> Q.of_float;
-    let factor_sqrt = QUtil.exp_ints(2, factor_mag / 2);
+    let float_sqrt = float_safe_base->Q.to_float->sqrt->Q.of_float;
+    let factor_sqrt = QUtil.expInts(2, factor_mag / 2);
     Q.mul(float_sqrt, factor_sqrt);
   };
 
@@ -37,13 +37,13 @@ let equal = (a, b) =>
   | _ => false
   };
 
-let simplify_sqrt = ac =>
+let simplifySqrt = ac =>
   if (Z.equal(ac, Z.zero)) {
     (Z.zero, None);
   } else if (Z.equal(ac, Z.one)) {
     (Z.one, None);
   } else {
-    let upper = ac |> Z.to_float |> sqrt |> Z.of_float;
+    let upper = ac->Z.to_float->sqrt->Z.of_float;
 
     let sqrt_arg = ref(ac);
     let multiplier = ref(Z.one);
@@ -66,34 +66,34 @@ let simplify_sqrt = ac =>
 
 let simplify = a =>
   switch (a) {
-  | Sqrt(ac) => simplify_sqrt(ac)
+  | Sqrt(ac) => simplifySqrt(ac)
   | Exp(0) => (Z.one, None)
   | v => (Z.one, v)
   };
 
-let _number_string = (format, v) =>
-  NumberFormat.format_integer(
+let _numberString = (format, v) =>
+  NumberFormat.formatInteger(
     ~base=OutputFormat.(format.base),
-    NumberFormat.create_format(~digit_separators=false, ()),
+    NumberFormat.createFormat(~digitSeparators=false, ()),
     v,
   );
 
-let to_string = (~format=OutputFormat.default, a) =>
+let toString = (~format=OutputFormat.default, a) =>
   switch (format.mode, a) {
   | (_, None) => ""
   | (String, Pi) => "pi"
-  | (String, Exp(v)) => "exp(" ++ _number_string(format, Z.of_int(v)) ++ ")"
-  | (String, Sqrt(v)) => "sqrt(" ++ _number_string(format, v) ++ ")"
+  | (String, Exp(v)) => "exp(" ++ _numberString(format, Z.of_int(v)) ++ ")"
+  | (String, Sqrt(v)) => "sqrt(" ++ _numberString(format, v) ++ ")"
   | (Tex, Pi) => "\\pi"
   | (Tex, Exp(1)) => "e"
-  | (Tex, Exp(v)) => "e^{" ++ _number_string(format, Z.of_int(v)) ++ "}"
-  | (Tex, Sqrt(v)) => "\\sqrt{" ++ _number_string(format, v) ++ "}"
+  | (Tex, Exp(v)) => "e^{" ++ _numberString(format, Z.of_int(v)) ++ "}"
+  | (Tex, Sqrt(v)) => "\\sqrt{" ++ _numberString(format, v) ++ "}"
   | (MathML, Pi) => "<mi>&pi;</mi>"
   | (MathML, Exp(1)) => "<mi>e</mi>"
   | (MathML, Exp(v)) =>
     "<msup><mi>e</mi><mn>"
-    ++ _number_string(format, Z.of_int(v))
+    ++ _numberString(format, Z.of_int(v))
     ++ "</mn></msup>"
   | (MathML, Sqrt(v)) =>
-    "<msqrt><mn>" ++ _number_string(format, v) ++ "</mn></msqrt>"
+    "<msqrt><mn>" ++ _numberString(format, v) ++ "</mn></msqrt>"
   };
