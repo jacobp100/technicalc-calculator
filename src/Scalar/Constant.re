@@ -4,7 +4,31 @@ type t =
   | Exp(int)
   | Sqrt(Z.t);
 
+type encoding = [
+  | `None
+  | `Pi
+  | `Exp(string)
+  | `Sqrt(string)
+  | `UnknownValue
+];
+
 let none = None;
+
+let encode = a =>
+  switch (a) {
+  | None => `None
+  | Pi => `Pi
+  | Exp(e) => `Exp(string_of_int(e))
+  | Sqrt(s) => `Sqrt(Z.to_string(s))
+  };
+
+let decode = a =>
+  switch (a) {
+  | `Pi => Pi
+  | `Exp(e) => Exp(int_of_string(e))
+  | `Sqrt(s) => Sqrt(Z.of_string(s))
+  | _ => None
+  };
 
 let toFloat = a =>
   switch (a) {

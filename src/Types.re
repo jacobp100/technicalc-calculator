@@ -1,8 +1,11 @@
 module type BasicMath = {
   type t;
+  type encoding;
   let nan: t;
   let isNan: t => bool;
   let toString: (~format: OutputFormat.format=?, t) => string;
+  let encode: t => encoding;
+  let decode: encoding => t;
   let equal: (t, t) => bool;
   let add: (t, t) => t;
   let sub: (t, t) => t;

@@ -20,6 +20,12 @@ type t =
   | Value(Q.t, Constant.t)
   | NaN;
 
+type encoding = [
+  | `Value(string, string, Constant.encoding)
+  | `NaN
+  | `UnknownValue
+];
+
 let nan = NaN;
 let zero = Value(Q.zero, None);
 let one = Value(Q.one, None);
@@ -244,6 +250,26 @@ let toString = (~format=OutputFormat.default, a) => {
     }
   };
 };
+
+let encode = a =>
+  switch (a) {
+  | Value(ar, ac) =>
+    `Value((
+      Q.num(ar)->Z.to_string,
+      Q.den(ar)->Z.to_string,
+      Constant.encode(ac),
+    ))
+  | NaN => `NaN
+  };
+let decode = a =>
+  switch (a) {
+  | `Value(num, den, const) =>
+    Value(
+      Q.make(Z.of_string(num), Z.of_string(den)),
+      Constant.decode(const),
+    )
+  | _ => NaN
+  };
 
 let neg = a =>
   switch (a) {

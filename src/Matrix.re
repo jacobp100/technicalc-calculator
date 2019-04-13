@@ -20,6 +20,31 @@ module Make = (Number: Types.Scalar) => {
     elements: array(Number.t),
   };
 
+  type encoding = [
+    | `Matrix(int, int, array(Number.encoding))
+    | `UnknownValue
+  ];
+
+  let nan = {numRows: 0, numColumns: 0, elements: [||]};
+  let isNan = a => Belt.Array.length(a.elements) ==% 0;
+
+  let shapeEqual = (a, b) =>
+    a.numRows ==% b.numRows && a.numColumns ==% b.numColumns;
+
+  let equal = (a, b) =>
+    if (shapeEqual(a, b)) {
+      Belt.Array.reduceWithIndex(a.elements, true, (match, aElem, i) =>
+        match && aElem == b.elements[i]
+      );
+    } else {
+      false;
+    };
+
+  let normalize = a =>
+    Belt.Array.reduce(a.elements, a, (current, e) =>
+      Number.isNan(e) ? nan : current
+    );
+
   let toString = (~format=OutputFormat.default, a) => {
     let elementString = (row, column) =>
       Number.toString(~format, a.elements[a.numColumns *% row +% column]);
@@ -50,25 +75,22 @@ module Make = (Number: Types.Scalar) => {
     };
   };
 
-  let nan = {numRows: 0, numColumns: 0, elements: [||]};
-  let isNan = a => Belt.Array.length(a.elements) ==% 0;
-
-  let shapeEqual = (a, b) =>
-    a.numRows ==% b.numRows && a.numColumns ==% b.numColumns;
-
-  let equal = (a, b) =>
-    if (shapeEqual(a, b)) {
-      Belt.Array.reduceWithIndex(a.elements, true, (match, aElem, i) =>
-        match && aElem == b.elements[i]
-      );
-    } else {
-      false;
+  let encode = a =>
+    `Matrix((
+      a.numRows,
+      a.numColumns,
+      a.elements->Belt.Array.map(Number.encode),
+    ));
+  let decode = a =>
+    switch (a) {
+    | `Matrix(numRows, numColumns, elements) =>
+      normalize({
+        numRows,
+        numColumns,
+        elements: elements->Belt.Array.map(Number.decode),
+      })
+    | _ => nan
     };
-
-  let normalize = a =>
-    Belt.Array.reduce(a.elements, a, (current, e) =>
-      Number.isNan(e) ? nan : current
-    );
 
   let fromElements = (~rows as numRows, ~columns as numColumns, elements) =>
     normalize({numRows, numColumns, elements});

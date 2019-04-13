@@ -6,6 +6,13 @@ module Make = (Number: Types.Scalar) => {
     | Matrix(NumberMatrix.t)
     | NaN;
 
+  type encoding = [
+    | `Scalar(Number.encoding)
+    | `Matrix(NumberMatrix.encoding)
+    | `NaN
+    | `UnknownValue
+  ];
+
   let nan = NaN;
   let zero = Scalar(Number.zero);
   let one = Scalar(Number.one);
@@ -153,5 +160,18 @@ module Make = (Number: Types.Scalar) => {
     | (_, Matrix(xM)) => NumberMatrix.toString(~format, xM)
     | (String | Tex, NaN) => "NaN"
     | (MathML, NaN) => "<mi>NaN</mi>"
+    };
+
+  let encode = x =>
+    switch (x) {
+    | Scalar(s) => `Scalar(Number.encode(s))
+    | Matrix(m) => `Matrix(NumberMatrix.encode(m))
+    | NaN => `NaN
+    };
+  let decode = x =>
+    switch (x) {
+    | `Scalar(s) => Scalar(Number.decode(s))
+    | `Matrix(m) => Matrix(NumberMatrix.decode(m))
+    | _ => NaN
     };
 };

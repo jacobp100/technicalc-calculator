@@ -13,6 +13,8 @@ type t = {
   im: Real.t,
 };
 
+type encoding = [ | `Complex(Real.encoding, Real.encoding) | `UnknownValue];
+
 let nan = {re: Real.nan, im: Real.nan};
 let zero = {re: Real.zero, im: Real.zero};
 let one = {re: Real.one, im: Real.zero};
@@ -123,6 +125,13 @@ let toString = (~format=OutputFormat.default, x) =>
       | (MathML, false) => "<mo>-</mo>"
       };
     re ++ op ++ im;
+  };
+
+let encode = a => `Complex((Real.encode(a.re), Real.encode(a.im)));
+let decode = a =>
+  switch (a) {
+  | `Complex(re, im) => ofComponents(Real.decode(re), Real.decode(im))
+  | _ => nan
   };
 
 let neg = a => ofComponents(- a.re, - a.im);
