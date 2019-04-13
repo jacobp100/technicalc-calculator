@@ -73,6 +73,47 @@ let solveCubic = (a, b, c, d) =>
     (_t(x0), _t(x1), _t(x2));
   | _ => (_nan, _nan, _nan)
   };
+let solveVar2 = (x0, y0, c0, x1, y1, c1) =>
+  switch (_f(x0), _f(y0), _f(c0), _f(x1), _f(y1), _f(c1)) {
+  | (Some(x0), Some(y0), Some(c0), Some(x1), Some(y1), Some(c1)) =>
+    let (x, y) = Equation.var2(x0, y0, c0, x1, y1, c1);
+    (_t(x), _t(y));
+  | _ => (_nan, _nan)
+  };
+let solveVar3 = (x0, y0, z0, c0, x1, y1, z1, c1, x2, y2, z2, c2) =>
+  switch (
+    _f(x0),
+    _f(y0),
+    _f(z0),
+    _f(c0),
+    _f(x1),
+    _f(y1),
+    _f(z1),
+    _f(c1),
+    _f(x2),
+    _f(y2),
+    _f(z2),
+    _f(c2),
+  ) {
+  | (
+      Some(x0),
+      Some(y0),
+      Some(z0),
+      Some(c0),
+      Some(x1),
+      Some(y1),
+      Some(z1),
+      Some(c1),
+      Some(x2),
+      Some(y2),
+      Some(z2),
+      Some(c2),
+    ) =>
+    let (x, y, z) =
+      Equation.var3(x0, y0, z0, c0, x1, y1, z1, c1, x2, y2, z2, c2);
+    (_t(x), _t(y), _t(z));
+  | _ => (_nan, _nan, _nan)
+  };
 
 [@bs.deriving abstract]
 type format = {
