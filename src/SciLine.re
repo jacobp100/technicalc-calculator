@@ -7,6 +7,8 @@ module Result =
     let key = "resolved";
     type t = SciLineValue.t;
   });
+let wrap = Result.wrap;
+let unwrap = Result.unwrap;
 
 include SciLineAst;
 
@@ -21,30 +23,30 @@ let minusI = ofT(SciLineValue.ofNumber(Complex.minusI));
 let _convertContext = jsContext =>
   Js.Dict.entries(jsContext)
   ->Belt.Array.reduce(Context.empty, (accum, (key, value)) =>
-      Context.add(key, Result.unwrap(value), accum)
+      Context.add(key, unwrap(value), accum)
     );
 
-let resolve = a => Result.wrap(eval(a));
+let resolve = a => eval(a)->wrap;
 let resolveWithContext = (jsContext, a) =>
-  Result.wrap(eval(~context=_convertContext(jsContext), a));
+  eval(~context=_convertContext(jsContext), a)->wrap;
 
 let ofComplexFloats = (re, im) =>
   ofT(SciLineValue.ofNumber(Complex.ofFloats(re, im)));
 
 let toFloat = a =>
-  switch (SciLineValue.toNumber(Result.unwrap(a))) {
+  switch (unwrap(a)->SciLineValue.toNumber) {
   | Some(comp) => Complex.toFloat(comp)
   | None => nan
   };
 
 let toComplexFloats = a =>
-  switch (SciLineValue.toNumber(Result.unwrap(a))) {
+  switch (unwrap(a)->SciLineValue.toNumber) {
   | Some(comp) => Complex.toFloats(comp)
   | None => (nan, nan)
   };
 
 let _mapMatrix = (fn, a) =>
-  switch (SciLineValue.toMatrix(Result.unwrap(a))) {
+  switch (unwrap(a)->SciLineValue.toMatrix) {
   | Some(mat) =>
     NumberMatrix.toMatrix(mat)
     ->Belt.Array.map(row => Belt.Array.map(row, fn))
@@ -54,11 +56,11 @@ let _mapMatrix = (fn, a) =>
 let toFloatsMatrix = _mapMatrix(Complex.toFloat);
 let toComplexFloatsMatrix = _mapMatrix(Complex.toFloats);
 
-let isNan = a => SciLineValue.isNan(Result.unwrap(a));
+let isNan = a => SciLineValue.isNan(unwrap(a));
 
-let _f = a => SciLineValue.toNumber(Result.unwrap(a));
-let _t = a => Result.wrap(SciLineValue.ofScalar(a));
-let _nan = Result.wrap(SciLineValue.nan);
+let _f = a => unwrap(a)->SciLineValue.toNumber;
+let _t = a => SciLineValue.ofScalar(a)->wrap;
+let _nan = SciLineValue.nan->wrap;
 let solveQuadratic = (a, b, c) =>
   switch (_f(a), _f(b), _f(c)) {
   | (Some(a), Some(b), Some(c)) =>
@@ -152,7 +154,7 @@ let _format_with_mode = (mode, x, maybeFormat) => {
       decimalMaxMagnitudeGet(f)
       ->Belt.Option.getWithDefault(OutputFormat.default.decimalMaxMagnitude),
   };
-  SciLineValue.toString(~format, Result.unwrap(x));
+  SciLineValue.toString(~format, unwrap(x));
 };
 
 let toString = (x, maybeFormat) => {
@@ -187,7 +189,7 @@ let toString = (x, maybeFormat) => {
       ->Belt.Option.getWithDefault(OutputFormat.default.decimalMaxMagnitude),
   };
 
-  let body = SciLineValue.toString(~format, Result.unwrap(x));
+  let body = SciLineValue.toString(~format, unwrap(x));
 
   switch (mode) {
   | String
@@ -202,5 +204,7 @@ let toString = (x, maybeFormat) => {
   };
 };
 
-let encode = x => Result.unwrap(x)->SciLineValue.encode;
-let decode = x => SciLineValue.decode(x)->Result.wrap;
+let encode = x => unwrap(x)->SciLineValue.encode;
+let decode = x => SciLineValue.decode(x)->wrap;
+
+let ofResult = x => unwrap(x)->SciLineValue.encode->SciLineAst.ofEncoded;

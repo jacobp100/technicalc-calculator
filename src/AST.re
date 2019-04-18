@@ -7,6 +7,7 @@ module Make = (V: Types.BaseValue) => {
 
   type t =
     | Value(V.t)
+    | Encoded(V.encoding)
     | Matrix(int, int, array(t))
     | Variable(string)
     | Add(t, t)
@@ -42,6 +43,7 @@ module Make = (V: Types.BaseValue) => {
   let ofFloat = a => Value(V.ofFloat(a));
   let ofString = a => Value(V.ofString(a));
   let ofStringBase = (base, a) => Value(V.ofStringBase(base, a));
+  let ofEncoded = a => Encoded(a);
   let ofT = a => Value(a);
   let matrixOfElements = (rows, columns, elements) =>
     Matrix(rows, columns, elements);
@@ -76,6 +78,7 @@ module Make = (V: Types.BaseValue) => {
   let rec eval = (~context=Context.empty, node: t): V.t =>
     switch (node) {
     | Value(a) => a
+    | Encoded(a) => V.decode(a)
     | Matrix(rows, columns, elements) =>
       elements
       ->Belt.Array.map(eval(~context))
