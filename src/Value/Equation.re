@@ -1,4 +1,5 @@
-open Complex;
+open Types;
+open Value;
 
 let (==) = equal;
 let (+) = add;
@@ -30,8 +31,10 @@ let var2 = (x0, y0, c0, x1, y1, c1) => {
 };
 
 let var3 = (x0, y0, z0, c0, x1, y1, z1, c1, x2, y2, z2, c2) => {
-  // https://www.wolframalpha.com/input/?i=inverse(%7B%7Ba,b,c%7D,%7Bd,e,f%7D,%7Bg,h,i%7D%7D)+*+%7B%7Bj%7D,%7Bk%7D,%7Bl%7D%7D
-  // Literally the worst formatting
+  /*
+   https://www.wolframalpha.com/input/?i=inverse(%7B%7Ba,b,c%7D,%7Bd,e,f%7D,%7Bg,h,i%7D%7D)+*+%7B%7Bj%7D,%7Bk%7D,%7Bl%7D%7D
+   Literally the worst formatting
+   */
   let denom =
     - z0
     * y1
@@ -92,23 +95,26 @@ let _cubicRaphson = (a, b, c, d) => {
    the cubic
    */
   let (m0, m1) = quadratic(_3 * a, _2 * b, c);
-  switch (toFloats(m0), toFloats(m1)) {
-  | ((m0, 0.), (m1, 0.)) =>
-    let midpoint = (m0 +. m1) /. 2.;
-    let range = abs_float(m0 -. m1);
-    let values = [midpoint, midpoint -. range, midpoint +. range];
+  let m0 = toFloat(m0);
+  let m1 = toFloat(m1);
 
-    let af = toFloat(a);
-    let bf = toFloat(b);
-    let cf = toFloat(c);
-    let df = toFloat(d);
+  let midpoint = (m0 +. m1) /. 2.;
+  let range = abs_float(m0 -. m1);
+  let values = [midpoint, midpoint -. range, midpoint +. range];
 
-    values->Belt.List.reduce(None, (current, value) =>
+  let af = toFloat(a);
+  let bf = toFloat(b);
+  let cf = toFloat(c);
+  let df = toFloat(d);
+
+  values
+  ->Belt.List.reduce(None, (current, value) =>
       switch (current) {
       | None =>
-        let x0 = Raphson.cubic(af, bf, cf, df, value)->roundToPrecision;
+        let x0f = Raphson.cubic(af, bf, cf, df, value);
+        let x0 = roundToPrecision(x0f);
         let fx = a * x0 ** _3 + b * x0 ** _2 + c * x0 + d;
-        if (fx == zero) {
+        if (FloatUtil.isFinite(x0f) && fx == zero) {
           let (x1, x2) = quadratic(a, a * x0 + b, a * x0 ** _2 + b * x0 + c);
           Some((x0, x1, x2));
         } else {
@@ -117,8 +123,6 @@ let _cubicRaphson = (a, b, c, d) => {
       | v => v
       }
     );
-  | _ => None
-  };
 };
 
 let _cubicNumeric = (a, b, c, d) => {
@@ -139,7 +143,7 @@ let _cubicNumeric = (a, b, c, d) => {
   } else {
     let c0 =
       ((q + _2 * b ** _3 - _9 * a * b * c + _27 * a ** _2 * d) / _2)
-      ** ofReal(Real.ofInt(1, ~denominator=3));
+      ** real(Q.of_ints(1, 3));
     let x1 =
       - b / (_3 * a) - c0 / (_3 * a) - (b ** _2 - _3 * a * c) / (_3 * a * c0);
     let x2 =

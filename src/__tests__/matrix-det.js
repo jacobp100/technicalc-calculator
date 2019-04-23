@@ -18,14 +18,3 @@ matrix3x3.forEach(v => {
     expect(SciLine.abs(v.sciLineValue)).toMatchJsValue(mathJsValue);
   });
 });
-
-describe("Type checking", () => {
-  it("Cannot add incompatible sizes", () => {
-    const value = SciLine.resolve(
-      SciLine.abs(
-        SciLine.matrixOfElements(3, 2, [3, 7, 8, 8, 6, 6].map(SciLine.ofFloat))
-      )
-    );
-    expect(SciLine.toString(value)).toBe("NaN");
-  });
-});

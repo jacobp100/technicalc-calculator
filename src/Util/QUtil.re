@@ -1,11 +1,34 @@
-let expInts = (base, a) =>
+/* Accurate to 50dp */
+let e = Q.of_string("47044938235620704501191752/17306865588065164490357443");
+let pi = Q.of_string("23294267674065827396789607/7414795692066647773964845");
+
+let pow = (base, a) =>
   if (a == 0) {
-    Q.one;
+    Q.(base != zero) ? Q.one : Q.undef;
+  } else if (a > 0) {
+    Q.make(Q.num(base)->Z.pow(a), Q.den(base)->Z.pow(a));
+  } else {
+    let a = abs(a);
+    Q.make(Q.den(base)->Z.pow(a), Q.num(base)->Z.pow(a));
+  };
+
+let powInt = (base, a) =>
+  if (a == 0) {
+    base != 0 ? Q.one : Q.undef;
   } else if (a > 0) {
     Q.of_bigint(Z.pow(Z.of_int(base), a));
   } else {
     Q.of_bigint(Z.pow(Z.of_int(base), abs(a)))->Q.inv;
   };
+
+let sqrtZ = a => {
+  let factor_mag = Z.log2(a) / 2 * 2;
+  let factor = Z.pow(Z.of_int(2), factor_mag);
+  let float_safe_base = Q.make(a, factor);
+  let float_sqrt = float_safe_base->Q.to_float->sqrt->Q.of_float;
+  let factor_sqrt = powInt(2, factor_mag / 2);
+  Q.mul(float_sqrt, factor_sqrt);
+};
 
 let magnitude = x =>
   if (Q.equal(x, Q.zero)) {
@@ -28,7 +51,7 @@ let magnitude = x =>
 
     while (upperBound^ - lowerBound^ > 1) {
       let mid = (lowerBound^ + upperBound^) / 2;
-      if (Q.geq(absX, expInts(base, mid))) {
+      if (Q.geq(absX, powInt(base, mid))) {
         lowerBound := mid;
       } else {
         upperBound := mid;
@@ -52,7 +75,7 @@ let safeMod = (a, b) => {
   Q.make(numerator, denominator);
 };
 
-let isInt = a => Z.equal(Q.den(a), Z.one);
+let isInt = a => Z.(Q.den(a) == one);
 
 let floor = a =>
   if (isInt(a)) {

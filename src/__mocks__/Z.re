@@ -62,3 +62,16 @@ let log2up = x =>
   } else {
     invalid_arg("Z.log2up");
   };
+
+let (!=) = (a, b) => !equal(a, b);
+let (==) = equal;
+let (+) = add;
+let (-) = sub;
+let ( * ) = mul;
+let (/) = div;
+/* let (mod) = rem; */
+let (~-) = neg;
+let (<) = lt;
+let (<=) = leq;
+let (>) = gt;
+let (>=) = geq;

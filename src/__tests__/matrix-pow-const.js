@@ -24,7 +24,7 @@ describe("Pow -1", () => {
     const out = SciLine.toString(
       SciLine.resolve(
         SciLine.pow(
-          SciLine.matrixOfElements(2, 2, [3, 7, 8, 9].map(SciLine.ofFloat)),
+          SciLine.matrix2(...[3, 7, 8, 9].map(SciLine.ofFloat)),
           SciLine.ofFloat(-1)
         )
       )
@@ -36,11 +36,7 @@ describe("Pow -1", () => {
     const out = SciLine.toString(
       SciLine.resolve(
         SciLine.pow(
-          SciLine.matrixOfElements(
-            3,
-            3,
-            [3, 7, 8, 9, 1, 3, 9, 5, 8].map(SciLine.ofFloat)
-          ),
+          SciLine.matrix3(...[3, 7, 8, 9, 1, 3, 9, 5, 8].map(SciLine.ofFloat)),
           SciLine.ofFloat(-1)
         )
       )

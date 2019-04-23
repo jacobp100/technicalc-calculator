@@ -2,6 +2,7 @@ const cartesian = require("cartesian");
 const { range } = require("lodash");
 const mathjs = require("mathjs");
 const SciLine = require("../SciLine.bs");
+const SciLineTest = require("../SciLineTest.bs");
 
 module.exports.Value = class Value {
   constructor(jsValue, sciLineValue, title = String(jsValue)) {
@@ -17,7 +18,7 @@ module.exports.Value = class Value {
   static complex(re, im, title = `${re}+${im}i`) {
     return new Value(
       mathjs.complex(re, im),
-      SciLine.ofComplexFloats(re, im),
+      SciLineTest.ofComplexFloats(re, im),
       title
     );
   }
@@ -84,7 +85,7 @@ const asComplex = a => {
 module.exports.toMatchJsValue = (received, expected) => {
   const resolved = SciLine.resolve(received);
 
-  const [actualRe, actualIm] = SciLine.toComplexFloats(resolved);
+  const [actualRe, actualIm] = SciLineTest.toComplexFloats(resolved);
   const [expectedRe, expectedIm] = asComplex(expected);
 
   const pass =
@@ -102,7 +103,7 @@ module.exports.toMatchJsValue = (received, expected) => {
 module.exports.toMatchJsMatrix = (received, expected) => {
   const resolved = SciLine.resolve(received);
 
-  const sciLineElements = SciLine.toComplexFloatsMatrix(resolved);
+  const sciLineElements = SciLineTest.toComplexFloatsMatrix(resolved);
 
   let allPass = true;
   expected.forEach((mathJsElement, [row, column]) => {

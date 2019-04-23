@@ -27,12 +27,12 @@ it("Formats strings", () => {
   expect(format(minusOne)).toBe("-1");
   expect(format(half)).toBe("1/2");
   expect(format(minusHalf)).toBe("-1/2");
-  expect(format(mul(one, i))).toBe("i");
+  expect(format(i)).toBe("i");
   expect(format(mul(minusOne, i))).toBe("-i");
   expect(format(mul(half, i))).toBe("1/2i");
   expect(format(mul(minusHalf, i))).toBe("-1/2i");
-  expect(format(add(one, mul(one, i)))).toBe("1+i");
-  expect(format(add(minusOne, mul(one, i)))).toBe("-1+i");
+  expect(format(add(one, i))).toBe("1+i");
+  expect(format(add(minusOne, i))).toBe("-1+i");
   expect(format(add(one, mul(minusOne, i)))).toBe("1-i");
   expect(format(add(minusOne, mul(minusOne, i)))).toBe("-1-i");
   expect(format(mul(one, pi))).toBe("pi");
@@ -50,8 +50,8 @@ it("Formats Tex", () => {
   expect(format(minusOne, "tex")).toBe("-1");
   expect(format(half, "tex")).toBe("\\frac{1}{2}");
   expect(format(minusHalf, "tex")).toBe("-\\frac{1}{2}");
-  expect(format(add(one, mul(one, i)), "tex")).toBe("1+i");
-  expect(format(add(minusOne, mul(one, i)), "tex")).toBe("-1+i");
+  expect(format(add(one, i), "tex")).toBe("1+i");
+  expect(format(add(minusOne, i), "tex")).toBe("-1+i");
   expect(format(add(one, mul(minusOne, i)), "tex")).toBe("1-i");
   expect(format(add(minusOne, mul(minusOne, i)), "tex")).toBe("-1-i");
   expect(format(mul(one, pi), "tex")).toBe("\\pi");
@@ -75,10 +75,10 @@ it("Formats mathml", () => {
   expect(format(minusHalf, "mathml")).toBe(
     math("<mo>-</mo><mfrac><mn>1</mn><mn>2</mn></mfrac>")
   );
-  expect(format(add(one, mul(one, i)), "mathml")).toBe(
+  expect(format(add(one, i), "mathml")).toBe(
     math("<mn>1</mn><mo>+</mo><mi>i</mi>")
   );
-  expect(format(add(minusOne, mul(one, i)), "mathml")).toBe(
+  expect(format(add(minusOne, i), "mathml")).toBe(
     math("<mo>-</mo><mn>1</mn><mo>+</mo><mi>i</mi>")
   );
   expect(format(add(one, mul(minusOne, i)), "mathml")).toBe(

@@ -1,0 +1,156 @@
+open Types;
+
+let maxNaturalDenom = Z.of_int(1_000_000);
+let maxNaturalQ = Q.of_int(100_000_000);
+
+let formatTuple = (q: Q.t, c: Constant.t, format: OutputFormat.format): string => {
+  let base = format.base;
+
+  let formatNumber = x =>
+    switch (format.mode) {
+    | String
+    | Tex => x
+    | MathML => "<mn>" ++ x ++ "</mn>"
+    };
+  let formatExponential = ((base, exponent)) =>
+    switch (format.mode) {
+    | String => base ++ "e" ++ exponent
+    | Tex => base ++ "*10^{" ++ exponent ++ "}"
+    | MathML =>
+      formatNumber(base)
+      ++ "<mo>&times;</mo><msup><mn>10</mn>"
+      ++ formatNumber(exponent)
+      ++ "</msup>"
+    };
+
+  switch (format.style) {
+  | Natural when Z.(Q.den(q) < maxNaturalDenom) && Q.(abs(q) < maxNaturalQ) =>
+    let (num, den) = (Q.num(q), Q.den(q));
+    let formatting = NumberFormat.createFormat(~digitSeparators=true, ());
+    let minus =
+      switch (format.mode, Q.(q < zero)) {
+      | (String | Tex, true) => "-"
+      | (MathML, true) => "<mo>-</mo>"
+      | (_, false) => ""
+      };
+    let (top, needsWrap) =
+      switch (
+        NumberFormat.formatInteger(~base, formatting, Z.abs(num)),
+        Constant.toString(~format, c),
+      ) {
+      | ("1", "") => (formatNumber("1"), false)
+      | ("1", constant) => (constant, false)
+      | (numerator, constant) => (formatNumber(numerator) ++ constant, true)
+      };
+
+    switch (format.mode, NumberFormat.formatInteger(~base, formatting, den)) {
+    | (_, "1") => minus ++ top
+    | (String, bottom) => minus ++ top ++ "/" ++ bottom
+    | (Tex, bottom) => minus ++ "\\frac{" ++ top ++ "}{" ++ bottom ++ "}"
+    | (MathML, denominator) =>
+      let top = needsWrap ? "<mrow>" ++ top ++ "</mrow>" : top;
+      let bottom = formatNumber(denominator);
+      minus ++ "<mfrac>" ++ top ++ bottom ++ "</mfrac>";
+    };
+  | Natural
+  | Decimal =>
+    let q = QCUtil.toQ(q, c);
+    let floatVal = Q.to_float(q);
+    let valueMagnitude = floor(log10(abs_float(floatVal)));
+    let insideMagnitudeThreshold =
+      valueMagnitude >= format.decimalMinMagnitude
+      && valueMagnitude <= format.decimalMaxMagnitude;
+
+    if (insideMagnitudeThreshold) {
+      NumberFormat.formatDecimal(
+        ~base,
+        NumberFormat.createFormat(
+          ~maxDecimalPlaces=format.precision,
+          ~digitSeparators=valueMagnitude >= 5.,
+          (),
+        ),
+        q,
+      )
+      ->formatNumber;
+    } else {
+      NumberFormat.formatExponential(
+        ~base,
+        ~exponent=QUtil.magnitude(q),
+        NumberFormat.createFormat(~maxDecimalPlaces=format.precision, ()),
+        q,
+      )
+      ->formatExponential;
+    };
+  | Scientific =>
+    /* Round to multiple of 3 */
+    let q = QCUtil.toQ(q, c);
+    let exponent =
+      Pervasives.( * )(Pervasives.(/)(QUtil.magnitude(q), 3), 3);
+    let formatting =
+      NumberFormat.createFormat(
+        ~minDecimalPlaces=format.precision,
+        ~maxDecimalPlaces=format.precision,
+        (),
+      );
+    NumberFormat.formatExponential(~base, ~exponent, formatting, q)
+    ->formatExponential;
+  };
+};
+
+let formatImagTuple =
+    (q: Q.t, c: Constant.t, format: OutputFormat.format): string => {
+  let i = format.mode == MathML ? "<mi>i</mi>" : "i";
+  switch (format.style, q, c) {
+  | (Natural | Decimal, isOne, Unit) when Q.(isOne == one) => i
+  | (Natural | Decimal, isMinusOne, Unit) when Q.(isMinusOne == minus_one) =>
+    let op = format.mode == MathML ? "<mo>-</mo>" : "-";
+    op ++ i;
+  | (_, q, c) => formatTuple(q, c, format) ++ "i"
+  };
+};
+
+let formatScalar = (a: scalar, format: OutputFormat.format): string =>
+  switch (a) {
+  | `Zero => "0"
+  | `Real(q, c) => formatTuple(q, c, format)
+  | `Imag(q, c) => formatImagTuple(q, c, format)
+  | `Complex(reQ, reC, imQ, imC) =>
+    let op = Q.(imQ < zero) ? "-" : "+";
+    let op = format.mode == MathML ? "<mo>" ++ op ++ "</mo>" : op;
+    formatTuple(reQ, reC, format)
+    ++ op
+    ++ formatImagTuple(Q.abs(imQ), imC, format);
+  };
+
+let formatMatrix = (a, format: OutputFormat.format): string => {
+  open MatrixFormat;
+  let fmt =
+    switch (format.mode) {
+    | String => matrixFormatString
+    | Tex => matrixFormatTex
+    | MathML => matrixFormatMathML
+    };
+
+  switch (a->MatrixTypes.mapAny(s => formatScalar(s, format))) {
+  | `Vector2(a, b) => rows2(row1(a, fmt), row1(b, fmt), fmt)
+  | `Vector3(a, b, c) =>
+    rows3(row1(a, fmt), row1(b, fmt), row1(c, fmt), fmt)
+  | `Matrix2(a, b, c, d) => rows2(row2(a, b, fmt), row2(c, d, fmt), fmt)
+  | `Matrix3(a, b, c, d, e, f, g, h, i) =>
+    rows3(row3(a, b, c, fmt), row3(d, e, f, fmt), row3(g, h, i, fmt), fmt)
+  };
+};
+
+let toString = (~format=OutputFormat.default, a: value): string =>
+  switch (a) {
+  | (`Zero | `Real(_) | `Imag(_) | `Complex(_)) as aV =>
+    formatScalar(aV, format)
+  | (`Vector2(_) | `Vector3(_) | `Matrix2(_) | `Matrix3(_)) as aM =>
+    formatMatrix(aM, format)
+  | `NaN =>
+    switch (format.mode) {
+    | String
+    | Tex => "NaN"
+    | MathML => "<mi>NaN</mi>"
+    }
+  };

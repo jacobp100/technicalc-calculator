@@ -5,6 +5,15 @@ let atanh = f => log((1.0 +. f) /. (1.0 -. f)) /. 2.0;
 
 let isInt = f => floor(f) == f;
 
+let isFinite = f =>
+  switch (classify_float(f)) {
+  | FP_zero
+  | FP_normal
+  | FP_subnormal => true
+  | FP_infinite => false
+  | FP_nan => false
+  };
+
 let bounds = (~lower=?, ~upper=?, f) => {
   let lowerCompare =
     switch (lower) {

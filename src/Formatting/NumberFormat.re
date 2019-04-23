@@ -113,7 +113,7 @@ let formatExponential = (~base=10, ~exponent=?, formatting, num) => {
     formatDecimal(
       ~base,
       formatting,
-      Q.div(num, QUtil.expInts(10, exponent)),
+      Q.div(num, QUtil.powInt(10, exponent)),
     );
   let exponentPart = string_of_int(exponent);
   (decimalPart, exponentPart);
