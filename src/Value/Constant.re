@@ -45,7 +45,7 @@ let simplifySqrt = ac =>
     };
 
     let constant = Z.equal(sqrt_arg^, Z.one) ? Unit : Sqrt(sqrt_arg^);
-    Z.(multiplier^ == one) ?
+    Z.(multiplier^ != one) ?
       `Factor((Q.of_bigint(multiplier^), constant)) : `None;
   };
 

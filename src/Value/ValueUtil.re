@@ -28,7 +28,7 @@ let realBounds = (~lower=?, ~upper=?, x: value) =>
   switch (x) {
   | `Zero => FloatUtil.bounds(~lower?, ~upper?, 0.)
   | `Real(q, c) => FloatUtil.bounds(~lower?, ~upper?, QCUtil.toFloat(q, c))
-  | `Imag(imQ, imC) => `Complex((Q.zero, Constant.Unit, imQ, imC))
+  | `Imag(imQ, imC) => `Imag((imQ, imC))
   | `Complex(reQ, reC, imQ, imC) => `Complex((reQ, reC, imQ, imC))
   | _ => `NaN
   };

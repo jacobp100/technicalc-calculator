@@ -5,7 +5,7 @@
 
 let sinReal = (q, c) =>
   switch (TrigUtil.compareTrig(q, c)) {
-  | (0, 1, `Unit)
+  | (0, 1, _)
   | (1 | 2, 1, `Pi) => (Q.zero, Constant.Unit)
   | (1, 2, `Pi) => (Q.one, Unit)
   | (3, 2, `Pi) => (Q.minus_one, Unit)
@@ -20,7 +20,7 @@ let sinReal = (q, c) =>
 
 let cosReal = (q, c) =>
   switch (TrigUtil.compareTrig(q, c)) {
-  | (0, 1, `Unit) => (Q.one, Constant.Unit)
+  | (0, 1, _) => (Q.one, Constant.Unit)
   | (2, 1, `Pi) => (Q.one, Unit)
   | (1, 1, `Pi) => (Q.minus_one, Unit)
   | (1 | 3, 2, `Pi) => (Q.zero, Unit)

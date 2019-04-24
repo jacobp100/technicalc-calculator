@@ -32,7 +32,7 @@ let divTuple = (aQ, aC, bQ, bC) =>
   | _ => (Q.(QCUtil.toQ(aQ, aC) / QCUtil.toQ(bQ, bC)), Unit)
   };
 
-let magnitudeTuple = (reQ, reC, imQ, imC) => {
+let magnitudeSquaredTuple = (reQ, reC, imQ, imC) => {
   let (reQ, reC) = mulTuple(reQ, reC, reQ, reC);
   let (imQ, imC) = mulTuple(imQ, imC, imQ, imC);
   addTuple(reQ, reC, imQ, imC);
@@ -95,7 +95,7 @@ let mulScalar = (a: scalar, b: scalar): scalar =>
   | (`Imag(aImQ, aImC), `Imag(bImQ, bImC)) =>
     /* CHECK */
     let (reQ, reC) = mulTuple(aImQ, aImC, bImQ, bImC);
-    `Real((reQ, reC));
+    `Real((Q.neg(reQ), reC));
   | (`Real(reQ, reC), `Imag(imQ, imC))
   | (`Imag(imQ, imC), `Real(reQ, reC)) =>
     let (imQ, imC) = mulTuple(reQ, reC, imQ, imC);
@@ -105,12 +105,11 @@ let mulScalar = (a: scalar, b: scalar): scalar =>
     let (reQ, reC) = mulTuple(aReQ, aReC, bReQ, bReC);
     let (imQ, imC) = mulTuple(aReQ, aReC, imQ, imC);
     `Complex((reQ, reC, imQ, imC));
-  | (`Imag(imQ, imC), `Complex(bReQ, bReC, bImQ, bImC))
-  | (`Complex(bReQ, bReC, bImQ, bImC), `Imag(imQ, imC)) =>
-    /* CHECK */
-    let (reQ, reC) = mulTuple(imQ, imC, bReQ, bReC);
-    let (imQ, imC) = mulTuple(imQ, imC, bImQ, bImC);
-    `Complex((reQ, reC, imQ, imC));
+  | (`Imag(aImQ, aImC), `Complex(bReQ, bReC, bImQ, bImC))
+  | (`Complex(bReQ, bReC, bImQ, bImC), `Imag(aImQ, aImC)) =>
+    let (reQ, reC) = mulTuple(aImQ, aImC, bImQ, bImC);
+    let (imQ, imC) = mulTuple(aImQ, aImC, bReQ, bReC);
+    `Complex((Q.neg(reQ), reC, imQ, imC));
   | (`Complex(aReQ, aReC, aImQ, aImC), `Complex(bReQ, bReC, bImQ, bImC)) =>
     let (reReQ, reReC) = mulTuple(aReQ, aReC, bReQ, bReC);
     let (imImQ, imImC) = mulTuple(aImQ, aImC, bImQ, bImC);
@@ -146,21 +145,21 @@ let divScalar = (a: scalar, b: scalar): scalar =>
     let (imQ, imC) = divTuple(Q.neg(aReQ), aReC, bImQ, bImC);
     `Complex((reQ, reC, imQ, imC));
   | (`Real(aReQ, aReC), `Complex(bReQ, bReC, bImQ, bImC)) =>
-    let (sQ, sC) = magnitudeTuple(bReQ, bReC, bImQ, bImC);
+    let (sQ, sC) = magnitudeSquaredTuple(bReQ, bReC, bImQ, bImC);
     let (reQ, reC) = mulTuple(aReQ, aReC, bReQ, bReC);
     let (reQ, reC) = divTuple(reQ, reC, sQ, sC);
     let (imQ, imC) = mulTuple(Q.neg(aReQ), aReC, bImQ, bImC);
     let (imQ, imC) = divTuple(imQ, imC, sQ, sC);
     `Complex((reQ, reC, imQ, imC));
   | (`Imag(aImQ, aImC), `Complex(bReQ, bReC, bImQ, bImC)) =>
-    let (sQ, sC) = magnitudeTuple(bReQ, bReC, bImQ, bImC);
+    let (sQ, sC) = magnitudeSquaredTuple(bReQ, bReC, bImQ, bImC);
     let (reQ, reC) = mulTuple(aImQ, aImC, bImQ, bImC);
     let (reQ, reC) = divTuple(reQ, reC, sQ, sC);
-    let (imQ, imC) = mulTuple(aImQ, aImC, bImQ, bReC);
+    let (imQ, imC) = mulTuple(aImQ, aImC, bReQ, bReC);
     let (imQ, imC) = divTuple(imQ, imC, sQ, sC);
     `Complex((reQ, reC, imQ, imC));
   | (`Complex(_), `Complex(bReQ, bReC, bImQ, bImC)) =>
-    let (sQ, sC) = magnitudeTuple(bReQ, bReC, bImQ, bImC);
+    let (sQ, sC) = magnitudeSquaredTuple(bReQ, bReC, bImQ, bImC);
     let (bRecipReQ, bRecipReC) = divTuple(bReQ, bReC, sQ, sC);
     let (bRecipImQ, bImcipImC) = divTuple(Q.neg(bImQ), bImC, sQ, sC);
     let bRecip = `Complex((bRecipReQ, bRecipReC, bRecipImQ, bImcipImC));

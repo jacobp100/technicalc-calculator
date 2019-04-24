@@ -1,6 +1,6 @@
 const BN = require("bn.js");
 const rat = require("big-rat");
-const NumberFormat = require("../NumberFormat.bs");
+const NumberFormat = require("../Formatting/NumberFormat.bs");
 
 it("should format exponentials without a custom exponent format", () => {
   const format = NumberFormat.createFormat();

@@ -29,6 +29,7 @@ let tanh = Trig.tanh;
 let asinh = Trig.asinh;
 let acosh = Trig.acosh;
 let atanh = Trig.atanh;
+let gamma = Factorial.gamma;
 let factorial = Factorial.factorial;
 let toString = ToString.toString;
 let encode = Encoding.encode;

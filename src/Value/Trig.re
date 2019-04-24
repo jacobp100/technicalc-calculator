@@ -1,17 +1,15 @@
 open Types;
 
-let sin = (a: value): value =>
-  switch (a) {
+let sin = (x: value): value =>
+  switch (x) {
   | `Zero => zero
   | `Real(reQ, reC) =>
     let (q, c) = TrigTuples.sinReal(reQ, reC);
-    `Real((q, c));
+    realQC(q, c);
   | `Imag(_)
   | `Complex(_) =>
-    let iA = BasicMath.(a * i);
-    BasicMath.(
-      (Exp.exp(- iA) - Exp.exp(iA)) * `Imag((Q.of_ints(1, 2), Unit))
-    );
+    let iX = BasicMath.(x * i);
+    BasicMath.(i * (Exp.exp(- iX) - Exp.exp(iX)) / ofInt(2));
   | `Vector2(_)
   | `Vector3(_)
   | `Matrix2(_)
@@ -19,18 +17,25 @@ let sin = (a: value): value =>
   | `NaN => `NaN
   };
 
-let cos = (a: value): value =>
-  switch (a) {
+let sinh = (x: value): value =>
+  switch (x) {
+  | `Zero => zero
+  | `Real(q, c) => QCUtil.toFloat(q, c)->sinh->ofFloat
+  | `Imag(q, c) => BasicMath.(i * realQC(q, c)->sin)
+  | `Complex(_) => BasicMath.((Exp.exp(x) - Exp.exp(- x)) / ofInt(2))
+  | _ => `NaN
+  };
+
+let cos = (x: value): value =>
+  switch (x) {
   | `Zero => one
   | `Real(reQ, reC) =>
     let (q, c) = TrigTuples.cosReal(reQ, reC);
-    `Real((q, c));
+    realQC(q, c);
   | `Imag(_)
   | `Complex(_) =>
-    let iA = BasicMath.(a * i);
-    BasicMath.(
-      (Exp.exp(iA) + Exp.exp(- iA)) * `Real((Q.of_ints(1, 2), Unit))
-    );
+    let iX = BasicMath.(x * i);
+    BasicMath.((Exp.exp(iX) + Exp.exp(- iX)) / ofInt(2));
   | `Vector2(_)
   | `Vector3(_)
   | `Matrix2(_)
@@ -38,10 +43,19 @@ let cos = (a: value): value =>
   | `NaN => `NaN
   };
 
-let tan = (a: value): value =>
-  switch (TrigUtil.compareTrigReal(a)) {
+let cosh = (x: value): value =>
+  switch (x) {
+  | `Zero => one
+  | `Real(q, c) => QCUtil.toFloat(q, c)->cosh->ofFloat
+  | `Imag(q, c) => realQC(q, c)->cos
+  | `Complex(_) => BasicMath.((Exp.exp(x) + Exp.exp(- x)) / ofInt(2))
+  | _ => `NaN
+  };
+
+let tan = (x: value): value =>
+  switch (TrigUtil.compareTrigReal(x)) {
   | `Zero
-  | `Real(0 | 1 | 2, 1, `Pi) => zero
+  | `Real(1 | 2, 1, `Pi) => zero
   | `Real(1 | 5, 4, `Pi) => one
   | `Real(3 | 7, 4, `Pi) => minusOne
   | `Real(1 | 4, 3, `Pi) => realQC(Q.of_int(1), Sqrt(Z.of_int(3)))
@@ -49,14 +63,27 @@ let tan = (a: value): value =>
   | `Real(1 | 7, 6, `Pi) => realQC(Q.of_ints(1, 3), Sqrt(Z.of_int(3)))
   | `Real(5 | 11, 6, `Pi) => realQC(Q.of_ints(-1, 3), Sqrt(Z.of_int(3)))
   | `Real(1 | 3, 2, `Pi) => `NaN
-  | `Real(_) => ValueUtil.mapRealFloat(a, tan)
+  | `Real(_) => ValueUtil.mapRealFloat(x, tan)
+  | `Imag(_)
   | `Complex(_) =>
-    let iA = BasicMath.(a * i);
-    let x = Exp.exp(iA);
-    let y = Exp.exp(iA->BasicMath.neg);
-    BasicMath.((x - y) / ((x + y) * i));
+    let iX = BasicMath.(x * i);
+    let a = Exp.exp(iX);
+    let b = Exp.exp(iX->BasicMath.neg);
+    BasicMath.((a - b) / ((a + b) * i));
   | `Matrix
   | `NaN => `NaN
+  };
+
+let tanh = (x: value): value =>
+  switch (x) {
+  | `Zero => zero
+  | `Real(q, c) => QCUtil.toFloat(q, c)->tanh->ofFloat
+  | `Imag(q, c) => BasicMath.(i * realQC(q, c)->tan)
+  | `Complex(_) =>
+    let a = Exp.exp(x);
+    let b = Exp.exp(x->BasicMath.neg);
+    BasicMath.((a - b) / (a + b));
+  | _ => `NaN
   };
 
 let asin = (a: value): value =>
@@ -65,13 +92,13 @@ let asin = (a: value): value =>
   | `Real((-1), 2, `Sqrt(3)) => realQC(Q.of_ints(-1, 3), Pi)
   | `Real((-1), 2, `Sqrt(2)) => realQC(Q.of_ints(-1, 4), Pi)
   | `Real((-1), 2, `Unit) => realQC(Q.of_ints(-1, 6), Pi)
-  | `Zero
-  | `Real(0, 1, `Unit) => `Zero
+  | `Zero => zero
   | `Real(1, 2, `Unit) => realQC(Q.of_ints(1, 6), Pi)
   | `Real(1, 2, `Sqrt(2)) => realQC(Q.of_ints(1, 4), Pi)
   | `Real(1, 2, `Sqrt(3)) => realQC(Q.of_ints(1, 3), Pi)
   | `Real(1, 1, `Unit) => realQC(Q.of_ints(1, 2), Pi)
   | `Real(_)
+  | `Imag(_)
   | `Complex(_) =>
     switch (ValueUtil.realBounds(~lower=-1., ~upper=1., a)) {
     | `BothBound
@@ -79,27 +106,37 @@ let asin = (a: value): value =>
     | `UpperBound
     | `Inside(_) => ValueUtil.mapRealFloat(a, asin)
     | `Outside
-    | `Complex(_) => BasicMath.(- i * Exp.log(i * a + Pow.sqrt(one - a * a)))
+    | `Imag(_)
+    | `Complex(_) =>
+      BasicMath.(Exp.(Pow.(- i * log(i * a + sqrt(one - a * a)))))
     | `NaN => `NaN
     }
   | `Matrix
   | `NaN => `NaN
   };
 
+let asinh = (x: value): value =>
+  switch (x) {
+  | `Zero => zero
+  | `Real(q, c) => QCUtil.toFloat(q, c)->FloatUtil.asinh->ofFloat
+  | `Imag(q, c) => BasicMath.(i * realQC(q, c)->asin)
+  | `Complex(_) => BasicMath.(Exp.log(x + Pow.sqrt(x * x + one)))
+  | _ => `NaN
+  };
+
 let acos = (a: value): value =>
   switch (TrigUtil.compareTrigReal(a)) {
-  | `Zero
-  | `Real(0, 1, `Unit)
-  | `Real(1 | 2, 1, `Pi) => zero
-  | `Real(1, 2, `Pi) => one
-  | `Real(3, 2, `Pi) => minusOne
-  | `Real(1 | 2, 3, `Pi) => realQC(Q.of_ints(1, 2), Sqrt(Z.of_int(3)))
-  | `Real(4 | 5, 3, `Pi) => realQC(Q.of_ints(-1, 2), Sqrt(Z.of_int(3)))
-  | `Real(1 | 3, 4, `Pi) => realQC(Q.of_ints(1, 2), Sqrt(Z.of_int(2)))
-  | `Real(5 | 7, 4, `Pi) => realQC(Q.of_ints(-1, 2), Sqrt(Z.of_int(2)))
-  | `Real(1 | 5, 6, `Pi) => realQC(Q.of_ints(1, 2), Unit)
-  | `Real(7 | 11, 6, `Pi) => realQC(Q.of_ints(-1, 2), Unit)
+  | `Real((-1), 1, `None) => realQC(Q.of_int(1), Pi)
+  | `Real((-1), 2, `Sqrt(3)) => realQC(Q.of_ints(5, 6), Pi)
+  | `Real((-1), 2, `Sqrt(2)) => realQC(Q.of_ints(3, 4), Pi)
+  | `Real((-1), 2, `None) => realQC(Q.of_ints(2, 3), Pi)
+  | `Zero => realQC(Q.of_ints(1, 2), Pi)
+  | `Real(1, 2, `None) => realQC(Q.of_ints(1, 3), Pi)
+  | `Real(1, 2, `Sqrt(2)) => realQC(Q.of_ints(1, 4), Pi)
+  | `Real(1, 2, `Sqrt(3)) => realQC(Q.of_ints(1, 6), Pi)
+  | `Real(1, 1, `None) => zero
   | `Real(_)
+  | `Imag(_)
   | `Complex(_) =>
     switch (ValueUtil.realBounds(~lower=-1., ~upper=1., a)) {
     | `BothBound
@@ -107,10 +144,32 @@ let acos = (a: value): value =>
     | `UpperBound
     | `Inside(_) => ValueUtil.mapRealFloat(a, acos)
     | `Outside
-    | `Complex(_) => BasicMath.(`Real((Q.of_ints(1, 2), Pi)) - asin(a))
+    | `Imag(_)
+    | `Complex(_) => BasicMath.(realQC(Q.of_ints(1, 2), Pi) - asin(a))
     | `NaN => `NaN
     }
   | `Matrix
+  | `NaN => `NaN
+  };
+
+let acosh = (x: value): value =>
+  switch (ValueUtil.realBounds(~lower=1.0, x)) {
+  | `Inside(f) => FloatUtil.acosh(f)->ofFloat
+  | `LowerBound => zero
+  | `BothBound
+  | `UpperBound
+  | `Outside
+  /* acosh ix != i cosh x */
+  | `Imag(_)
+  | `Complex(_) =>
+    /* From complex.js library */
+    let res = acos(x);
+    let (_, imf) = ValueUtil.toFloats(res);
+    if (imf <= 0.) {
+      BasicMath.(res * i);
+    } else {
+      BasicMath.(- res * i);
+    };
   | `NaN => `NaN
   };
 
@@ -119,13 +178,18 @@ let atan = (a: value): value =>
   | `Real((-1), 1, `Sqrt(3)) => realQC(Q.of_ints(-1, 3), Pi)
   | `Real((-1), 1, `Unit) => realQC(Q.of_ints(-1, 4), Pi)
   | `Real((-1), 3, `Sqrt(3)) => realQC(Q.of_ints(-1, 6), Pi)
-  | `Zero
-  | `Real(0, 1, `Unit) => zero
+  | `Zero => zero
   | `Real(1, 3, `Sqrt(3)) => realQC(Q.of_ints(1, 6), Pi)
   | `Real(1, 1, `Unit) => realQC(Q.of_ints(1, 4), Pi)
   | `Real(1, 1, `Sqrt(3)) => realQC(Q.of_ints(1, 3), Pi)
   | `Real(_) => ValueUtil.mapRealFloat(a, atan)
-  | `Complex(reQ, reC, imQ, imC) =>
+  | `Imag(isAbsOne, Constant.Unit) when Q.(abs(isAbsOne) == one) => `NaN
+  | (`Imag(_) | `Complex(_)) as vV =>
+    let (reQ, reC, imQ, imC) =
+      switch (vV) {
+      | `Imag(imQ, imC) => (Q.zero, Constant.Unit, imQ, imC)
+      | `Complex(reQ, reC, imQ, imC) => (reQ, reC, imQ, imC)
+      };
     let a = QCUtil.toQ(reQ, reC);
     let b = QCUtil.toQ(imQ, imC);
     let b' = Q.(one - b);
@@ -140,71 +204,16 @@ let atan = (a: value): value =>
   | `NaN => `NaN
   };
 
-let sinh = (x: value): value =>
-  switch (x) {
-  | `Zero => zero
-  | `Real(q, c) => ofFloat(QCUtil.toFloat(q, c)->sinh)
-  | `Imag(_)
-  | `Complex(_) => BasicMath.((Exp.exp(x) - Exp.exp(- x)) / ofInt(2))
-  | _ => `NaN
-  };
-
-let cosh = (x: value): value =>
-  switch (x) {
-  | `Zero => one
-  | `Real(q, c) => ofFloat(QCUtil.toFloat(q, c)->cosh)
-  | `Imag(_)
-  | `Complex(_) => BasicMath.((Exp.exp(x) + Exp.exp(- x)) / ofInt(2))
-  | _ => `NaN
-  };
-
-let tanh = (x: value): value =>
-  switch (x) {
-  | `Zero => zero
-  | `Real(q, c) => ofFloat(QCUtil.toFloat(q, c)->tanh)
-  | `Imag(_)
-  | `Complex(_) =>
-    BasicMath.((Exp.exp(x) - Exp.exp(- x)) / (Exp.exp(x) + Exp.exp(- x)))
-  | _ => `NaN
-  };
-
-let asinh = (x: value): value =>
-  switch (x) {
-  | `Zero => zero
-  | `Real(q, c) => ofFloat(QCUtil.toFloat(q, c)->FloatUtil.asinh)
-  | `Imag(_)
-  | `Complex(_) => BasicMath.(Exp.log(x + Pow.sqrt(x * x + one)))
-  | _ => `NaN
-  };
-
-let acosh = (x: value): value =>
-  switch (ValueUtil.realBounds(~lower=1.0, x)) {
-  | `Inside(f) => realQC(FloatUtil.acosh(f)->Q.of_float, Constant.Unit)
-  | `LowerBound => zero
-  | `BothBound
-  | `UpperBound
-  | `Outside
-  | `Complex(_) =>
-    /* From complex.js library */
-    let res = acos(x);
-    let (_, imf) = ValueUtil.toFloats(res);
-    if (imf <= 0.) {
-      BasicMath.(res * i);
-    } else {
-      BasicMath.(- res * i);
-    };
-  | `NaN => `NaN
-  };
-
 let atanh = (x: value): value =>
   switch (ValueUtil.realBounds(~lower=-1.0, ~upper=1.0, x)) {
-  | `Inside(f) => realQC(FloatUtil.atanh(f)->Q.of_float, Constant.Unit)
+  | `Inside(f) => FloatUtil.atanh(f)->ofFloat
   | `BothBound
   | `LowerBound
-  | `UpperBound
+  | `UpperBound => `NaN
+  | `Imag(q, c) => BasicMath.(i * realQC(q, c)->atan)
   | `Outside
   | `Complex(_) =>
-    let two = `Real((Q.of_int(2), Constant.Unit));
+    let two = real(Q.of_int(2));
     BasicMath.(Exp.log((one + x) / (one - x)) / two);
   | `NaN => `NaN
   };

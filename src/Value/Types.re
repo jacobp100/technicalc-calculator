@@ -169,6 +169,13 @@ let matrix3 = (a, b, c, d, e, f, g, h, i): value =>
 let valueOfScalar = a => a->valueOfScalar->normalize;
 let valueOfMatrix = a => a->valueOfMatrix->normalize;
 
+let toQ = (a: value): option(Q.t) =>
+  switch (a) {
+  | `Zero => Some(Q.zero)
+  | `Real(q, c) => QCUtil.toQ(q, c)->Some
+  | _ => None
+  };
+
 let toInt = (a: value): option(int) =>
   switch (a) {
   | `Zero => Some(0)

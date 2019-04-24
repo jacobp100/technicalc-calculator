@@ -22,6 +22,10 @@ let powInt = (base, a) =>
   };
 
 let sqrtZ = a => {
+  if (Z.(a < zero)) {
+    invalid_arg("sqrtZ");
+  };
+
   let factor_mag = Z.log2(a) / 2 * 2;
   let factor = Z.pow(Z.of_int(2), factor_mag);
   let float_safe_base = Q.make(a, factor);

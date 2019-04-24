@@ -1,11 +1,23 @@
-const Real = require("../Scalar/Real.bs");
+const { ofString, ofFloat, pi } = require("../Value/Types.bs");
+const {
+  toString,
+  add,
+  mul,
+  div,
+  sqrt,
+  log,
+  exp,
+  pow,
+  sin,
+  asin,
+  acos,
+  acosh
+} = require("../Value/Value.bs");
 
-const string = Real.ofString.bind(null, undefined);
-const float = Real.ofFloat.bind(null, undefined);
-const resultString = Real.toString.bind(null, undefined);
+const resultString = toString.bind(null, undefined);
 
 it("Converts via ofString", () => {
-  const convert = x => resultString(Real.ofString(undefined, x));
+  const convert = x => resultString(ofString(x));
   expect(convert("1")).toBe("1");
   expect(convert("1e2")).toBe("100");
   expect(convert("1e+2")).toBe("100");
@@ -25,63 +37,48 @@ it("Converts via ofString", () => {
 });
 
 it("Converts decimals to fractions", () => {
-  expect(resultString(string("0.4"))).toBe("2/5");
-  expect(resultString(string("0.123456789"))).toBe("0.123456789");
-});
-
-it("Cannot handle imaginary numbers", () => {
-  expect(resultString(Real.sqrt(float(-1)))).toBe("NaN");
-  expect(resultString(Real.log(float(-1)))).toBe("NaN");
-  expect(resultString(Real.pow(float(-1), float(0.5)))).toBe("NaN");
-  expect(resultString(Real.asin(float(-2)))).toBe("NaN");
-  expect(resultString(Real.asin(float(2)))).toBe("NaN");
-  expect(resultString(Real.acos(float(-2)))).toBe("NaN");
-  expect(resultString(Real.acos(float(2)))).toBe("NaN");
-  expect(resultString(Real.acosh(float(0)))).toBe("NaN");
+  expect(resultString(ofString("0.4"))).toBe("2/5");
+  expect(resultString(ofString("0.123456789"))).toBe("0.123456789");
 });
 
 it("Simplifies division by two square roots", () => {
-  expect(
-    resultString(Real.div(Real.sqrt(float(10)), Real.sqrt(float(2))))
-  ).toEqual("sqrt(5)");
-  expect(
-    resultString(Real.div(Real.sqrt(float(1000)), Real.sqrt(float(2))))
-  ).toEqual("10sqrt(5)");
+  expect(resultString(div(sqrt(ofFloat(10)), sqrt(ofFloat(2))))).toEqual(
+    "sqrt(5)"
+  );
+  expect(resultString(div(sqrt(ofFloat(1000)), sqrt(ofFloat(2))))).toEqual(
+    "10sqrt(5)"
+  );
 });
 
 it("Tracks exp values through log", () => {
-  expect(resultString(Real.log(Real.exp(float(47))))).toEqual("47");
+  expect(resultString(log(exp(ofFloat(47))))).toEqual("47");
 });
 
 it("Simplifies square roots and exponentials", () => {
-  expect(resultString(Real.mul(float(2), Real.sqrt(float(2))))).toEqual(
-    "2sqrt(2)"
-  );
-  expect(resultString(Real.sqrt(float(1000)))).toEqual("10sqrt(10)");
-  expect(resultString(Real.sqrt(float(4)))).toEqual("2");
-  expect(resultString(Real.sqrt(float(8)))).toEqual("2sqrt(2)");
-  expect(resultString(Real.sqrt(float(6)))).toEqual("sqrt(6)");
-  expect(resultString(Real.sqrt(float(12)))).toEqual("2sqrt(3)");
-  expect(resultString(Real.sqrt(float(0)))).toEqual("0");
-  expect(resultString(Real.exp(float(0)))).toEqual("1");
-  expect(resultString(Real.exp(float(1)))).toEqual("exp(1)");
-  expect(resultString(Real.exp(float(2)))).toEqual("exp(2)");
-  expect(resultString(Real.exp(float(3)))).toEqual("exp(3)");
-  expect(resultString(Real.exp(float(-1)))).toEqual("exp(-1)");
+  expect(resultString(mul(ofFloat(2), sqrt(ofFloat(2))))).toEqual("2sqrt(2)");
+  expect(resultString(sqrt(ofFloat(1000)))).toEqual("10sqrt(10)");
+  expect(resultString(sqrt(ofFloat(4)))).toEqual("2");
+  expect(resultString(sqrt(ofFloat(8)))).toEqual("2sqrt(2)");
+  expect(resultString(sqrt(ofFloat(6)))).toEqual("sqrt(6)");
+  expect(resultString(sqrt(ofFloat(12)))).toEqual("2sqrt(3)");
+  expect(resultString(sqrt(ofFloat(0)))).toEqual("0");
+  expect(resultString(exp(ofFloat(0)))).toEqual("1");
+  expect(resultString(exp(ofFloat(1)))).toEqual("exp(1)");
+  expect(resultString(exp(ofFloat(2)))).toEqual("exp(2)");
+  expect(resultString(exp(ofFloat(3)))).toEqual("exp(3)");
+  expect(resultString(exp(ofFloat(-1)))).toEqual("exp(-1)");
 });
 
 it("Does not simplify pi", () => {
-  expect(resultString(Real.pi)).toEqual("pi");
+  expect(resultString(pi)).toEqual("pi");
 });
 
 it("Takes sin of pi + 1", () => {
-  expect(Real.toString(undefined, Real.sin(Real.add(Real.pi, float(1))))).toBe(
-    "0.841470984807"
-  );
+  expect(resultString(sin(add(pi, ofFloat(1))))).toBe("0.841470984807");
 });
 
 it("Formats various numbers correctly", () => {
-  const convert = x => resultString(Real.ofString(undefined, x));
+  const convert = x => resultString(ofString(x));
   expect(convert("46.47897327055571")).toBe("46.478973270555");
   expect(convert("-47.86759243619015")).toBe("-47.86759243619");
   expect(convert("7.712346515387281")).toBe("7.712346515387");

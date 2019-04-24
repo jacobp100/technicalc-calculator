@@ -11,10 +11,13 @@ let rec pow = (a: value, b: value): value =>
   | (`Zero, `Zero) => `NaN
   | (`Real(aReQ, aReC), `Real(isHalf, Constant.Unit))
       when Q.(isHalf == qHalf) =>
+    let q = Q.abs(aReQ);
+    let denSqrt = Q.den(q)->QUtil.sqrtZ;
     let (q, c) =
-      switch (aReC) {
-      | Unit => (Q.one, Constant.Sqrt(Q.num(aReQ)))
-      | _ => (QCUtil.mapFloat(aReQ, aReC, sqrt), Unit)
+      if (QUtil.isInt(denSqrt) && Constant.(aReC == Unit)) {
+        (Q.inv(denSqrt), Constant.Sqrt(Q.num(q)));
+      } else {
+        (QCUtil.mapFloat(q, aReC, sqrt), Unit);
       };
     if (Q.(aReQ > zero)) {
       realQC(q, c);
@@ -24,15 +27,15 @@ let rec pow = (a: value, b: value): value =>
   | (`Real(isOne, Constant.Exp(1)), _) when Q.(isOne == one) => Exp.exp(b)
   | (_, `Real(isTwo, Unit)) when Q.(isTwo == qTwo) => BasicMath.(a * a)
   | (`Real(aReQ, Unit), `Real(isInt, Unit)) when QUtil.isInt(isInt) =>
-    switch (Z.to_int(Q.num(isInt))) {
+    switch (Q.num(isInt)->Z.to_int) {
     | bn => real(QUtil.pow(aReQ, bn))
     | exception Z.Overflow => `NaN
     }
   | (`Real(aReQ, Unit), `Real(ltZero, Unit)) when Q.(ltZero < zero) =>
     pow(real(Q.inv(aReQ)), real(Q.abs(ltZero)))
   | (`Imag(aImQ, aImC), `Real(isInt, Unit)) when QUtil.isInt(isInt) =>
-    let aPowB = pow(imagQC(aImQ, aImC), b);
-    switch (isInt->Q.num->ZUtil.safeMod(Z.of_int(4))->Z.to_int) {
+    let aPowB = pow(realQC(aImQ, aImC), b);
+    switch (Q.num(isInt)->ZUtil.safeMod(Z.of_int(4))->Z.to_int) {
     | 0 => aPowB
     | 1 => BasicMath.(aPowB * i)
     | 2 => BasicMath.(- aPowB)
@@ -40,8 +43,7 @@ let rec pow = (a: value, b: value): value =>
     | _ => raise(Not_found)
     };
   | (`Real(_) | `Imag(_) | `Complex(_), `Real(_) | `Imag(_) | `Complex(_)) =>
-    Js.log("HERE");
-    BasicMath.(Exp.exp(Exp.log(a) * b));
+    BasicMath.(Exp.exp(Exp.log(a) * b))
   | (`Matrix2(a, b, c, d), `Real(isMinusOne, Unit))
       when Q.(isMinusOne == minus_one) =>
     let (~-) = BasicMath.negScalar;

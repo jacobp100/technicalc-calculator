@@ -4,29 +4,27 @@ let g = Q.of_float(4.7421875);
 
 let p0 = Q.of_float(0.99999999999999709182);
 
-let p =
-  [|
-    57.156235665862923517,
-    (-59.597960355475491248),
-    14.136097974741747174,
-    (-0.49191381609762019978),
-    0.33994649984811888699e-4,
-    0.46523628927048575665e-4,
-    (-0.98374475304879564677e-4),
-    0.15808870322491248884e-3,
-    (-0.21026444172410488319e-3),
-    0.21743961811521264320e-3,
-    (-0.16431810653676389022e-3),
-    0.84418223983852743293e-4,
-    (-0.26190838401581408670e-4),
-    0.36899182659531622704e-5,
-  |]
-  ->Belt.Array.map(Q.of_float);
+let p = [|
+  Q.of_float(57.156235665862923517),
+  Q.of_float(-59.597960355475491248),
+  Q.of_float(14.136097974741747174),
+  Q.of_float(-0.49191381609762019978),
+  Q.of_float(0.33994649984811888699e-4),
+  Q.of_float(0.46523628927048575665e-4),
+  Q.of_float(-0.98374475304879564677e-4),
+  Q.of_float(0.15808870322491248884e-3),
+  Q.of_float(-0.21026444172410488319e-3),
+  Q.of_float(0.21743961811521264320e-3),
+  Q.of_float(-0.16431810653676389022e-3),
+  Q.of_float(0.84418223983852743293e-4),
+  Q.of_float(-0.26190838401581408670e-4),
+  Q.of_float(0.36899182659531622704e-5),
+|];
 
 let qHalf = Q.of_ints(1, 2);
 let q2 = Q.of_int(2);
 
-let sqrt2Pi = Pow.sqrt(`Real((q2, Pi)));
+let sqrt2Pi = Pow.sqrt(realQC(q2, Pi));
 
 let gamma = (x: value): value =>
   switch (x) {
@@ -42,8 +40,12 @@ let gamma = (x: value): value =>
     let n = Q.(QCUtil.toQ(gtZero, reC) - one);
     let x =
       p
-      ->Belt.Array.reduceWithIndex(p0, (accum, pi, i) =>
-          Q.(accum + pi / (n + of_int(i)))
+      ->Belt.Array.reduceWithIndex(
+          p0,
+          (accum, pi, i) => {
+            let i = i + 1;
+            Q.(accum + pi / (n + of_int(i)));
+          },
         );
     let t = `Real((Q.(n + g + qHalf), Constant.Unit));
     let n = `Real((Q.(n + qHalf), Constant.Unit));
@@ -62,12 +64,13 @@ let gamma = (x: value): value =>
       p
       ->Belt.Array.reduceWithIndex(
           (p0, Q.zero),
-          ((re, im), pi, i) => {
+          ((re, im), p, i) => {
+            let i = i + 1;
             let real = Q.(nRe + of_int(i));
             let deno = Q.(real * real + nIm * nIm);
             if (Q.(deno != zero)) {
-              (Q.(re + pi * real / deno), Q.(im + - (pi * nIm) / deno));
-            } else if (Q.(pi < zero)) {
+              (Q.(re + p * real / deno), Q.(im + - (p * nIm) / deno));
+            } else if (Q.(p < zero)) {
               (Q.inf, im);
             } else {
               (Q.minus_inf, im);
@@ -75,21 +78,20 @@ let gamma = (x: value): value =>
           },
         );
 
-    let t =
-      `Complex((Q.(nRe + g + qHalf), Constant.Unit, nIm, Constant.Unit));
     let nRe = Q.(nRe + qHalf);
+    let t = complex(Q.(nRe + g), nIm);
 
     let result =
       switch (nRe->Q.classify) {
       | INF
-      | MINF => `Zero
+      | MINF => zero
       | _ =>
-        let n = `Complex((nRe, Constant.Unit, nIm, Constant.Unit));
+        let n = complex(nRe, nIm);
         BasicMath.(Pow.pow(t, n) * sqrt2Pi);
       };
 
-    let t = Exp.exp(BasicMath.(- t));
-    let x = `Complex((xRe, Constant.Unit, xIm, Constant.Unit));
+    let t = BasicMath.(Exp.exp(- t));
+    let x = complex(xRe, xIm);
 
     BasicMath.(result * t * x);
   | _ => `NaN

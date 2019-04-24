@@ -1,6 +1,11 @@
-type iterRange('t) = {
-  start: 't,
-  upTo: 't,
+type range('t) = {
+  a: 't,
+  b: 't,
+  body: 't,
+};
+
+type derivative('t) = {
+  x: 't,
   body: 't,
 };
 
@@ -42,9 +47,11 @@ type t = [
   | `Atan(t)
   | `Tanh(t)
   | `Atanh(t)
+  | `Gamma(t)
   | `Factorial(t)
-  | `Sum(iterRange(t))
-  | `Product(iterRange(t))
+  | `Sum(range(t))
+  | `Product(range(t))
+  | `Derivative(derivative(t))
 ];
 
 module Context = Map.Make(String);
@@ -90,11 +97,13 @@ let tan = a: t => `Tan(a);
 let atan = a: t => `Atan(a);
 let tanh = a: t => `Tanh(a);
 let atanh = a: t => `Atanh(a);
+let gamma = a: t => `Gamma(a);
 let factorial = a: t => `Factorial(a);
-let sum = (s, t, b): t => `Sum({start: s, upTo: t, body: b});
-let product = (s, t, b): t => `Product({start: s, upTo: t, body: b});
+let sum = (a, b, body): t => `Sum({a, b, body});
+let product = (a, b, body): t => `Product({a, b, body});
+let derivative = (x, b): t => `Derivative({x, body: b});
 
-let rec eval = (~context=Context.empty, node: t): Types.value =>
+let rec eval = (~context, node: t): Types.value =>
   switch (node) {
   | `Zero => Value.zero
   | `One => Value.one
@@ -126,6 +135,7 @@ let rec eval = (~context=Context.empty, node: t): Types.value =>
   | `Sqrt(a) => Value.sqrt(eval(~context, a))
   | `Exp(a) => Value.exp(eval(~context, a))
   | `Log(a) => Value.log(eval(~context, a))
+  | `Gamma(a) => Value.gamma(eval(~context, a))
   | `Factorial(a) => Value.factorial(eval(~context, a))
   | `Sin(a) => Value.sin(eval(~context, a))
   | `Asin(a) => Value.asin(eval(~context, a))
@@ -139,25 +149,28 @@ let rec eval = (~context=Context.empty, node: t): Types.value =>
   | `Atan(a) => Value.atan(eval(~context, a))
   | `Tanh(a) => Value.tanh(eval(~context, a))
   | `Atanh(a) => Value.atanh(eval(~context, a))
-  | `Sum(range) => reduceRange(~context, Value.add, Types.zero, range)
-  | `Product(range) => reduceRange(~context, Value.mul, Types.one, range)
+  | `Sum({a, b, body}) =>
+    NumericEvaluation.sum(
+      createEvalCb(~context, body),
+      eval(~context, a),
+      eval(~context, b),
+    )
+  | `Product({a, b, body}) =>
+    NumericEvaluation.product(
+      createEvalCb(~context, body),
+      eval(~context, a),
+      eval(~context, b),
+    )
+  | `Derivative({x, body}) =>
+    NumericEvaluation.derivative(
+      createEvalCb(~context, body),
+      eval(~context, x),
+    )
   }
-and reduceRange = (~context=Context.empty, iteratee, initialValue, range) => {
-  let startVal = eval(~context, range.start);
-  let upToVal = eval(~context, range.upTo);
-  switch (Types.toInt(startVal), Types.toInt(upToVal)) {
-  | (Some(f), Some(t)) =>
-    let current = ref(initialValue);
-    for (v in f to t) {
-      let nextContextValue = Types.ofInt(v);
-      let nextContext = Context.add("x", nextContextValue, context);
-      let nextValue = eval(~context=nextContext, range.body);
-      current := iteratee(current^, nextValue);
-    };
-    current^;
-  | _ => Types.nan
-  };
-};
+and createEvalCb = (~context, body, x) =>
+  eval(~context=Context.add("x", x, context), body);
+
+let eval = (~context=Context.empty, v) => eval(~context, v);
 
 let solveQuadratic = (a, b, c) => {
   let a = eval(a);

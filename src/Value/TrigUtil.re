@@ -10,7 +10,7 @@ let compareTrigReal = a =>
   switch (a) {
   | `Zero => `Zero
   | `Real(reQ, reC) => `Real(compareTrig(reQ, reC))
-  | `Imag(imQ, imC) => `Complex((Q.zero, Constant.Unit, imQ, imC))
+  | `Imag(imQ, imC) => `Imag((imQ, imC))
   | `Complex(reQ, reC, imQ, imC) => `Complex((reQ, reC, imQ, imC))
   | `Vector2(_)
   | `Vector3(_)

@@ -5,6 +5,6 @@ expect.extend({ toMatchJsValue });
 
 it(`det [3 ,7, 8]`, () => {
   expect(
-    SciLine.abs(SciLine.matrixOfElements(3, 1, [3, 7, 8].map(SciLine.ofFloat)))
+    SciLine.abs(SciLine.vector3(...[3, 7, 8].map(SciLine.ofFloat)))
   ).toMatchJsValue(122);
 });

@@ -1,6 +1,6 @@
 const rat = require("big-rat");
 const cartesian = require("cartesian");
-const { magnitude } = require("../Math/QUtil.bs");
+const { magnitude } = require("../Util/QUtil.bs");
 
 describe("calculates q magnitude", () => {
   const values = [

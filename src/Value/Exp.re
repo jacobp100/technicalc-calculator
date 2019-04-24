@@ -67,24 +67,25 @@ let log = (a: value): value =>
   | `Zero => `NaN
   | `Real(gtZero, reC) when Q.(gtZero > zero) =>
     let (reQ, reC) = logRealTuple(gtZero, reC);
-    `Real((reQ, reC));
+    realQC(reQ, reC);
   | `Real(isMinusOne, Constant.Unit) when Q.(isMinusOne == minus_one) =>
-    `Imag((Q.one, Constant.Pi))
-  | `Real(aReQ, aReC) =>
-    let (reQ, reC) = logRealTuple(aReQ, aReC);
-    let (reQ, reC) = BasicMath.divTuple(reQ, reC, Q.of_ints(1, 2), Unit);
-    let (imQ, imC) = argTuple(aReQ, aReC, Q.zero, Unit);
-    complexQC(reQ, reC, imQ, imC);
-  | `Imag(aImQ, aImC) =>
-    let (reQ, reC) = logRealTuple(aImQ, aImC);
-    let (reQ, reC) = BasicMath.divTuple(reQ, reC, Q.of_ints(1, 2), Unit);
-    let (imQ, imC) = argTuple(Q.zero, Unit, aImQ, aImC);
-    complexQC(reQ, reC, imQ, imC);
-  | `Complex(aReQ, aReC, aImQ, aImC) =>
-    let (reQ, reC) = BasicMath.magnitudeTuple(aReQ, aReC, aImQ, aImC);
+    BasicMath.(pi * i)
+  | (`Real(_) | `Imag(_) | `Complex(_)) as vV =>
+    let (reQ, reC) =
+      switch (vV) {
+      | `Real(reQ, reC) => BasicMath.mulTuple(reQ, reC, reQ, reC)
+      | `Imag(imQ, imC) => BasicMath.mulTuple(imQ, imC, imQ, imC)
+      | `Complex(reQ, reC, imQ, imC) =>
+        BasicMath.magnitudeSquaredTuple(reQ, reC, imQ, imC)
+      };
     let (reQ, reC) = logRealTuple(reQ, reC);
     let (reQ, reC) = BasicMath.divTuple(reQ, reC, Q.of_int(2), Unit);
-    let (imQ, imC) = argTuple(aReQ, aReC, aImQ, aImC);
+    let (imQ, imC) =
+      switch (vV) {
+      | `Real(reQ, reC) => argTuple(reQ, reC, Q.zero, Unit)
+      | `Imag(imQ, imC) => argTuple(Q.zero, Unit, imQ, imC)
+      | `Complex(reQ, reC, imQ, imC) => argTuple(reQ, reC, imQ, imC)
+      };
     complexQC(reQ, reC, imQ, imC);
   | `Vector2(_)
   | `Vector3(_)
