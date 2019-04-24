@@ -23,7 +23,7 @@ let inf = of_ints(1, 0);
 let minus_inf = of_ints(-1, 0);
 let undef = of_ints(0, 0);
 
-let of_string_base = (base, n) =>
+let of_string_base = (base: int, n: string) =>
   switch (StringUtil.stringSplitOnChar('/', n)) {
   | [num] => Z.of_string_base(base, num)->of_bigint
   | [num, den] =>

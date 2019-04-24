@@ -13,8 +13,9 @@ let resolveWithContext = (jsContext, a) => {
   eval(~context, a);
 };
 
+let valueOfString = Types.ofString;
+let valueOfStringBase = Types.ofStringBase;
 let toFloat = Types.toFloat;
-
 let isNan = (a: Types.value) => a == `NaN;
 
 [@bs.deriving abstract]
