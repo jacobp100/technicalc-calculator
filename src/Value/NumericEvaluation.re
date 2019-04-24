@@ -28,46 +28,30 @@ let derivative = (f, x) => {
   factors / (ofInt(12) * h);
 };
 
-let integrate = (f: value => value, a, b) =>
-  switch (Types.toQ(a), Types.toQ(b)) {
-  | (Some(a), Some(b)) when Q.(b > a) =>
-    let range = Q.(b - a);
-    let maxN = 87;
-    let n = Q.(range > Q.of_int(maxN)) ? maxN : QUtil.floor(range)->Z.to_int;
+let integrate = (f: value => value, a, b) => {
+  let (a, b) = (Types.toQ(a), Types.toQ(b));
+
+  if (Q.(b > a)) {
+    let n = 100;
     let n2 = n * 2;
     let _2 = Q.of_int(2);
     let _4 = Q.of_int(4);
-    let h = Q.(range / (of_int(n) * _2));
+    let h = Q.((b - a) / (of_int(n) * _2));
 
-    let sum =
-      switch (real(a)->f->toQ, real(b)->f->toQ) {
-      | (Some(a), Some(b)) => Q.(a + b)
-      | _ => Q.undef
-      };
-    let sum = ref(sum);
+    let sum = Q.(real(a)->f->toQ + real(b)->f->toQ)->ref;
 
     let i = ref(1);
     while (i^ < n2 && Q.(sum^ != undef)) {
       let v = Q.(a + of_int(i^) * h)->real;
-
-      switch (f(v)->toQ) {
-      | Some(q) =>
-        sum := Q.(sum^ + _4 * q);
-        i := i^ + 2;
-      | _ => sum := Q.undef
-      };
+      sum := Q.(sum^ + _4 * f(v)->toQ);
+      i := i^ + 2;
     };
 
-    let i = ref(2);
+    i := 2;
     while (i^ < n2 - 1 && Q.(sum^ != undef)) {
       let v = Q.(a + of_int(i^) * h)->real;
-
-      switch (f(v)->toQ) {
-      | Some(q) =>
-        sum := Q.(sum^ + _2 * q);
-        i := i^ + 2;
-      | _ => sum := Q.undef
-      };
+      sum := Q.(sum^ + _2 * f(v)->toQ);
+      i := i^ + 2;
     };
 
     if (Q.(sum^ != undef)) {
@@ -75,6 +59,7 @@ let integrate = (f: value => value, a, b) =>
     } else {
       nan;
     };
-  | (Some(a), Some(b)) when Q.(b == a) => zero
-  | _ => nan
+  } else {
+    nan;
   };
+};

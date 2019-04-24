@@ -169,11 +169,11 @@ let matrix3 = (a, b, c, d, e, f, g, h, i): value =>
 let valueOfScalar = a => a->valueOfScalar->normalize;
 let valueOfMatrix = a => a->valueOfMatrix->normalize;
 
-let toQ = (a: value): option(Q.t) =>
+let toQ = (a: value): Q.t =>
   switch (a) {
-  | `Zero => Some(Q.zero)
-  | `Real(q, c) => QCUtil.toQ(q, c)->Some
-  | _ => None
+  | `Zero => Q.zero
+  | `Real(q, c) => QCUtil.toQ(q, c)
+  | _ => Q.undef
   };
 
 let toInt = (a: value): option(int) =>
