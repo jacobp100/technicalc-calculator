@@ -1,11 +1,17 @@
-type range('t) = {
+type differential('t) = {
+  x: 't,
+  body: 't,
+};
+
+type integral('t) = {
   a: 't,
   b: 't,
   body: 't,
 };
 
-type derivative('t) = {
-  x: 't,
+type range('t) = {
+  a: 't,
+  b: 't,
   body: 't,
 };
 
@@ -49,12 +55,15 @@ type t = [
   | `Atanh(t)
   | `Gamma(t)
   | `Factorial(t)
+  | `Rand
+  | `RandInt(t, t)
+  | `NPR(t, t)
+  | `NCR(t, t)
+  | `Differential(differential(t))
+  | `Integral(integral(t))
   | `Sum(range(t))
   | `Product(range(t))
-  | `Derivative(derivative(t))
 ];
-
-module Context = Map.Make(String);
 
 let zero = `Zero;
 let one = `One;
@@ -63,45 +72,50 @@ let i = `I;
 let minusI = `MinusI;
 let pi = `Pi;
 let e = `E;
-let ofInt = a: t => `OfInt(a);
-let ofFloat = a: t => `OfFloat(a);
-let ofString = a: t => `OfString(a);
+let ofInt = (a): t => `OfInt(a);
+let ofFloat = (a): t => `OfFloat(a);
+let ofString = (a): t => `OfString(a);
 let ofStringBase = (base, a): t => `OfStringBase((base, a));
-let ofEncoded = a: t => `OfEncoded(a);
+let ofEncoded = (a): t => `OfEncoded(a);
 let vector2 = (a, b): t => `Vector2((a, b));
 let vector3 = (a, b, c): t => `Vector3((a, b, c));
 let matrix2 = (a, b, c, d): t => `Matrix2((a, b, c, d));
 let matrix3 = (a, b, c, d, e, f, g, h, i): t =>
   `Matrix3((a, b, c, d, e, f, g, h, i));
-let variable = name: t => `Variable(name);
+let variable = (name): t => `Variable(name);
 let add = (a, b): t => `Add((a, b));
 let sub = (a, b): t => `Sub((a, b));
 let mul = (a, b): t => `Mul((a, b));
 let div = (a, b): t => `Div((a, b));
 let pow = (a, b): t => `Pow((a, b));
 let dot = (a, b): t => `Dot((a, b));
-let neg = a: t => `Neg(a);
-let abs = a: t => `Abs(a);
-let sqrt = a: t => `Sqrt(a);
-let exp = a: t => `Exp(a);
-let log = a: t => `Log(a);
-let sin = a: t => `Sin(a);
-let asin = a: t => `Asin(a);
-let sinh = a: t => `Sinh(a);
-let asinh = a: t => `Asinh(a);
-let cos = a: t => `Cos(a);
-let acos = a: t => `Acos(a);
-let cosh = a: t => `Cosh(a);
-let acosh = a: t => `Acosh(a);
-let tan = a: t => `Tan(a);
-let atan = a: t => `Atan(a);
-let tanh = a: t => `Tanh(a);
-let atanh = a: t => `Atanh(a);
-let gamma = a: t => `Gamma(a);
-let factorial = a: t => `Factorial(a);
+let neg = (a): t => `Neg(a);
+let abs = (a): t => `Abs(a);
+let sqrt = (a): t => `Sqrt(a);
+let exp = (a): t => `Exp(a);
+let log = (a): t => `Log(a);
+let sin = (a): t => `Sin(a);
+let asin = (a): t => `Asin(a);
+let sinh = (a): t => `Sinh(a);
+let asinh = (a): t => `Asinh(a);
+let cos = (a): t => `Cos(a);
+let acos = (a): t => `Acos(a);
+let cosh = (a): t => `Cosh(a);
+let acosh = (a): t => `Acosh(a);
+let tan = (a): t => `Tan(a);
+let atan = (a): t => `Atan(a);
+let tanh = (a): t => `Tanh(a);
+let atanh = (a): t => `Atanh(a);
+let gamma = (a): t => `Gamma(a);
+let factorial = (a): t => `Factorial(a);
+let rand = (): t => `Rand;
+let randInt = (a, b): t => `RandInt((a, b));
+let nPr = (a, b): t => `NPR((a, b));
+let nCr = (a, b): t => `NCR((a, b));
+let differential = (x, body): t => `Differential({x, body});
+let integral = (a, b, body): t => `Integral({a, b, body});
 let sum = (a, b, body): t => `Sum({a, b, body});
 let product = (a, b, body): t => `Product({a, b, body});
-let derivative = (x, b): t => `Derivative({x, body: b});
 
 let rec eval = (~context, node: t): Types.value =>
   switch (node) {
@@ -115,15 +129,12 @@ let rec eval = (~context, node: t): Types.value =>
   | `OfInt(a) => Types.ofInt(a)
   | `OfFloat(a) => Types.ofFloat(a)
   | `OfString(a) => Types.ofString(a)
-  | `OfStringBase(_) => Types.nan
+  | `OfStringBase(base, a) => Types.ofStringBase(base, a)
   | (`Vector2(_) | `Vector3(_) | `Matrix2(_) | `Matrix3(_)) as aM =>
     MatrixUtil.flatMap(aM, s => eval(~context, s))
   | `OfEncoded(a) => Encoding.decode(a)
   | `Variable(ident) =>
-    switch (Context.find(ident, context)) {
-    | v => v
-    | exception _ => Types.nan
-    }
+    Belt.Map.String.getWithDefault(context, ident, Types.nan)
   | `Add(a, b) => Value.add(eval(~context, a), eval(~context, b))
   | `Sub(a, b) => Value.sub(eval(~context, a), eval(~context, b))
   | `Mul(a, b) => Value.mul(eval(~context, a), eval(~context, b))
@@ -135,8 +146,6 @@ let rec eval = (~context, node: t): Types.value =>
   | `Sqrt(a) => Value.sqrt(eval(~context, a))
   | `Exp(a) => Value.exp(eval(~context, a))
   | `Log(a) => Value.log(eval(~context, a))
-  | `Gamma(a) => Value.gamma(eval(~context, a))
-  | `Factorial(a) => Value.factorial(eval(~context, a))
   | `Sin(a) => Value.sin(eval(~context, a))
   | `Asin(a) => Value.asin(eval(~context, a))
   | `Sinh(a) => Value.sinh(eval(~context, a))
@@ -149,6 +158,23 @@ let rec eval = (~context, node: t): Types.value =>
   | `Atan(a) => Value.atan(eval(~context, a))
   | `Tanh(a) => Value.tanh(eval(~context, a))
   | `Atanh(a) => Value.atanh(eval(~context, a))
+  | `Gamma(a) => Value.gamma(eval(~context, a))
+  | `Factorial(a) => Value.factorial(eval(~context, a))
+  | `Rand => Value.rand()
+  | `RandInt(a, b) => Value.randInt(eval(~context, a), eval(~context, b))
+  | `NPR(a, b) => Value.nPr(eval(~context, a), eval(~context, b))
+  | `NCR(a, b) => Value.nCr(eval(~context, a), eval(~context, b))
+  | `Differential({x, body}) =>
+    NumericEvaluation.derivative(
+      createEvalCb(~context, body),
+      eval(~context, x),
+    )
+  | `Integral({a, b, body}) =>
+    NumericEvaluation.integrate(
+      createEvalCb(~context, body),
+      eval(~context, a),
+      eval(~context, b),
+    )
   | `Sum({a, b, body}) =>
     NumericEvaluation.sum(
       createEvalCb(~context, body),
@@ -161,16 +187,11 @@ let rec eval = (~context, node: t): Types.value =>
       eval(~context, a),
       eval(~context, b),
     )
-  | `Derivative({x, body}) =>
-    NumericEvaluation.derivative(
-      createEvalCb(~context, body),
-      eval(~context, x),
-    )
   }
 and createEvalCb = (~context, body, x) =>
-  eval(~context=Context.add("x", x, context), body);
+  eval(~context=Belt.Map.String.set(context, "x", x), body);
 
-let eval = (~context=Context.empty, v) => eval(~context, v);
+let eval = (~context=Belt.Map.String.empty, v) => eval(~context, v);
 
 let solveQuadratic = (a, b, c) => {
   let a = eval(a);

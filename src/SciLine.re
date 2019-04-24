@@ -1,14 +1,17 @@
 include AST;
 
-let _convertContext = jsContext =>
-  Js.Dict.entries(jsContext)
-  ->Belt.Array.reduce(Context.empty, (accum, (key, value)) =>
-      Context.add(key, value, accum)
-    );
+let encode = Value.encode;
+let decode = Value.decode;
 
 let resolve = a => eval(a);
-let resolveWithContext = (jsContext, a) =>
-  eval(~context=_convertContext(jsContext), a);
+let resolveWithContext = (jsContext, a) => {
+  let context =
+    Js.Dict.entries(jsContext)
+    ->Belt.Array.reduce(Belt.Map.String.empty, (accum, (key, value)) =>
+        Belt.Map.String.set(accum, key, value)
+      );
+  eval(~context, a);
+};
 
 let toFloat = Types.toFloat;
 
