@@ -4,8 +4,6 @@ type matrixFormat = {
   rowOpen: string,
   rowClose: string,
   rowSeparator: string,
-  elementOpen: string,
-  elementClose: string,
   elementSeparator: string,
 };
 
@@ -15,8 +13,6 @@ let matrixFormatString = {
   rowOpen: "{",
   rowClose: "}",
   rowSeparator: ", ",
-  elementOpen: "",
-  elementClose: "",
   elementSeparator: ", ",
 };
 
@@ -26,41 +22,28 @@ let matrixFormatTex = {
   rowOpen: "",
   rowClose: "",
   rowSeparator: "\\\\\n",
-  elementOpen: "",
-  elementClose: "",
   elementSeparator: " && ",
 };
 
 let matrixFormatMathML = {
-  matrixOpen: "<mrow><mtable>",
-  matrixClose: "</mtable></mrow>",
-  rowOpen: "<mtr>",
-  rowClose: "</mtr>",
+  matrixOpen: "<mrow><mo>[</mo><mtable>",
+  matrixClose: "</mtable><mo>]</mo></mrow>",
+  rowOpen: "<mtr><mtd>",
+  rowClose: "</mtd></mtr>",
   rowSeparator: "",
-  elementOpen: "<mtd>",
-  elementClose: "</mtd>",
-  elementSeparator: "",
+  elementSeparator: "</mtd><mtd>",
 };
 
-let row1 = (a, f) =>
-  f.rowOpen ++ f.elementOpen ++ a ++ f.elementClose ++ f.rowClose;
+let row1 = (a, f) => f.rowOpen ++ a ++ f.rowClose;
 let row2 = (a, b, f) =>
-  f.rowOpen
-  ++ f.elementOpen
-  ++ a
-  ++ f.elementSeparator
-  ++ b
-  ++ f.elementClose
-  ++ f.rowClose;
+  f.rowOpen ++ a ++ f.elementSeparator ++ b ++ f.rowClose;
 let row3 = (a, b, c, f) =>
   f.rowOpen
-  ++ f.elementOpen
   ++ a
   ++ f.elementSeparator
   ++ b
   ++ f.elementSeparator
   ++ c
-  ++ f.elementClose
   ++ f.rowClose;
 
 let rows2 = (a, b, f) =>
