@@ -53,6 +53,9 @@ type t = [
   | `Atan(t)
   | `Tanh(t)
   | `Atanh(t)
+  | `Re(t)
+  | `Im(t)
+  | `Conj(t)
   | `Gamma(t)
   | `Factorial(t)
   | `Rand
@@ -106,6 +109,9 @@ let tan = (a): t => `Tan(a);
 let atan = (a): t => `Atan(a);
 let tanh = (a): t => `Tanh(a);
 let atanh = (a): t => `Atanh(a);
+let re = (a): t => `Re(a);
+let im = (a): t => `Im(a);
+let conj = (a): t => `Conj(a);
 let gamma = (a): t => `Gamma(a);
 let factorial = (a): t => `Factorial(a);
 let rand = (): t => `Rand;
@@ -158,6 +164,9 @@ let rec eval = (~context, node: t): Types.value =>
   | `Atan(a) => Value.atan(eval(~context, a))
   | `Tanh(a) => Value.tanh(eval(~context, a))
   | `Atanh(a) => Value.atanh(eval(~context, a))
+  | `Re(a) => Value.re(eval(~context, a))
+  | `Im(a) => Value.im(eval(~context, a))
+  | `Conj(a) => Value.conj(eval(~context, a))
   | `Gamma(a) => Value.gamma(eval(~context, a))
   | `Factorial(a) => Value.factorial(eval(~context, a))
   | `Rand => Value.rand()
