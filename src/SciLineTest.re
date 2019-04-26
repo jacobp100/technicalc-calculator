@@ -1,9 +1,79 @@
-include SciLine;
+include ASTTypes;
+include AST;
+
+let encode = Value.encode;
+let decode = Value.decode;
+
+let resolve = a => eval(a);
+let resolveWithContext = (jsContext, a) => {
+  let context =
+    Js.Dict.entries(jsContext)
+    ->Belt.Array.reduce(Belt.Map.String.empty, (accum, (key, value)) =>
+        Belt.Map.String.set(accum, key, value)
+      );
+  eval(~context, a);
+};
+
+let valueOfString = Types.ofString;
+let valueOfStringBase = Types.ofStringBase;
+let toFloat = Types.toFloat;
+let isNan = (a: Types.value) => a == `NaN;
+
+[@bs.deriving abstract]
+type format = {
+  [@bs.optional]
+  mode: string,
+  [@bs.optional]
+  style: string,
+  [@bs.optional]
+  precision: int,
+  [@bs.optional]
+  base: int,
+  [@bs.optional]
+  decimalMinMagnitude: float,
+  [@bs.optional]
+  decimalMaxMagnitude: float,
+};
+
+let toString = (x, maybeFormat) => {
+  open OutputFormat;
+  let f = maybeFormat->Belt.Option.getWithDefault(format());
+
+  let (mode, inline) =
+    switch (modeGet(f)) {
+    | Some("tex") => (Tex, false)
+    | Some("mathml") => (MathML, false)
+    | Some("mathml-inline") => (MathML, true)
+    | _ => (String, false)
+    };
+
+  let format = {
+    mode,
+    style:
+      switch (styleGet(f)) {
+      | Some("decimal") => Decimal
+      | Some("scientific") => Scientific
+      | _ => Natural
+      },
+    precision:
+      precisionGet(f)
+      ->Belt.Option.getWithDefault(OutputFormat.default.precision),
+    base: baseGet(f)->Belt.Option.getWithDefault(OutputFormat.default.base),
+    decimalMinMagnitude:
+      decimalMinMagnitudeGet(f)
+      ->Belt.Option.getWithDefault(OutputFormat.default.decimalMinMagnitude),
+    decimalMaxMagnitude:
+      decimalMaxMagnitudeGet(f)
+      ->Belt.Option.getWithDefault(OutputFormat.default.decimalMaxMagnitude),
+  };
+
+  Value.toString(~format, ~inline, x);
+};
 
 let ofComplexFloats = (re, im) =>
   Types.complex(Q.of_float(re), Q.of_float(im))->Value.encode->ofEncoded;
 
-let toComplexFloats = a: (float, float) =>
+let toComplexFloats = (a): (float, float) =>
   switch (a) {
   | `Zero => (0., 0.)
   | `Real(q, c) => (QCUtil.toFloat(q, c), 0.)

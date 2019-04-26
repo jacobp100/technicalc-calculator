@@ -141,16 +141,30 @@ let formatMatrix = (a, format: OutputFormat.format): string => {
   };
 };
 
-let toString = (~format=OutputFormat.default, a: value): string =>
-  switch (a) {
-  | (`Zero | `Real(_) | `Imag(_) | `Complex(_)) as aV =>
-    formatScalar(aV, format)
-  | (`Vector2(_) | `Vector3(_) | `Matrix2(_) | `Matrix3(_)) as aM =>
-    formatMatrix(aM, format)
-  | `NaN =>
-    switch (format.mode) {
-    | String
-    | Tex => "NaN"
-    | MathML => "<mi>NaN</mi>"
-    }
+let toString = (~format=OutputFormat.default, ~inline=false, a: value): string => {
+  let body =
+    switch (a) {
+    | (`Zero | `Real(_) | `Imag(_) | `Complex(_)) as aV =>
+      formatScalar(aV, format)
+    | (`Vector2(_) | `Vector3(_) | `Matrix2(_) | `Matrix3(_)) as aM =>
+      formatMatrix(aM, format)
+    | `NaN =>
+      switch (format.mode) {
+      | String
+      | Tex => "NaN"
+      | MathML => "<mi>NaN</mi>"
+      }
+    };
+
+  switch (format.mode) {
+  | String
+  | Tex => body
+  | MathML =>
+    let display = inline ? "inline" : "block";
+    "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\""
+    ++ display
+    ++ "\">"
+    ++ body
+    ++ "</math>";
   };
+};
