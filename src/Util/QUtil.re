@@ -87,3 +87,20 @@ let floor = a =>
   } else {
     Z.div(Q.num(a), Q.den(a));
   };
+
+let ceil = a =>
+  if (isInt(a)) {
+    Q.num(a);
+  } else {
+    Z.div(Q.num(a), Q.den(a))->Z.add(Z.one);
+  };
+
+let round = a =>
+  if (isInt(a)) {
+    Q.num(a);
+  } else {
+    let floor = Z.div(Q.num(a), Q.den(a));
+    let ceil = floor->Z.add(Z.one);
+    let mid = Z.(Q.make(floor + ceil, of_int(2)));
+    Q.(a - mid > zero) ? ceil : floor;
+  };

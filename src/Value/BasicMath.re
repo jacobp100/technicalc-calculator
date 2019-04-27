@@ -38,23 +38,23 @@ let magnitudeSquaredTuple = (reQ, reC, imQ, imC) => {
   addTuple(reQ, reC, imQ, imC);
 };
 
-let negScalar = (a: scalar): scalar =>
+let mapQScalar = (a: scalar, f: Q.t => Q.t): scalar =>
   switch (a) {
   | `Zero => `Zero
-  | `Real(aQ, aC) => `Real((Q.neg(aQ), aC))
-  | `Imag(aQ, aC) => `Imag((Q.neg(aQ), aC))
-  | `Complex(reQ, reC, imQ, imC) =>
-    `Complex((Q.neg(reQ), reC, Q.neg(imQ), imC))
+  | `Real(aQ, aC) => `Real((f(aQ), aC))
+  | `Imag(aQ, aC) => `Imag((f(aQ), aC))
+  | `Complex(reQ, reC, imQ, imC) => `Complex((f(reQ), reC, f(imQ), imC))
   };
 
-let absScalar = (a: scalar): scalar =>
-  switch (a) {
-  | `Zero => `Zero
-  | `Real(aQ, aC) => `Real((Q.abs(aQ), aC))
-  | `Imag(aQ, aC) => `Imag((Q.abs(aQ), aC))
-  | `Complex(reQ, reC, imQ, imC) =>
-    `Complex((Q.abs(reQ), reC, Q.abs(imQ), imC))
-  };
+let negScalar = mapQScalar(_, Q.neg);
+
+let absScalar = mapQScalar(_, Q.abs);
+
+let floorScalar = mapQScalar(_, q => QUtil.floor(q)->Q.of_bigint);
+
+let ceilScalar = mapQScalar(_, q => QUtil.ceil(q)->Q.of_bigint);
+
+let roundScalar = mapQScalar(_, q => QUtil.round(q)->Q.of_bigint);
 
 let addScalar = (a: scalar, b: scalar): scalar =>
   switch (a, b) {
@@ -176,14 +176,15 @@ let equalScalar = (a: scalar, b: scalar): bool =>
   | _ => false
   };
 
-let neg = (a: value): value =>
+let mapQValue = (a: value, fn: scalar => scalar) =>
   switch (a) {
-  | (`Zero | `Real(_) | `Imag(_) | `Complex(_)) as aV =>
-    negScalar(aV)->valueOfScalar
+  | (`Zero | `Real(_) | `Imag(_) | `Complex(_)) as aV => fn(aV)->valueOfScalar
   | (`Vector2(_) | `Vector3(_) | `Matrix2(_) | `Matrix3(_)) as aM =>
-    MatrixUtil.map(aM, negScalar)
+    MatrixUtil.map(aM, fn)
   | `NaN => `NaN
   };
+
+let neg = mapQValue(_, negScalar);
 
 let abs = a =>
   switch (a) {
@@ -210,6 +211,12 @@ let abs = a =>
     (a * a + b * b + c * c)->valueOfScalar;
   | `NaN => `NaN
   };
+
+let floor = mapQValue(_, floorScalar);
+
+let ceil = mapQValue(_, ceilScalar);
+
+let round = mapQValue(_, roundScalar);
 
 let add = (a: value, b: value): value =>
   switch (a, b) {

@@ -38,6 +38,9 @@ type t = [
   | `Dot(t, t)
   | `Neg(t)
   | `Abs(t)
+  | `Floor(t)
+  | `Ceil(t)
+  | `Round(t)
   | `Sqrt(t)
   | `Exp(t)
   | `Log(t)
@@ -95,6 +98,9 @@ let pow = (a, b): t => `Pow((a, b));
 let dot = (a, b): t => `Dot((a, b));
 let neg = (a): t => `Neg(a);
 let abs = (a): t => `Abs(a);
+let floor = (a): t => `Floor(a);
+let ceil = (a): t => `Ceil(a);
+let round = (a): t => `Round(a);
 let sqrt = (a): t => `Sqrt(a);
 let exp = (a): t => `Exp(a);
 let log = (a): t => `Log(a);
