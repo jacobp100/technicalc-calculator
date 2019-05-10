@@ -4,6 +4,13 @@ let qTwo = Q.of_int(2);
 let qHalf = Q.of_ints(1, 2);
 let half = `Real((qHalf, Constant.Unit));
 
+let zeroS = `Real((Q.zero, Constant.Unit));
+let oneS = `Real((Q.one, Constant.Unit));
+let toIdentity = m =>
+  `Matrix(
+    Matrix.mapWithIndex(m, (row, column, _) => row == column ? oneS : zeroS),
+  );
+
 let rec pow = (a: value, b: value): value =>
   switch (a, b) {
   | (`Zero, `Real(_) | `Imag(_) | `Complex(_)) => `Zero
@@ -44,7 +51,10 @@ let rec pow = (a: value, b: value): value =>
     };
   | (`Real(_) | `Imag(_) | `Complex(_), `Real(_) | `Imag(_) | `Complex(_)) =>
     BasicMath.(Exp.exp(Exp.log(a) * b))
-  | (`Matrix2(a, b, c, d), `Real(isMinusOne, Unit))
+  | (
+      `Matrix({numRows: 2, numColumns: 2, elements: [|a, b, c, d|]}),
+      `Real(isMinusOne, Unit),
+    )
       when Q.(isMinusOne == minus_one) =>
     let (~-) = BasicMath.negScalar;
     let (-) = BasicMath.subScalar;
@@ -52,7 +62,14 @@ let rec pow = (a: value, b: value): value =>
     let (/) = BasicMath.divScalar;
     let factor = a * d - b * c;
     matrix2(d / factor, - b / factor, - c / factor, a / factor);
-  | (`Matrix3(a, b, c, d, e, f, g, h, i), `Real(isMinusOne, Unit))
+  | (
+      `Matrix({
+        numRows: 3,
+        numColumns: 3,
+        elements: [|a, b, c, d, e, f, g, h, i|],
+      }),
+      `Real(isMinusOne, Unit),
+    )
       when Q.(isMinusOne == minus_one) =>
     /* https://www.wolframalpha.com/input/?i=%7B%7Ba,b,c%7D,%7Bd,e,f%7D,%7Bg,h,i%7D%7D%5E-1 */
     let (+) = BasicMath.addScalar;
@@ -72,16 +89,22 @@ let rec pow = (a: value, b: value): value =>
       (b * g - a * h) / factor,
       (a * e - b * d) / factor,
     );
-  | ((`Matrix2(_) | `Matrix3(_)) as aM, `Zero) => MatrixUtil.toIdentity(aM)
-  | ((`Matrix2(_) | `Matrix3(_)) as aM, `Real(intGtZero, Unit))
+  | (
+      `Matrix(
+        ({numRows: 2, numColumns: 2} | {numRows: 3, numColumns: 3}) as aM,
+      ),
+      `Zero,
+    ) =>
+    toIdentity(aM)
+  | (`Matrix(aM) as a, `Real(intGtZero, Unit))
       when Q.(intGtZero >= zero) && QUtil.isInt(intGtZero) =>
-    let x = ref(MatrixUtil.toIdentity(aM));
+    let x = ref(toIdentity(aM));
     for (_ in 0 to Q.num(intGtZero)->Z.to_int - 1) {
       x := BasicMath.(x^ * a);
     };
     x^;
-  | (`NaN | `Vector2(_) | `Vector3(_) | `Matrix2(_) | `Matrix3(_), _) => `NaN
-  | (_, `NaN | `Vector2(_) | `Vector3(_) | `Matrix2(_) | `Matrix3(_)) => `NaN
+  | (`NaN | `Vector(_) | `Matrix(_), _) => `NaN
+  | (_, `NaN | `Vector(_) | `Matrix(_)) => `NaN
   };
 
 let sqrt = (x: value): value => pow(x, half);

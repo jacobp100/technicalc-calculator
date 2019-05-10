@@ -18,21 +18,20 @@ let im = (a: value): value =>
   | _ => `NaN
   };
 
-let conjScalar = (a: scalar): scalar => {
+let conjScalar = (a: scalar): scalar =>
   switch (a) {
   | `Zero
   | `Real(_) => a
   | `Imag(imQ, imC) => `Imag((Q.neg(imQ), imC))
   | `Complex(reQ, reC, imQ, imC) => `Complex((reQ, reC, Q.neg(imQ), imC))
   };
-};
 
 let conj = (a: value): value =>
   switch (a) {
   | `Zero => `Zero
   | `Real(_) => a
   | (`Imag(_) | `Complex(_)) as aS => conjScalar(aS)->valueOfScalar
-  | (`Vector2(_) | `Vector3(_) | `Matrix2(_) | `Matrix3(_)) as aM =>
-    MatrixUtil.map(aM, conjScalar)
+  | `Vector(elements) => `Vector(elements->Belt.Array.map(conjScalar))
+  | `Matrix(m) => `Matrix(m->Matrix.map(conjScalar))
   | `NaN => `NaN
   };

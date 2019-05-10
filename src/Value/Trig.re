@@ -10,10 +10,8 @@ let sin = (x: value): value =>
   | `Complex(_) =>
     let iX = BasicMath.(x * i);
     BasicMath.(i * (Exp.exp(- iX) - Exp.exp(iX)) / ofInt(2));
-  | `Vector2(_)
-  | `Vector3(_)
-  | `Matrix2(_)
-  | `Matrix3(_)
+  | `Vector(_)
+  | `Matrix(_)
   | `NaN => `NaN
   };
 
@@ -36,10 +34,8 @@ let cos = (x: value): value =>
   | `Complex(_) =>
     let iX = BasicMath.(x * i);
     BasicMath.((Exp.exp(iX) + Exp.exp(- iX)) / ofInt(2));
-  | `Vector2(_)
-  | `Vector3(_)
-  | `Matrix2(_)
-  | `Matrix3(_)
+  | `Vector(_)
+  | `Matrix(_)
   | `NaN => `NaN
   };
 
@@ -71,6 +67,7 @@ let tan = (x: value): value =>
     let b = Exp.exp(iX->BasicMath.neg);
     BasicMath.((a - b) / ((a + b) * i));
   | `Matrix
+  | `Vector
   | `NaN => `NaN
   };
 
@@ -112,6 +109,7 @@ let asin = (a: value): value =>
     | `NaN => `NaN
     }
   | `Matrix
+  | `Vector
   | `NaN => `NaN
   };
 
@@ -149,6 +147,7 @@ let acos = (a: value): value =>
     | `NaN => `NaN
     }
   | `Matrix
+  | `Vector
   | `NaN => `NaN
   };
 
@@ -201,6 +200,7 @@ let atan = (a: value): value =>
       ->ValueUtil.toQs;
     complex(Q.(- t1im / two), Q.(t1re / two));
   | `Matrix
+  | `Vector
   | `NaN => `NaN
   };
 

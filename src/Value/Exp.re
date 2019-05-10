@@ -42,10 +42,8 @@ let exp = (a: value): value =>
     let (reQ, reC) = BasicMath.mulTuple(expQ, expC, reQ, reC);
     let (imQ, imC) = BasicMath.mulTuple(expQ, expC, imQ, imC);
     complexQC(reQ, reC, imQ, imC);
-  | `Vector2(_)
-  | `Vector3(_)
-  | `Matrix2(_)
-  | `Matrix3(_)
+  | `Vector(_)
+  | `Matrix(_)
   | `NaN => `NaN
   };
 
@@ -87,9 +85,7 @@ let log = (a: value): value =>
       | `Complex(reQ, reC, imQ, imC) => argTuple(reQ, reC, imQ, imC)
       };
     complexQC(reQ, reC, imQ, imC);
-  | `Vector2(_)
-  | `Vector3(_)
-  | `Matrix2(_)
-  | `Matrix3(_)
+  | `Vector(_)
+  | `Matrix(_)
   | `NaN => `NaN
   };

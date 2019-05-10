@@ -179,8 +179,8 @@ let equalScalar = (a: scalar, b: scalar): bool =>
 let mapQValue = (a: value, fn: scalar => scalar) =>
   switch (a) {
   | (`Zero | `Real(_) | `Imag(_) | `Complex(_)) as aV => fn(aV)->valueOfScalar
-  | (`Vector2(_) | `Vector3(_) | `Matrix2(_) | `Matrix3(_)) as aM =>
-    MatrixUtil.map(aM, fn)
+  | `Vector(elements) => `Vector(elements->Belt.Array.map(fn))
+  | `Matrix(elements) => `Matrix(elements->Matrix.map(fn))
   | `NaN => `NaN
   };
 
@@ -221,27 +221,23 @@ let round = mapQValue(_, roundScalar);
 let add = (a: value, b: value): value =>
   switch (a, b) {
   | (
-      `Zero | `Real(_) | `Imag(_) | `Complex(_) | `Vector2(_) | `Vector3(_) |
-      `Matrix2(_) |
-      `Matrix3(_),
+      `Zero | `Real(_) | `Imag(_) | `Complex(_) | `Vector(_) | `Matrix(_),
       `Zero,
     ) => a
-  | (
-      `Zero,
-      `Real(_) | `Imag(_) | `Complex(_) | `Vector2(_) | `Vector3(_) |
-      `Matrix2(_) |
-      `Matrix3(_),
-    ) => b
+  | (`Zero, `Real(_) | `Imag(_) | `Complex(_) | `Vector(_) | `Matrix(_)) => b
   | (
       (`Real(_) | `Imag(_) | `Complex(_)) as aV,
       (`Real(_) | `Imag(_) | `Complex(_)) as bV,
     ) =>
     addScalar(aV, bV)->valueOfScalar
-  | (
-      (`Vector2(_) | `Vector3(_) | `Matrix2(_) | `Matrix3(_)) as aM,
-      (`Vector2(_) | `Vector3(_) | `Matrix2(_) | `Matrix3(_)) as bM,
-    ) =>
-    MatrixUtil.map2(aM, bM, addScalar)
+  | (`Vector(aElements), `Vector(bElements))
+      when Belt.Array.length(aElements) == Belt.Array.length(bElements) =>
+    `Vector(Belt.Array.zipBy(aElements, bElements, addScalar))
+  | (`Matrix(aM), `Matrix(bM)) =>
+    switch (Matrix.zipBy(aM, bM, addScalar)) {
+    | Some(m) => `Matrix(m)
+    | None => `NaN
+    }
   | _ => `NaN
   };
 
@@ -256,45 +252,36 @@ let mul = (a: value, b: value): value =>
       (`Real(_) | `Imag(_) | `Complex(_)) as bV,
     ) =>
     mulScalar(aV, bV)->valueOfScalar
-  | (
-      (`Vector2(_) | `Vector3(_) | `Matrix2(_) | `Matrix3(_)) as m,
-      (`Zero | `Real(_) | `Imag(_) | `Complex(_)) as v,
-    )
-  | (
-      (`Zero | `Real(_) | `Imag(_) | `Complex(_)) as v,
-      (`Vector2(_) | `Vector3(_) | `Matrix2(_) | `Matrix3(_)) as m,
-    ) =>
-    MatrixUtil.map(m, mulScalar(v))
-  | (`Vector3(a1, a2, a3), `Vector3(b1, b2, b3)) =>
+  | (`Vector(v), (`Zero | `Real(_) | `Imag(_) | `Complex(_)) as value)
+  | ((`Zero | `Real(_) | `Imag(_) | `Complex(_)) as value, `Vector(v)) =>
+    `Vector(v->Belt.Array.map(mulScalar(value)))
+  | (`Matrix(m), (`Zero | `Real(_) | `Imag(_) | `Complex(_)) as value)
+  | ((`Zero | `Real(_) | `Imag(_) | `Complex(_)) as value, `Matrix(m)) =>
+    `Matrix(m->Matrix.map(mulScalar(value)))
+  | (`Vector([|a1, a2, a3|]), `Vector([|b1, b2, b3|])) =>
     let (-) = subScalar;
     let ( * ) = mulScalar;
     vector3(a2 * b3 - a3 * b2, a3 * b1 - a1 * b3, a1 * b2 - a2 * b1);
-  | (`Matrix2(a0, b0, c0, d0), `Matrix2(a1, b1, c1, d1)) =>
-    let (+) = addScalar;
-    let ( * ) = mulScalar;
-    matrix2(
-      a0 * a1 + b0 * c1,
-      a0 * b1 + b0 * d1,
-      c0 * a1 + d0 * c1,
-      c0 * b1 + d0 * d1,
-    );
-  | (
-      `Matrix3(a0, b0, c0, d0, e0, f0, g0, h0, i0),
-      `Matrix3(a1, b1, c1, d1, e1, f1, g1, h1, i1),
-    ) =>
-    let (+) = addScalar;
-    let ( * ) = mulScalar;
-    matrix3(
-      a0 * a1 + b0 * d1 + c0 * g1,
-      a0 * b1 + b0 * e1 + c0 * h1,
-      a0 * c1 + b0 * f1 + c0 * i1,
-      d0 * a1 + e0 * d1 + f0 * g1,
-      d0 * b1 + e0 * e1 + f0 * h1,
-      d0 * c1 + e0 * f1 + f0 * i1,
-      g0 * a1 + h0 * d1 + i0 * g1,
-      g0 * b1 + h0 * e1 + i0 * h1,
-      g0 * c1 + h0 * f1 + i0 * i1,
-    );
+  | (`Matrix(aM), `Matrix(bM)) when aM.numColumns == bM.numRows =>
+    let shape = aM.numColumns;
+    let m =
+      Matrix.makeBy(
+        shape,
+        shape,
+        (row, column) => {
+          let element = ref(`Zero);
+          for (i in 0 to shape - 1) {
+            let elementProduct =
+              mulScalar(
+                Matrix.getExn(aM, row, i),
+                Matrix.getExn(bM, i, column),
+              );
+            element := addScalar(element^, elementProduct);
+          };
+          element^;
+        },
+      );
+    `Matrix(m);
   | _ => `NaN
   };
 
@@ -307,11 +294,10 @@ let div = (a: value, b: value): value =>
       (`Real(_) | `Imag(_) | `Complex(_)) as bV,
     ) =>
     divScalar(aV, bV)->valueOfScalar
-  | (
-      (`Vector2(_) | `Vector3(_) | `Matrix2(_) | `Matrix3(_)) as m,
-      (`Real(_) | `Imag(_) | `Complex(_)) as v,
-    ) =>
-    MatrixUtil.map(m, divScalar(_, v))
+  | (`Vector(v), (`Real(_) | `Imag(_) | `Complex(_)) as value) =>
+    `Vector(Belt.Array.map(v, divScalar(_, value)))
+  | (`Matrix(m), (`Real(_) | `Imag(_) | `Complex(_)) as value) =>
+    `Matrix(Matrix.map(m, divScalar(_, value)))
   | _ => `NaN
   };
 
@@ -322,28 +308,12 @@ let equal = (a: value, b: value): bool =>
       (`Real(_) | `Imag(_) | `Complex(_)) as bV,
     ) =>
     equalScalar(aV, bV)
-  | (`Vector2(a0, b0), `Vector2(a1, b1)) =>
-    equalScalar(a0, a1) && equalScalar(b0, b1)
-  | (`Vector3(a0, b0, c0), `Vector3(a1, b1, c1)) =>
-    equalScalar(a0, a1) && equalScalar(b0, b1) && equalScalar(c0, c1)
-  | (`Matrix2(a0, b0, c0, d0), `Matrix2(a1, b1, c1, d1)) =>
-    equalScalar(a0, a1)
-    && equalScalar(b0, b1)
-    && equalScalar(c0, c1)
-    && equalScalar(d0, d1)
-  | (
-      `Matrix3(a0, b0, c0, d0, e0, f0, g0, h0, i0),
-      `Matrix3(a1, b1, c1, d1, e1, f1, g1, h1, i1),
-    ) =>
-    equalScalar(a0, a1)
-    && equalScalar(b0, b1)
-    && equalScalar(c0, c1)
-    && equalScalar(d0, d1)
-    && equalScalar(e0, e1)
-    && equalScalar(f0, f1)
-    && equalScalar(g0, g1)
-    && equalScalar(h0, h1)
-    && equalScalar(i0, i1)
+  | (`Vector(aElements), `Vector(bElements))
+      when Belt.Array.length(aElements) == Belt.Array.length(bElements) =>
+    Belt.Array.every2(aElements, bElements, equalScalar)
+  | (`Matrix(aM), `Matrix(bM))
+      when aM.numRows == bM.numRows && aM.numColumns == bM.numColumns =>
+    Belt.Array.every2(aM.elements, bM.elements, equalScalar)
   | _ => false
   };
 

@@ -4,11 +4,13 @@ type scalar = [
   | `Imag(Q.t, Constant.t)
   | `Complex(Q.t, Constant.t, Q.t, Constant.t)
 ];
-type matrix = MatrixTypes.matrixBase(scalar);
-type value = [ scalar | matrix | `NaN];
+type matrix = [ | `Matrix(Matrix.t(scalar))];
+type vector = [ | `Vector(array(scalar))];
+type value = [ scalar | matrix | vector | `NaN];
 
 external valueOfScalar: scalar => value = "%identity";
 external valueOfMatrix: matrix => value = "%identity";
+external valueOfVector: vector => value = "%identity";
 
 let zero: value = `Zero;
 let one: value = `Real((Q.one, Unit));
@@ -87,21 +89,12 @@ let normalize = (v: value): value =>
   | `Complex(reQ, _, imQ, _) as scalar =>
     qIsNaN(reQ) || qIsNaN(imQ) ?
       `NaN : normalizeScalar(scalar)->valueOfScalar
-  | `Vector2(a, b) as m =>
-    let isNaN = scalarIsNaN(a) || scalarIsNaN(b);
-    isNaN ? `NaN : MatrixTypes.mapAny(m, normalizeScalar)->valueOfMatrix;
-  | `Vector3(a, b, c) as m =>
-    let isNaN = scalarIsNaN(a) || scalarIsNaN(b) || scalarIsNaN(c);
-    isNaN ? `NaN : MatrixTypes.mapAny(m, normalizeScalar)->valueOfMatrix;
-  | `Matrix2(a, b, c, d) as m =>
-    let isNaN =
-      scalarIsNaN(a) || scalarIsNaN(b) || scalarIsNaN(c) || scalarIsNaN(d);
-    isNaN ? `NaN : MatrixTypes.mapAny(m, normalizeScalar)->valueOfMatrix;
-  | `Matrix3(a, b, c, d, e, f, g, h, i) as m =>
-    let isNaN = scalarIsNaN(a) || scalarIsNaN(b) || scalarIsNaN(c);
-    let isNaN = isNaN || scalarIsNaN(d) || scalarIsNaN(e) || scalarIsNaN(f);
-    let isNaN = isNaN || scalarIsNaN(g) || scalarIsNaN(h) || scalarIsNaN(i);
-    isNaN ? `NaN : MatrixTypes.mapAny(m, normalizeScalar)->valueOfMatrix;
+  | `Vector(elements) =>
+    let isNaN = elements->Belt.Array.some(scalarIsNaN);
+    isNaN ? `NaN : `Vector(elements->Belt.Array.map(normalizeScalar));
+  | `Matrix(mat) =>
+    let isNaN = mat.elements->Belt.Array.some(scalarIsNaN);
+    isNaN ? `NaN : `Matrix(mat->Matrix.map(normalizeScalar));
   | `NaN => `NaN
   };
 
@@ -160,11 +153,20 @@ let imagQC = (q: Q.t, c: Constant.t): value => `Imag((q, c))->normalize;
 let complex = (re, im): value => `Complex((re, Unit, im, Unit))->normalize;
 let complexQC = (reQ, reC, imQ, imC): value =>
   `Complex((reQ, reC, imQ, imC))->normalize;
-let vector2 = (a, b): value => `Vector2((a, b))->normalize;
-let vector3 = (a, b, c): value => `Vector3((a, b, c))->normalize;
-let matrix2 = (a, b, c, d): value => `Matrix2((a, b, c, d))->normalize;
+let vector2 = (a, b): value => `Vector([|a, b|])->normalize;
+let vector3 = (a, b, c): value => `Vector([|a, b, c|])->normalize;
+let matrix2 = (a, b, c, d): value =>
+  `Matrix(Matrix.{numRows: 2, numColumns: 2, elements: [|a, b, c, d|]})
+  ->normalize;
 let matrix3 = (a, b, c, d, e, f, g, h, i): value =>
-  `Matrix3((a, b, c, d, e, f, g, h, i))->normalize;
+  `Matrix(
+    Matrix.{
+      numRows: 3,
+      numColumns: 3,
+      elements: [|a, b, c, d, e, f, g, h, i|],
+    },
+  )
+  ->normalize;
 
 let valueOfScalar = a => a->valueOfScalar->normalize;
 let valueOfMatrix = a => a->valueOfMatrix->normalize;

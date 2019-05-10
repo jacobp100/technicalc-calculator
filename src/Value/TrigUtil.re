@@ -12,9 +12,7 @@ let compareTrigReal = a =>
   | `Real(reQ, reC) => `Real(compareTrig(reQ, reC))
   | `Imag(imQ, imC) => `Imag((imQ, imC))
   | `Complex(reQ, reC, imQ, imC) => `Complex((reQ, reC, imQ, imC))
-  | `Vector2(_)
-  | `Vector3(_)
-  | `Matrix2(_)
-  | `Matrix3(_) => `Matrix
+  | `Vector(_) => `Vector
+  | `Matrix(_) => `Matrix
   | `NaN => `NaN
   };

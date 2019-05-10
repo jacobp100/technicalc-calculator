@@ -34,25 +34,27 @@ let matrixFormatMathML = {
   elementSeparator: "</mtd><mtd>",
 };
 
-let row1 = (a, f) => f.rowOpen ++ a ++ f.rowClose;
-let row2 = (a, b, f) =>
-  f.rowOpen ++ a ++ f.elementSeparator ++ b ++ f.rowClose;
-let row3 = (a, b, c, f) =>
-  f.rowOpen
-  ++ a
-  ++ f.elementSeparator
-  ++ b
-  ++ f.elementSeparator
-  ++ c
-  ++ f.rowClose;
+let formatMatrix = ({Matrix.numRows, numColumns} as m, f) => {
+  let out = ref(f.matrixOpen);
 
-let rows2 = (a, b, f) =>
-  f.matrixOpen ++ a ++ f.rowSeparator ++ b ++ f.matrixClose;
-let rows3 = (a, b, c, f) =>
-  f.matrixOpen
-  ++ a
-  ++ f.rowSeparator
-  ++ b
-  ++ f.rowSeparator
-  ++ c
-  ++ f.matrixClose;
+  for (row in 0 to numRows - 1) {
+    if (row != 0) {
+      out := out^ ++ f.rowSeparator;
+    };
+
+    out := out^ ++ f.rowOpen;
+
+    for (column in 0 to numColumns - 1) {
+      if (column != 0) {
+        out := out^ ++ f.elementSeparator;
+      };
+      out := out^ ++ Matrix.getExn(m, row, column);
+    };
+
+    out := out^ ++ f.rowClose;
+  };
+
+  out := out^ ++ f.matrixClose;
+
+  out^;
+};

@@ -59,9 +59,10 @@ let decodeScalar = (a: scalarEncoding): scalar =>
     ))
   };
 
-type matrixEncoding = MatrixTypes.matrixBase(scalarEncoding);
+type vectorEncoding = [ | `Vector(array(scalarEncoding))];
+type matrixEncoding = [ | `Matrix(Matrix.t(scalarEncoding))];
 
-type encoding = [ scalarEncoding | matrixEncoding | `NaN];
+type encoding = [ scalarEncoding | vectorEncoding | matrixEncoding | `NaN];
 
 external scalarEncodingToEncoding: scalarEncoding => encoding = "%identity";
 external matrixEncodingToEncoding: matrixEncoding => encoding = "%identity";
@@ -70,8 +71,8 @@ let encode = (a: value): encoding =>
   switch (a) {
   | (`Zero | `Real(_) | `Imag(_) | `Complex(_)) as aV =>
     encodeScalar(aV)->scalarEncodingToEncoding
-  | (`Vector2(_) | `Vector3(_) | `Matrix2(_) | `Matrix3(_)) as aM =>
-    MatrixTypes.mapAny(aM, encodeScalar)->matrixEncodingToEncoding
+  | `Vector(elements) => `Vector(elements->Belt.Array.map(encodeScalar))
+  | `Matrix(mat) => `Matrix(mat->Matrix.map(encodeScalar))
   | `NaN => `NaN
   };
 
@@ -79,7 +80,7 @@ let decode = (a: encoding): value =>
   switch (a) {
   | (`Zero | `Real(_) | `Imag(_) | `Complex(_)) as aV =>
     decodeScalar(aV)->valueOfScalar
-  | (`Vector2(_) | `Vector3(_) | `Matrix2(_) | `Matrix3(_)) as aM =>
-    MatrixTypes.mapAny(aM, decodeScalar)->valueOfMatrix
+  | `Vector(elements) => `Vector(elements->Belt.Array.map(decodeScalar))
+  | `Matrix(mat) => `Matrix(mat->Matrix.map(decodeScalar))
   | `NaN => `NaN
   };

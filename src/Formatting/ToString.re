@@ -122,32 +122,25 @@ let formatScalar = (a: scalar, format: OutputFormat.format): string =>
     ++ formatImagTuple(Q.abs(imQ), imC, format);
   };
 
-let formatMatrix = (a, format: OutputFormat.format): string => {
-  open MatrixFormat;
-  let fmt =
-    switch (format.mode) {
-    | String => matrixFormatString
-    | Tex => matrixFormatTex
-    | MathML => matrixFormatMathML
-    };
-
-  switch (a->MatrixTypes.mapAny(s => formatScalar(s, format))) {
-  | `Vector2(a, b) => rows2(row1(a, fmt), row1(b, fmt), fmt)
-  | `Vector3(a, b, c) =>
-    rows3(row1(a, fmt), row1(b, fmt), row1(c, fmt), fmt)
-  | `Matrix2(a, b, c, d) => rows2(row2(a, b, fmt), row2(c, d, fmt), fmt)
-  | `Matrix3(a, b, c, d, e, f, g, h, i) =>
-    rows3(row3(a, b, c, fmt), row3(d, e, f, fmt), row3(g, h, i, fmt), fmt)
-  };
-};
-
 let toString = (~format=OutputFormat.default, ~inline=false, a: value): string => {
   let body =
     switch (a) {
     | (`Zero | `Real(_) | `Imag(_) | `Complex(_)) as aV =>
       formatScalar(aV, format)
-    | (`Vector2(_) | `Vector3(_) | `Matrix2(_) | `Matrix3(_)) as aM =>
-      formatMatrix(aM, format)
+    | (`Matrix(_) | `Vector(_)) as aV =>
+      let m =
+        switch (aV) {
+        | `Matrix(m) => m
+        | `Vector(elements) => Matrix.ofVector(elements)
+        };
+      open MatrixFormat;
+      let fmt =
+        switch (format.mode) {
+        | String => matrixFormatString
+        | Tex => matrixFormatTex
+        | MathML => matrixFormatMathML
+        };
+      formatMatrix(Matrix.map(m, s => formatScalar(s, format)), fmt);
     | `NaN =>
       switch (format.mode) {
       | String

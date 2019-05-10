@@ -11,8 +11,10 @@ let rec eval = (~context, node: ASTTypes.t): Types.value =>
   | `OfFloat(a) => Types.ofFloat(a)
   | `OfString(a) => Types.ofString(a)
   | `OfStringBase(base, a) => Types.ofStringBase(base, a)
-  | (`Vector2(_) | `Vector3(_) | `Matrix2(_) | `Matrix3(_)) as aM =>
-    MatrixUtil.flatMap(aM, s => eval(~context, s))
+  /*| (`Vector2(_) | `Vector3(_) | `Matrix2(_) | `Matrix3(_)) as aM =>
+    MatrixUtil.flatMap(aM, s => eval(~context, s))*/
+  | `Vector(_)
+  | `Matrix(_) => Types.nan
   | `OfEncoded(a) => Encoding.decode(a)
   | `Variable(ident) =>
     Belt.Map.String.getWithDefault(context, ident, Types.nan)
