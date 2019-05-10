@@ -1,9 +1,10 @@
 exception Overflow;
 type t;
 
-[@bs.new] [@bs.module] external of_int: int => t = "bn.js";
-[@bs.new] [@bs.module] external of_float: float => t = "bn.js";
-[@bs.new] [@bs.module] external _of_string_base: (string, int) => t = "bn.js";
+[@bs.new] [@bs.module "bn.js"] external of_int: int => t = "default";
+[@bs.new] [@bs.module "bn.js"] external of_float: float => t = "default";
+[@bs.new] [@bs.module "bn.js"]
+external _of_string_base: (string, int) => t = "default";
 let _trim_leading_plus = Js.String.replaceByRe([%re "/$\\+/"], "");
 let of_string_base = (base, s) =>
   _of_string_base(_trim_leading_plus(s), base);

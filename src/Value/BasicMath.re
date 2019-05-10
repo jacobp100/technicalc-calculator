@@ -1,12 +1,15 @@
 open Types;
+open Matrix;
 
 let addTuple = (aQ, aC, bQ, bC) =>
-  Constant.(aC == bC) ?
-    (Q.(aQ + bQ), aC) : (Q.(QCUtil.toQ(aQ, aC) + QCUtil.toQ(bQ, bC)), Unit);
+  Constant.(aC == bC)
+    ? (Q.(aQ + bQ), aC)
+    : (Q.(QCUtil.toQ(aQ, aC) + QCUtil.toQ(bQ, bC)), Unit);
 
 let subTuple = (aQ, aC, bQ, bC) =>
-  Constant.(aC == bC) ?
-    (Q.(aQ - bQ), aC) : (Q.(QCUtil.toQ(aQ, aC) - QCUtil.toQ(bQ, bC)), Unit);
+  Constant.(aC == bC)
+    ? (Q.(aQ - bQ), aC)
+    : (Q.(QCUtil.toQ(aQ, aC) - QCUtil.toQ(bQ, bC)), Unit);
 
 let mulTuple = (aQ, aC, bQ, bC) =>
   switch (aC, bC) {
@@ -190,25 +193,31 @@ let abs = a =>
   switch (a) {
   | (`Zero | `Real(_) | `Imag(_) | `Complex(_)) as aV =>
     absScalar(aV)->valueOfScalar
-  | `Matrix2(a, b, c, d) =>
+  | `Matrix({numRows: 2, numColumns: 2, elements: [|a, b, c, d|]}) =>
     let (-) = subScalar;
     let ( * ) = mulScalar;
     (a * d - b * c)->valueOfScalar;
-  | `Matrix3(a, b, c, d, e, f, g, h, i) =>
+  | `Matrix({
+      numRows: 3,
+      numColumns: 3,
+      elements: [|a, b, c, d, e, f, g, h, i|],
+    }) =>
     let (+) = addScalar;
     let (-) = subScalar;
     let ( * ) = mulScalar;
     /* https://www.wolframalpha.com/input/?i=det(%7B%7Ba,b,c%7D,%7Bd,e,f%7D,%7Bg,h,i%7D%7D) */
     (a * e * i - a * f * h - b * d * i + b * f * g + c * d * h - c * e * g)
     ->valueOfScalar;
-  | `Vector2(a, b) =>
+  | `Vector([|a, b|]) =>
     let (+) = addScalar;
     let ( * ) = mulScalar;
     (a * a + b * b)->valueOfScalar;
-  | `Vector3(a, b, c) =>
+  | `Vector([|a, b, c|]) =>
     let (+) = addScalar;
     let ( * ) = mulScalar;
     (a * a + b * b + c * c)->valueOfScalar;
+  | `Vector(_)
+  | `Matrix(_)
   | `NaN => `NaN
   };
 
@@ -303,6 +312,7 @@ let div = (a: value, b: value): value =>
 
 let equal = (a: value, b: value): bool =>
   switch (a, b) {
+  | (`Zero, `Zero) => true
   | (
       (`Real(_) | `Imag(_) | `Complex(_)) as aV,
       (`Real(_) | `Imag(_) | `Complex(_)) as bV,

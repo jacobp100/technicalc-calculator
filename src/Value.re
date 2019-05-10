@@ -1,3 +1,6 @@
+let ofFloat = Types.ofFloat;
+let ofString = Types.ofString;
+let toFloat = Types.toFloat;
 let zero = Types.zero;
 let one = Types.one;
 let minusOne = Types.minusOne;
@@ -41,6 +44,10 @@ let nPr = Comb.nPr;
 let nCr = Comb.nCr;
 let rand = Rand.rand;
 let randInt = Rand.randInt;
+let var2 = Equation.var2;
+let var3 = Equation.var3;
+let quadratic = Equation.quadratic;
+let cubic = Equation.cubic;
 let toString = ToString.toString;
 let encode = Encoding.encode;
 let decode = Encoding.decode;

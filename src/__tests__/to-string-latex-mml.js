@@ -1,14 +1,5 @@
-const {
-  toString,
-  resolve,
-  one,
-  minusOne,
-  ofString,
-  add,
-  mul,
-  pi,
-  i
-} = require("../SciLine.bs");
+const { one, minusOne, ofString, add, mul, pi, i } = require("../Value.bs");
+const { toString } = require("../SciLineTest.bs");
 
 const [three, minusThree, threeHalves, minusThreeHalves, half, minusHalf] = [
   "3",
@@ -20,7 +11,7 @@ const [three, minusThree, threeHalves, minusThreeHalves, half, minusHalf] = [
 ].map(ofString);
 
 const format = (value, mode) =>
-  toString(resolve(value), mode != null ? { mode } : undefined);
+  toString(value, mode != null ? { mode } : undefined);
 
 it("Formats strings", () => {
   expect(format(one)).toBe("1");

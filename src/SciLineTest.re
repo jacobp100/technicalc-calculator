@@ -71,7 +71,7 @@ let toString = (x, maybeFormat) => {
 };
 
 let ofComplexFloats = (re, im) =>
-  Types.complex(Q.of_float(re), Q.of_float(im))->Value.encode->ofEncoded;
+  Value.add(Types.ofFloat(re), Value.mul(Types.ofFloat(im), Types.i));
 
 let toComplexFloats = (a): (float, float) =>
   switch (a) {
@@ -89,10 +89,13 @@ let _mapMatrix = (fn: Types.value => 'a, a: Types.value): array(array('a)) => {
   let fn = x => Types.valueOfScalar(x)->fn;
 
   switch (a) {
-  | `Vector2(a, b) => [|[|fn(a)|], [|fn(b)|]|]
-  | `Vector3(a, b, c) => [|[|fn(a)|], [|fn(b)|], [|fn(c)|]|]
-  | `Matrix2(a, b, c, d) => [|[|fn(a), fn(b)|], [|fn(c), fn(d)|]|]
-  | `Matrix3(a, b, c, d, e, f, g, h, i) => [|
+  | `Vector([|a, b|]) => [|[|fn(a)|], [|fn(b)|]|]
+  | `Vector([|a, b, c|]) => [|[|fn(a)|], [|fn(b)|], [|fn(c)|]|]
+  | `Matrix({elements: [|a, b, c, d|]}) => [|
+      [|fn(a), fn(b)|],
+      [|fn(c), fn(d)|],
+    |]
+  | `Matrix({elements: [|a, b, c, d, e, f, g, h, i|]}) => [|
       [|fn(a), fn(b), fn(c)|],
       [|fn(d), fn(e), fn(f)|],
       [|fn(g), fn(h), fn(i)|],

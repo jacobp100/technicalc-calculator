@@ -1,6 +1,6 @@
 const cartesian = require("cartesian");
 const { Value, range12, fractionsTo12 } = require(".");
-const SciLine = require("../SciLine.bs");
+const SciLine = require("../Value.bs");
 
 const range12Values = range12.map(Value.float);
 const range12NegativeValues = range12.map(x => Value.float(-x));

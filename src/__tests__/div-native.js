@@ -1,6 +1,6 @@
 const { toMatchJsValue } = require("../__test-util__");
 const { binaryValues } = require("../__test-util__/math-native");
-const SciLine = require("../SciLine.bs");
+const SciLine = require("../Value.bs");
 
 expect.extend({ toMatchJsValue });
 

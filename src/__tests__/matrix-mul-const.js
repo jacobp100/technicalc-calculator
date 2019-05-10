@@ -3,7 +3,7 @@ const cartesian = require("cartesian");
 const mathjs = require("mathjs");
 const { Value, toMatchJsMatrix } = require("../__test-util__");
 const { matrix2x2, matrix3x3 } = require("../__test-util__/math-js-matrix");
-const SciLine = require("../SciLine.bs");
+const SciLine = require("../Value.bs");
 
 expect.extend({ toMatchJsMatrix });
 

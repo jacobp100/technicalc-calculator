@@ -2,7 +2,7 @@ const cartesian = require("cartesian");
 const mathjs = require("mathjs");
 const { toMatchJsMatrix } = require("../__test-util__");
 const { vector3 } = require("../__test-util__/math-js-vector");
-const SciLine = require("../SciLine.bs");
+const SciLine = require("../Value.bs");
 
 expect.extend({ toMatchJsMatrix });
 

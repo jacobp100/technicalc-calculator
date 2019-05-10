@@ -13,8 +13,14 @@ let rec eval = (~context, node: ASTTypes.t): Types.value =>
   | `OfStringBase(base, a) => Types.ofStringBase(base, a)
   /*| (`Vector2(_) | `Vector3(_) | `Matrix2(_) | `Matrix3(_)) as aM =>
     MatrixUtil.flatMap(aM, s => eval(~context, s))*/
-  | `Vector(_)
-  | `Matrix(_) => Types.nan
+  | `Vector(elements) =>
+    Types.vector(elements->Belt.Array.map(evalScalar(~context)))
+  | `Matrix({numRows, numColumns, elements}) =>
+    Types.matrix(
+      numRows,
+      numColumns,
+      elements->Belt.Array.map(evalScalar(~context)),
+    )
   | `OfEncoded(a) => Encoding.decode(a)
   | `Variable(ident) =>
     Belt.Map.String.getWithDefault(context, ident, Types.nan)
@@ -78,7 +84,12 @@ let rec eval = (~context, node: ASTTypes.t): Types.value =>
     )
   }
 and createEvalCb = (~context, body, x) =>
-  eval(~context=Belt.Map.String.set(context, "x", x), body);
+  eval(~context=Belt.Map.String.set(context, "x", x), body)
+and evalScalar = (~context, x): Types.scalar =>
+  switch (eval(~context, x)) {
+  | (`Zero | `Real(_) | `Imag(_) | `Complex(_)) as aX => aX
+  | _ => `Real((Q.undef, Constant.Unit))
+  };
 
 let eval = (~context=Belt.Map.String.empty, v) => eval(~context, v);
 
@@ -117,7 +128,7 @@ let solveVar3 = (x0, y0, z0, c0, x1, y1, z1, c1, x2, y2, z2, c2) => {
   let y2 = x2 != `NaN ? eval(y2) : `NaN;
   let z2 = y2 != `NaN ? eval(z2) : `NaN;
   let c2 = z2 != `NaN ? eval(c2) : `NaN;
-  c2 != `NaN ?
-    Equation.var3(x0, y0, z0, c0, x1, y1, z1, c1, x2, y2, z2, c2) :
-    (`NaN, `NaN, `NaN);
+  c2 != `NaN
+    ? Equation.var3(x0, y0, z0, c0, x1, y1, z1, c1, x2, y2, z2, c2)
+    : (`NaN, `NaN, `NaN);
 };

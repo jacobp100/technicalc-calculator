@@ -1,23 +1,19 @@
-const { ofString, ofFloat, pi } = require("../Value/Types.bs");
 const {
-  toString,
+  ofString,
+  ofFloat,
+  pi,
   add,
   mul,
   div,
   sqrt,
   log,
   exp,
-  pow,
-  sin,
-  asin,
-  acos,
-  acosh
-} = require("../Value/Value.bs");
-
-const resultString = toString.bind(null, undefined);
+  sin
+} = require("../Value.bs");
+const { toString } = require("../SciLineTest.bs");
 
 it("Converts via ofString", () => {
-  const convert = x => resultString(ofString(x));
+  const convert = x => toString(ofString(x));
   expect(convert("1")).toBe("1");
   expect(convert("1e2")).toBe("100");
   expect(convert("1e+2")).toBe("100");
@@ -37,48 +33,46 @@ it("Converts via ofString", () => {
 });
 
 it("Converts decimals to fractions", () => {
-  expect(resultString(ofString("0.4"))).toBe("2/5");
-  expect(resultString(ofString("0.123456789"))).toBe("0.123456789");
+  expect(toString(ofString("0.4"))).toBe("2/5");
+  expect(toString(ofString("0.123456789"))).toBe("0.123456789");
 });
 
 it("Simplifies division by two square roots", () => {
-  expect(resultString(div(sqrt(ofFloat(10)), sqrt(ofFloat(2))))).toEqual(
-    "sqrt(5)"
-  );
-  expect(resultString(div(sqrt(ofFloat(1000)), sqrt(ofFloat(2))))).toEqual(
+  expect(toString(div(sqrt(ofFloat(10)), sqrt(ofFloat(2))))).toEqual("sqrt(5)");
+  expect(toString(div(sqrt(ofFloat(1000)), sqrt(ofFloat(2))))).toEqual(
     "10sqrt(5)"
   );
 });
 
 it("Tracks exp values through log", () => {
-  expect(resultString(log(exp(ofFloat(47))))).toEqual("47");
+  expect(toString(log(exp(ofFloat(47))))).toEqual("47");
 });
 
 it("Simplifies square roots and exponentials", () => {
-  expect(resultString(mul(ofFloat(2), sqrt(ofFloat(2))))).toEqual("2sqrt(2)");
-  expect(resultString(sqrt(ofFloat(1000)))).toEqual("10sqrt(10)");
-  expect(resultString(sqrt(ofFloat(4)))).toEqual("2");
-  expect(resultString(sqrt(ofFloat(8)))).toEqual("2sqrt(2)");
-  expect(resultString(sqrt(ofFloat(6)))).toEqual("sqrt(6)");
-  expect(resultString(sqrt(ofFloat(12)))).toEqual("2sqrt(3)");
-  expect(resultString(sqrt(ofFloat(0)))).toEqual("0");
-  expect(resultString(exp(ofFloat(0)))).toEqual("1");
-  expect(resultString(exp(ofFloat(1)))).toEqual("exp(1)");
-  expect(resultString(exp(ofFloat(2)))).toEqual("exp(2)");
-  expect(resultString(exp(ofFloat(3)))).toEqual("exp(3)");
-  expect(resultString(exp(ofFloat(-1)))).toEqual("exp(-1)");
+  expect(toString(mul(ofFloat(2), sqrt(ofFloat(2))))).toEqual("2sqrt(2)");
+  expect(toString(sqrt(ofFloat(1000)))).toEqual("10sqrt(10)");
+  expect(toString(sqrt(ofFloat(4)))).toEqual("2");
+  expect(toString(sqrt(ofFloat(8)))).toEqual("2sqrt(2)");
+  expect(toString(sqrt(ofFloat(6)))).toEqual("sqrt(6)");
+  expect(toString(sqrt(ofFloat(12)))).toEqual("2sqrt(3)");
+  expect(toString(sqrt(ofFloat(0)))).toEqual("0");
+  expect(toString(exp(ofFloat(0)))).toEqual("1");
+  expect(toString(exp(ofFloat(1)))).toEqual("exp(1)");
+  expect(toString(exp(ofFloat(2)))).toEqual("exp(2)");
+  expect(toString(exp(ofFloat(3)))).toEqual("exp(3)");
+  expect(toString(exp(ofFloat(-1)))).toEqual("exp(-1)");
 });
 
 it("Does not simplify pi", () => {
-  expect(resultString(pi)).toEqual("pi");
+  expect(toString(pi)).toEqual("pi");
 });
 
 it("Takes sin of pi + 1", () => {
-  expect(resultString(sin(add(pi, ofFloat(1))))).toBe("0.841470984807");
+  expect(toString(sin(add(pi, ofFloat(1))))).toBe("0.841470984807");
 });
 
 it("Formats various numbers correctly", () => {
-  const convert = x => resultString(ofString(x));
+  const convert = x => toString(ofString(x));
   expect(convert("46.47897327055571")).toBe("46.478973270555");
   expect(convert("-47.86759243619015")).toBe("-47.86759243619");
   expect(convert("7.712346515387281")).toBe("7.712346515387");

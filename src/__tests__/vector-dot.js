@@ -2,7 +2,8 @@ const cartesian = require("cartesian");
 const mathjs = require("mathjs");
 const { toMatchJsValue } = require("../__test-util__");
 const { vector2, vector3 } = require("../__test-util__/math-js-vector");
-const SciLine = require("../SciLine.bs");
+const SciLine = require("../Value.bs");
+const SciLineTest = require("../SciLineTest.bs");
 
 expect.extend({ toMatchJsValue });
 
@@ -28,9 +29,7 @@ describe("3", () => {
 
 describe("Type checking", () => {
   it("Cannot dot incompatible sizes", () => {
-    const value = SciLine.resolve(
-      SciLine.dot(vector3[0].sciLineValue, vector2[0].sciLineValue)
-    );
-    expect(SciLine.toString(value)).toBe("NaN");
+    const value = SciLine.dot(vector3[0].sciLineValue, vector2[0].sciLineValue);
+    expect(SciLineTest.toString(value)).toBe("NaN");
   });
 });

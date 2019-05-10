@@ -3,7 +3,9 @@ const cartesian = require("cartesian");
 const mathjs = require("mathjs");
 const { Value, toMatchJsMatrix } = require("../__test-util__");
 const { matrix3x3 } = require("../__test-util__/math-js-matrix");
-const SciLine = require("../SciLine.bs");
+const Types = require("../Types.bs");
+const SciLine = require("../Value.bs");
+const SciLineTest = require("../SciLineTest.bs");
 
 expect.extend({ toMatchJsMatrix });
 
@@ -21,24 +23,20 @@ describe("3x3", () => {
 describe("Pow -1", () => {
   // Checked on Wolfram Alpha
   it("2x2 ** -1", () => {
-    const out = SciLine.toString(
-      SciLine.resolve(
-        SciLine.pow(
-          SciLine.matrix2(...[3, 7, 8, 9].map(SciLine.ofFloat)),
-          SciLine.ofFloat(-1)
-        )
+    const out = SciLineTest.toString(
+      SciLine.pow(
+        Types.matrix2(...[3, 7, 8, 9].map(SciLine.ofFloat)),
+        SciLine.ofFloat(-1)
       )
     );
     expect(out).toBe("{{-9/29, 7/29}, {8/29, -3/29}}");
   });
 
   it("3x3 ** -1", () => {
-    const out = SciLine.toString(
-      SciLine.resolve(
-        SciLine.pow(
-          SciLine.matrix3(...[3, 7, 8, 9, 1, 3, 9, 5, 8].map(SciLine.ofFloat)),
-          SciLine.ofFloat(-1)
-        )
+    const out = SciLineTest.toString(
+      SciLine.pow(
+        Types.matrix3(...[3, 7, 8, 9, 1, 3, 9, 5, 8].map(SciLine.ofFloat)),
+        SciLine.ofFloat(-1)
       )
     );
     expect(out).toBe(

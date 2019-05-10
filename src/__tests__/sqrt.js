@@ -1,6 +1,7 @@
-const { ofInt } = require("../Value/Types.bs");
-const { sqrt, toString } = require("../Value/Value.bs");
+const { ofInt } = require("../Types.bs");
+const { sqrt } = require("../Value.bs");
+const { toString } = require("../SciLineTest.bs");
 
 it("Special cases square root of negative numbers", () => {
-  expect(toString(undefined, sqrt(ofInt(-2)))).toBe("sqrt(2)i");
+  expect(toString(sqrt(ofInt(-2)))).toBe("sqrt(2)i");
 });

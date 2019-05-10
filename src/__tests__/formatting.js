@@ -1,9 +1,8 @@
-const SciLine = require("../SciLine.bs");
+const SciLine = require("../Value.bs");
+const SciLineTest = require("../SciLineTest.bs");
 
 const stringOfFloat = (x, format) =>
-  SciLine.toString(SciLine.resolve(SciLine.ofFloat(x)), format);
-// const stringOfComplexFloats = (re, im, format) =>
-//   SciLine.toString(SciLine.resolve(SciLine.ofComplexFloat(re, im)), format);
+  SciLineTest.toString(SciLine.ofFloat(x), format);
 
 it("only adds commas for values greater than 1e5", () => {
   expect(stringOfFloat(100000000, { style: "decimal" })).toBe("100,000,000");

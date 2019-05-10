@@ -10,7 +10,7 @@ let isFinite = f =>
   | FP_zero
   | FP_normal
   | FP_subnormal => true
-  | FP_infinite => false
+  | FP_infinite
   | FP_nan => false
   };
 

@@ -1,7 +1,7 @@
 const cartesian = require("cartesian");
 const { range } = require("lodash");
 const mathjs = require("mathjs");
-const SciLine = require("../SciLine.bs");
+const SciLine = require("../Value.bs");
 const SciLineTest = require("../SciLineTest.bs");
 
 module.exports.Value = class Value {
@@ -40,7 +40,7 @@ module.exports.Value = class Value {
   }
 
   toString() {
-    return `(js: ${this.jsValue}, sciline: ${SciLine.toString(
+    return `(js: ${this.jsValue}, sciline: ${SciLineTest.toString(
       this.sciLineValue
     )})`;
   }
@@ -83,9 +83,7 @@ const asComplex = a => {
 };
 
 module.exports.toMatchJsValue = (received, expected) => {
-  const resolved = SciLine.resolve(received);
-
-  const [actualRe, actualIm] = SciLineTest.toComplexFloats(resolved);
+  const [actualRe, actualIm] = SciLineTest.toComplexFloats(received);
   const [expectedRe, expectedIm] = asComplex(expected);
 
   const pass =
@@ -93,7 +91,7 @@ module.exports.toMatchJsValue = (received, expected) => {
 
   return {
     message: () =>
-      `expected ${SciLine.toString(resolved)} ${
+      `expected ${SciLineTest.toString(received)} ${
         pass ? "not " : ""
       }to be close to ${expectedRe}+${expectedIm}i`,
     pass
@@ -101,9 +99,7 @@ module.exports.toMatchJsValue = (received, expected) => {
 };
 
 module.exports.toMatchJsMatrix = (received, expected) => {
-  const resolved = SciLine.resolve(received);
-
-  const sciLineElements = SciLineTest.toComplexFloatsMatrix(resolved);
+  const sciLineElements = SciLineTest.toComplexFloatsMatrix(received);
 
   let allPass = true;
   expected.forEach((mathJsElement, [row, column]) => {
@@ -116,7 +112,7 @@ module.exports.toMatchJsMatrix = (received, expected) => {
 
   return {
     message: () =>
-      `expected ${SciLine.toString(resolved)} ${
+      `expected ${SciLineTest.toString(received)} ${
         allPass ? "not " : ""
       }to be close to ${expected}`,
     pass: allPass

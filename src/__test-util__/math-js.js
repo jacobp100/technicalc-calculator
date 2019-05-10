@@ -2,7 +2,8 @@ const { range } = require("lodash");
 const cartesian = require("cartesian");
 const mathjs = require("mathjs");
 const { Value, fractionsTo12 } = require(".");
-const SciLine = require("../SciLine.bs");
+const SciLineTest = require("../SciLineTest.bs");
+const SciLine = require("../Value.bs");
 
 const trigValues = cartesian([fractionsTo12, fractionsTo12]).map(
   ([[numRe, denomRe], [numIm, denomIm]]) =>

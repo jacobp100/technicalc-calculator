@@ -1,7 +1,8 @@
 const cartesian = require("cartesian");
 const mathjs = require("mathjs");
 const { Value } = require(".");
-const SciLine = require("../SciLine.bs");
+const Types = require("../Types.bs");
+const SciLine = require("../Value.bs");
 
 const matrix2x2 = cartesian([
   [0, -1, 1, 5],
@@ -12,7 +13,7 @@ const matrix2x2 = cartesian([
   ([a, b, c, d]) =>
     new Value(
       mathjs.matrix([[a, b], [c, d]]),
-      SciLine.matrix2(...[a, b, c, d].map(SciLine.ofFloat)),
+      Types.matrix2(...[a, b, c, d].map(SciLine.ofFloat)),
       `[[${a}, ${b}], [${c}, ${d}]]`
     )
 );
@@ -32,7 +33,7 @@ const matrix3x3 = cartesian([
   ([a, b, c, d, e, f, g, h, i]) =>
     new Value(
       mathjs.matrix([[a, b, c], [d, e, f], [g, h, i]]),
-      SciLine.matrix3(...[a, b, c, d, e, f, g, h, i].map(SciLine.ofFloat)),
+      Types.matrix3(...[a, b, c, d, e, f, g, h, i].map(SciLine.ofFloat)),
       `[[${a}, ${b}, ${c}], [${d}, ${e}, ${f}], [${g}, ${h}, ${i}]]`
     )
 );
