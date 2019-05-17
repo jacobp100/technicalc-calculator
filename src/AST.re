@@ -1,5 +1,6 @@
 let rec eval = (~context, node: ASTTypes.t): Types.value =>
   switch (node) {
+  | `NaN => `NaN
   | `Zero => Value.zero
   | `One => Value.one
   | `MinusOne => Value.minusOne
@@ -11,8 +12,6 @@ let rec eval = (~context, node: ASTTypes.t): Types.value =>
   | `OfFloat(a) => Types.ofFloat(a)
   | `OfString(a) => Types.ofString(a)
   | `OfStringBase(base, a) => Types.ofStringBase(base, a)
-  /*| (`Vector2(_) | `Vector3(_) | `Matrix2(_) | `Matrix3(_)) as aM =>
-    MatrixUtil.flatMap(aM, s => eval(~context, s))*/
   | `Vector(elements) =>
     Types.vector(elements->Belt.Array.map(evalScalar(~context)))
   | `Matrix({numRows, numColumns, elements}) =>

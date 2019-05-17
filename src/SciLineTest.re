@@ -82,7 +82,7 @@ let toComplexFloats = (a): (float, float) =>
       QCUtil.toFloat(reQ, reC),
       QCUtil.toFloat(imQ, imC),
     )
-  | _ => (nan, nan)
+  | _ => Pervasives.(nan, nan)
   };
 
 let _mapMatrix = (fn: Types.value => 'a, a: Types.value): array(array('a)) => {
