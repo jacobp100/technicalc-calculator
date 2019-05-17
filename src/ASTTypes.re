@@ -87,18 +87,9 @@ let ofString = (a): t => `OfString(a);
 let ofStringBase = (base, a): t => `OfStringBase((base, a));
 let ofEncoded = (a): t => `OfEncoded(a);
 let ofValue = (a): t => `OfEncoded(Encoding.encode(a));
-let vector2 = (a, b): t => `Vector([|a, b|]);
-let vector3 = (a, b, c): t => `Vector([|a, b, c|]);
+let vector = (elements): t => `Vector(elements);
 let matrix = (numRows, numColumns, elements): t =>
   `Matrix({numRows, numColumns, elements});
-let matrix2 = (a, b, c, d): t =>
-  `Matrix({numRows: 2, numColumns: 2, elements: [|a, b, c, d|]});
-let matrix3 = (a, b, c, d, e, f, g, h, i): t =>
-  `Matrix({
-    numRows: 2,
-    numColumns: 2,
-    elements: [|a, b, c, d, e, f, g, h, i|],
-  });
 let variable = (name): t => `Variable(name);
 let add = (a, b): t => `Add((a, b));
 let sub = (a, b): t => `Sub((a, b));
