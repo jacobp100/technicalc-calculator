@@ -92,18 +92,28 @@ and evalScalar = (~context, x): Types.scalar =>
 
 let eval = (~context=Belt.Map.String.empty, v) => eval(~context, v);
 
+exception Test(bool);
+let solveRoot = (body, initial) => {
+  let fn = value => {
+    let context = Belt.Map.String.empty->Belt.Map.String.set("x", value);
+    eval(~context, body);
+  };
+
+  let initial = eval(initial);
+  initial != `NaN ? Value.steffanRoot(fn, initial) : `NaN;
+};
 let solveQuadratic = (a, b, c) => {
   let a = eval(a);
   let b = a != `NaN ? eval(b) : `NaN;
   let c = b != `NaN ? eval(c) : `NaN;
-  c != `NaN ? Equation.quadratic(a, b, c) : (`NaN, `NaN);
+  c != `NaN ? Value.quadratic(a, b, c) : (`NaN, `NaN);
 };
 let solveCubic = (a, b, c, d) => {
   let a = eval(a);
   let b = a != `NaN ? eval(b) : `NaN;
   let c = b != `NaN ? eval(c) : `NaN;
   let d = c != `NaN ? eval(d) : `NaN;
-  d != `NaN ? Equation.cubic(a, b, c, d) : (`NaN, `NaN, `NaN);
+  d != `NaN ? Value.cubic(a, b, c, d) : (`NaN, `NaN, `NaN);
 };
 let solveVar2 = (x0, y0, c0, x1, y1, c1) => {
   let x0 = eval(x0);
@@ -112,7 +122,7 @@ let solveVar2 = (x0, y0, c0, x1, y1, c1) => {
   let x1 = c0 != `NaN ? eval(x1) : `NaN;
   let y1 = x1 != `NaN ? eval(y1) : `NaN;
   let c1 = y1 != `NaN ? eval(c1) : `NaN;
-  c1 != `NaN ? Equation.var2(x0, y0, c0, x1, y1, c1) : (`NaN, `NaN);
+  c1 != `NaN ? Value.var2(x0, y0, c0, x1, y1, c1) : (`NaN, `NaN);
 };
 let solveVar3 = (x0, y0, z0, c0, x1, y1, z1, c1, x2, y2, z2, c2) => {
   let x0 = eval(x0);
@@ -128,6 +138,6 @@ let solveVar3 = (x0, y0, z0, c0, x1, y1, z1, c1, x2, y2, z2, c2) => {
   let z2 = y2 != `NaN ? eval(z2) : `NaN;
   let c2 = z2 != `NaN ? eval(c2) : `NaN;
   c2 != `NaN
-    ? Equation.var3(x0, y0, z0, c0, x1, y1, z1, c1, x2, y2, z2, c2)
+    ? Value.var3(x0, y0, z0, c0, x1, y1, z1, c1, x2, y2, z2, c2)
     : (`NaN, `NaN, `NaN);
 };
