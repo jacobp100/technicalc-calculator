@@ -17,14 +17,14 @@ let product = (f, a, b) => reduceRange(a, b, one, f, Value.mul);
 let derivative = (f, x) => {
   open BasicMath;
 
-  let h = real(Q.of_int(1_000_000)->Q.inv);
-  let h2 = h * ofInt(2);
+  let h = real(Q.of_int(1_000)->Q.inv);
+  let _2h = h * ofInt(2);
   let _8 = ofInt(8);
 
-  let (pL2, pL1) = (f(x - h2), f(x - h));
-  let (pR2, pR1) = (f(x + h2), f(x + h));
+  let (pL1, pL2) = (f(x - h), f(x - _2h));
+  let (pR1, pR2) = (f(x + h), f(x + _2h));
 
-  let factors = pL2 - _8 * pL1 + _8 * pR2 - pR1;
+  let factors = pL2 - _8 * pL1 + _8 * pR1 - pR2;
   factors / (ofInt(12) * h);
 };
 
