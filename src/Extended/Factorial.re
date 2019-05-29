@@ -24,7 +24,7 @@ let p = [|
 let qHalf = Q.of_ints(1, 2);
 let q2 = Q.of_int(2);
 
-let sqrt2Pi = Pow.sqrt(realQC(q2, Pi));
+let sqrt2Pi = Base.sqrt(realQC(q2, Pi));
 
 let gamma = (x: value): value =>
   switch (x) {
@@ -50,7 +50,7 @@ let gamma = (x: value): value =>
     let t = `Real((Q.(n + g + qHalf), Constant.Unit));
     let n = `Real((Q.(n + qHalf), Constant.Unit));
     let x = `Real((x, Constant.Unit));
-    BasicMath.(sqrt2Pi * Pow.pow(t, n) * Exp.exp(- t) * x);
+    Base.(sqrt2Pi * t ** n * exp(- t) * x);
   | (`Imag(_) | `Complex(_)) as xV =>
     let (nRe, nIm) =
       switch (xV) {
@@ -87,14 +87,14 @@ let gamma = (x: value): value =>
       | MINF => zero
       | _ =>
         let n = complex(nRe, nIm);
-        BasicMath.(Pow.pow(t, n) * sqrt2Pi);
+        Base.(t ** n * sqrt2Pi);
       };
 
-    let t = BasicMath.(Exp.exp(- t));
+    let t = Base.(exp(- t));
     let x = complex(xRe, xIm);
 
-    BasicMath.(result * t * x);
+    Base.(result * t * x);
   | _ => `NaN
   };
 
-let factorial = x => BasicMath.(x + one)->gamma;
+let factorial = x => Base.(x + one)->gamma;

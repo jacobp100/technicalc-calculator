@@ -2,14 +2,12 @@ open Types;
 open Matrix;
 
 let addTuple = (aQ, aC, bQ, bC) =>
-  Constant.(aC == bC)
-    ? (Q.(aQ + bQ), aC)
-    : (Q.(QCUtil.toQ(aQ, aC) + QCUtil.toQ(bQ, bC)), Unit);
+  Constant.(aC == bC) ?
+    (Q.(aQ + bQ), aC) : (Q.(QCUtil.toQ(aQ, aC) + QCUtil.toQ(bQ, bC)), Unit);
 
 let subTuple = (aQ, aC, bQ, bC) =>
-  Constant.(aC == bC)
-    ? (Q.(aQ - bQ), aC)
-    : (Q.(QCUtil.toQ(aQ, aC) - QCUtil.toQ(bQ, bC)), Unit);
+  Constant.(aC == bC) ?
+    (Q.(aQ - bQ), aC) : (Q.(QCUtil.toQ(aQ, aC) - QCUtil.toQ(bQ, bC)), Unit);
 
 let mulTuple = (aQ, aC, bQ, bC) =>
   switch (aC, bC) {
@@ -41,24 +39,6 @@ let magnitudeSquaredTuple = (reQ, reC, imQ, imC) => {
   addTuple(reQ, reC, imQ, imC);
 };
 
-let mapQScalar = (a: scalar, f: Q.t => Q.t): scalar =>
-  switch (a) {
-  | `Zero => `Zero
-  | `Real(aQ, aC) => `Real((f(aQ), aC))
-  | `Imag(aQ, aC) => `Imag((f(aQ), aC))
-  | `Complex(reQ, reC, imQ, imC) => `Complex((f(reQ), reC, f(imQ), imC))
-  };
-
-let negScalar = mapQScalar(_, Q.neg);
-
-let absScalar = mapQScalar(_, Q.abs);
-
-let floorScalar = mapQScalar(_, q => QUtil.floor(q)->Q.of_bigint);
-
-let ceilScalar = mapQScalar(_, q => QUtil.ceil(q)->Q.of_bigint);
-
-let roundScalar = mapQScalar(_, q => QUtil.round(q)->Q.of_bigint);
-
 let addScalar = (a: scalar, b: scalar): scalar =>
   switch (a, b) {
   | (`Zero, _) => b
@@ -85,7 +65,7 @@ let addScalar = (a: scalar, b: scalar): scalar =>
     `Complex((reQ, reC, imQ, imC));
   };
 
-let subScalar = (a, b) => addScalar(a, negScalar(b));
+let subScalar = (a, b) => addScalar(a, Base_Functions.negScalar(b));
 
 let mulScalar = (a: scalar, b: scalar): scalar =>
   switch (a, b) {
@@ -169,64 +149,6 @@ let divScalar = (a: scalar, b: scalar): scalar =>
     mulScalar(a, bRecip);
   };
 
-let equalScalar = (a: scalar, b: scalar): bool =>
-  switch (a, b) {
-  | (`Zero, `Zero) => true
-  | (`Real(aQ, aC), `Real(bQ, bC))
-  | (`Imag(aQ, aC), `Imag(bQ, bC)) => Q.(aQ == bQ) && Constant.(aC == bC)
-  | (`Complex(aReQ, aReC, aImQ, aImC), `Complex(bReQ, bReC, bImQ, bImC)) =>
-    Q.(aReQ == bReQ && aImQ == bImQ) && Constant.(aReC == bReC && aImC == bImC)
-  | _ => false
-  };
-
-let mapQValue = (a: value, fn: scalar => scalar) =>
-  switch (a) {
-  | (`Zero | `Real(_) | `Imag(_) | `Complex(_)) as aV => fn(aV)->valueOfScalar
-  | `Vector(elements) => `Vector(elements->Belt.Array.map(fn))
-  | `Matrix(elements) => `Matrix(elements->Matrix.map(fn))
-  | `NaN => `NaN
-  };
-
-let neg = mapQValue(_, negScalar);
-
-let abs = a =>
-  switch (a) {
-  | (`Zero | `Real(_) | `Imag(_) | `Complex(_)) as aV =>
-    absScalar(aV)->valueOfScalar
-  | `Matrix({numRows: 2, numColumns: 2, elements: [|a, b, c, d|]}) =>
-    let (-) = subScalar;
-    let ( * ) = mulScalar;
-    (a * d - b * c)->valueOfScalar;
-  | `Matrix({
-      numRows: 3,
-      numColumns: 3,
-      elements: [|a, b, c, d, e, f, g, h, i|],
-    }) =>
-    let (+) = addScalar;
-    let (-) = subScalar;
-    let ( * ) = mulScalar;
-    /* https://www.wolframalpha.com/input/?i=det(%7B%7Ba,b,c%7D,%7Bd,e,f%7D,%7Bg,h,i%7D%7D) */
-    (a * e * i - a * f * h - b * d * i + b * f * g + c * d * h - c * e * g)
-    ->valueOfScalar;
-  | `Vector([|a, b|]) =>
-    let (+) = addScalar;
-    let ( * ) = mulScalar;
-    (a * a + b * b)->valueOfScalar;
-  | `Vector([|a, b, c|]) =>
-    let (+) = addScalar;
-    let ( * ) = mulScalar;
-    (a * a + b * b + c * c)->valueOfScalar;
-  | `Vector(_)
-  | `Matrix(_)
-  | `NaN => `NaN
-  };
-
-let floor = mapQValue(_, floorScalar);
-
-let ceil = mapQValue(_, ceilScalar);
-
-let round = mapQValue(_, roundScalar);
-
 let add = (a: value, b: value): value =>
   switch (a, b) {
   | (
@@ -250,7 +172,7 @@ let add = (a: value, b: value): value =>
   | _ => `NaN
   };
 
-let sub = (a, b) => add(a, neg(b));
+let sub = (a, b) => add(a, Base_Functions.neg(b));
 
 let mul = (a: value, b: value): value =>
   switch (a, b) {
@@ -309,27 +231,3 @@ let div = (a: value, b: value): value =>
     `Matrix(Matrix.map(m, divScalar(_, value)))
   | _ => `NaN
   };
-
-let equal = (a: value, b: value): bool =>
-  switch (a, b) {
-  | (`Zero, `Zero) => true
-  | (
-      (`Real(_) | `Imag(_) | `Complex(_)) as aV,
-      (`Real(_) | `Imag(_) | `Complex(_)) as bV,
-    ) =>
-    equalScalar(aV, bV)
-  | (`Vector(aElements), `Vector(bElements))
-      when Belt.Array.length(aElements) == Belt.Array.length(bElements) =>
-    Belt.Array.every2(aElements, bElements, equalScalar)
-  | (`Matrix(aM), `Matrix(bM))
-      when aM.numRows == bM.numRows && aM.numColumns == bM.numColumns =>
-    Belt.Array.every2(aM.elements, bM.elements, equalScalar)
-  | _ => false
-  };
-
-let (~-) = neg;
-let (+) = add;
-let (-) = sub;
-let ( * ) = mul;
-let (/) = div;
-let (==) = equal;

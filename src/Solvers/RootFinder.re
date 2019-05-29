@@ -1,10 +1,5 @@
 open Types;
-
-let (==) = BasicMath.equal;
-let (+) = BasicMath.add;
-let (-) = BasicMath.sub;
-let ( * ) = BasicMath.mul;
-let (/) = BasicMath.div;
+open Base;
 
 let steffanRoot = (f, x) => {
   let maxI = 20;

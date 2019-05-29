@@ -59,24 +59,21 @@ let rec eval = (~context, node: ASTTypes.t): Types.value =>
   | `NPR(a, b) => Value.nPr(eval(~context, a), eval(~context, b))
   | `NCR(a, b) => Value.nCr(eval(~context, a), eval(~context, b))
   | `Differential({x, body}) =>
-    NumericEvaluation.derivative(
-      createEvalCb(~context, body),
-      eval(~context, x),
-    )
+    Calculus.derivative(createEvalCb(~context, body), eval(~context, x))
   | `Integral({a, b, body}) =>
-    NumericEvaluation.integrate(
+    Calculus.integrate(
       createEvalCb(~context, body),
       eval(~context, a),
       eval(~context, b),
     )
   | `Sum({a, b, body}) =>
-    NumericEvaluation.sum(
+    Series.sum(
       createEvalCb(~context, body),
       eval(~context, a),
       eval(~context, b),
     )
   | `Product({a, b, body}) =>
-    NumericEvaluation.product(
+    Series.product(
       createEvalCb(~context, body),
       eval(~context, a),
       eval(~context, b),
@@ -92,7 +89,6 @@ and evalScalar = (~context, x): Types.scalar =>
 
 let eval = (~context=Belt.Map.String.empty, v) => eval(~context, v);
 
-exception Test(bool);
 let solveRoot = (body, initial) => {
   let fn = value => {
     let context = Belt.Map.String.empty->Belt.Map.String.set("x", value);
@@ -137,7 +133,7 @@ let solveVar3 = (x0, y0, z0, c0, x1, y1, z1, c1, x2, y2, z2, c2) => {
   let y2 = x2 != `NaN ? eval(y2) : `NaN;
   let z2 = y2 != `NaN ? eval(z2) : `NaN;
   let c2 = z2 != `NaN ? eval(c2) : `NaN;
-  c2 != `NaN
-    ? Value.var3(x0, y0, z0, c0, x1, y1, z1, c1, x2, y2, z2, c2)
-    : (`NaN, `NaN, `NaN);
+  c2 != `NaN ?
+    Value.var3(x0, y0, z0, c0, x1, y1, z1, c1, x2, y2, z2, c2) :
+    (`NaN, `NaN, `NaN);
 };

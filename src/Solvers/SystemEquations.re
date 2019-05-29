@@ -1,8 +1,4 @@
-let (+) = BasicMath.add;
-let (-) = BasicMath.sub;
-let ( * ) = BasicMath.mul;
-let (/) = BasicMath.div;
-let (~-) = BasicMath.neg;
+open Base;
 
 let var2 = (x0, y0, c0, x1, y1, c1) => {
   let denom = x0 * y1 - y0 * x1;
