@@ -1,5 +1,5 @@
 open Types;
-open OutputFormat;
+open Formatting_Output;
 
 let maxNaturalDenom = Z.of_int(1_000_000);
 let maxNaturalQ = Q.of_int(100_000_000);
@@ -34,13 +34,14 @@ let formatTuple = (q: Q.t, c: Constant.t, format): string => {
   switch (format.style) {
   | Natural when Z.(Q.den(q) < maxNaturalDenom) && Q.(abs(q) < maxNaturalQ) =>
     let (num, den) = (Q.num(q), Q.den(q));
-    let formatting = NumberFormat.createFormat(~digitSeparators=true, ());
+    let formatting =
+      Formatting_Number.createFormat(~digitSeparators=true, ());
     let minus = Q.(q < zero) ? formatOperator("-", format) : "";
 
     let (top, needsWrap) =
       switch (
-        NumberFormat.formatInteger(~base, formatting, Z.abs(num)),
-        Constant.toString(~format, c),
+        Formatting_Number.formatInteger(~base, formatting, Z.abs(num)),
+        Formatting_Constant.toString(~format, c),
       ) {
       | ("1", "") => (formatNumber("1", format), false)
       | ("1", constant) => (constant, false)
@@ -50,7 +51,10 @@ let formatTuple = (q: Q.t, c: Constant.t, format): string => {
         )
       };
 
-    switch (format.mode, NumberFormat.formatInteger(~base, formatting, den)) {
+    switch (
+      format.mode,
+      Formatting_Number.formatInteger(~base, formatting, den),
+    ) {
     | (_, "1") => minus ++ top
     | (String, bottom) => minus ++ top ++ "/" ++ bottom
     | (Tex, bottom) => minus ++ "\\frac{" ++ top ++ "}{" ++ bottom ++ "}"
@@ -69,9 +73,9 @@ let formatTuple = (q: Q.t, c: Constant.t, format): string => {
       && valueMagnitude <= format.decimalMaxMagnitude;
 
     if (insideMagnitudeThreshold) {
-      NumberFormat.formatDecimal(
+      Formatting_Number.formatDecimal(
         ~base,
-        NumberFormat.createFormat(
+        Formatting_Number.createFormat(
           ~maxDecimalPlaces=format.precision,
           ~digitSeparators=valueMagnitude >= 5.,
           (),
@@ -80,10 +84,13 @@ let formatTuple = (q: Q.t, c: Constant.t, format): string => {
       )
       ->formatNumber(format);
     } else {
-      NumberFormat.formatExponential(
+      Formatting_Number.formatExponential(
         ~base,
         ~exponent=QUtil.magnitude(q),
-        NumberFormat.createFormat(~maxDecimalPlaces=format.precision, ()),
+        Formatting_Number.createFormat(
+          ~maxDecimalPlaces=format.precision,
+          (),
+        ),
         q,
       )
       ->formatExponential(format);
@@ -93,12 +100,12 @@ let formatTuple = (q: Q.t, c: Constant.t, format): string => {
     let q = QCUtil.toQ(q, c);
     let exponent = QUtil.magnitude(q) * 3 / 3;
     let formatting =
-      NumberFormat.createFormat(
+      Formatting_Number.createFormat(
         ~minDecimalPlaces=format.precision,
         ~maxDecimalPlaces=format.precision,
         (),
       );
-    NumberFormat.formatExponential(~base, ~exponent, formatting, q)
+    Formatting_Number.formatExponential(~base, ~exponent, formatting, q)
     ->formatExponential(format);
   };
 };
@@ -135,7 +142,7 @@ let toString = (~format=default, ~inline=false, a: value): string => {
         | `Matrix(m) => m
         | `Vector(elements) => Matrix.ofVector(elements)
         };
-      open MatrixFormat;
+      open Formatting_Matrix;
       let fmt =
         switch (format.mode) {
         | String => matrixFormatString

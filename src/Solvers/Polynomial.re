@@ -1,12 +1,5 @@
 open Types;
-
-let (==) = BasicMath.equal;
-let (+) = BasicMath.add;
-let (-) = BasicMath.sub;
-let ( * ) = BasicMath.mul;
-let (/) = BasicMath.div;
-let (~-) = BasicMath.neg;
-let ( ** ) = Pow.pow;
+open Base;
 
 let ( **. ) = Pervasives.( ** );
 
@@ -25,7 +18,7 @@ let roundToPrecision = x =>
   int_of_float(x *. float_of_int(base))->ofInt / ofInt(base);
 
 let quadratic = (a, b, c) => {
-  let determinant = Pow.sqrt(b ** _2 - _4 * a * c);
+  let determinant = sqrt(b ** _2 - _4 * a * c);
   let x1 = (- b + determinant) / (_2 * a);
   let x2 = (- b - determinant) / (_2 * a);
   (x1, x2);
@@ -53,27 +46,28 @@ let _cubicRaphson = (a, b, c, d) => {
   let cf = toFloat(c);
   let df = toFloat(d);
 
-  values->Belt.List.reduce(None, (current, value) =>
-    switch (current) {
-    | None =>
-      let x0f = Raphson.cubic(af, bf, cf, df, value);
-      let x0 = roundToPrecision(x0f);
-      let fx = a * x0 ** _3 + b * x0 ** _2 + c * x0 + d;
-      if (FloatUtil.isFinite(x0f) && fx == zero) {
-        let (x1, x2) = quadratic(a, a * x0 + b, a * x0 ** _2 + b * x0 + c);
-        Some((x0, x1, x2));
-      } else {
-        None;
-      };
-    | v => v
-    }
-  );
+  values
+  ->Belt.List.reduce(None, (current, value) =>
+      switch (current) {
+      | None =>
+        let x0f = Raphson.cubic(af, bf, cf, df, value);
+        let x0 = roundToPrecision(x0f);
+        let fx = a * x0 ** _3 + b * x0 ** _2 + c * x0 + d;
+        if (FloatUtil.isFinite(x0f) && fx == zero) {
+          let (x1, x2) = quadratic(a, a * x0 + b, a * x0 ** _2 + b * x0 + c);
+          Some((x0, x1, x2));
+        } else {
+          None;
+        };
+      | v => v
+      }
+    );
 };
 
 let _cubicNumeric = (a, b, c, d) => {
   /* See https://math.stackexchange.com/questions/61725/is-there-a-systematic-way-of-solving-cubic-equations */
   let q =
-    Pow.sqrt(
+    sqrt(
       (_2 * b ** _3 - _9 * a * b * c + _27 * a ** _2 * d)
       ** _2
       - _4
@@ -98,20 +92,20 @@ let _cubicNumeric = (a, b, c, d) => {
       * _1
       / (_6 * a)
       + c0
-      * Pow.sqrt(- _3)
+      * sqrt(- _3)
       / (_6 * a)
       + determinant
       / (_6 * a * c0)
-      - Pow.sqrt(- _3)
+      - sqrt(- _3)
       * determinant
       / (_6 * a * c0);
     let x3 =
       - b
       / (_3 * a)
       + c0
-      * (_1 - Pow.sqrt(- _3))
+      * (_1 - sqrt(- _3))
       / (_6 * a)
-      + (_1 + Pow.sqrt(- _3))
+      + (_1 + sqrt(- _3))
       * determinant
       / (_6 * a * c0);
     (x1, x2, x3);

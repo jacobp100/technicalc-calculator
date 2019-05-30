@@ -39,8 +39,8 @@ let exp = (a: value): value =>
     let (expQ, expC) = expTuple(aReQ, aReC);
     let (reQ, reC) = TrigTuples.cosReal(aImQ, aImC);
     let (imQ, imC) = TrigTuples.sinReal(aImQ, aImC);
-    let (reQ, reC) = BasicMath.mulTuple(expQ, expC, reQ, reC);
-    let (imQ, imC) = BasicMath.mulTuple(expQ, expC, imQ, imC);
+    let (reQ, reC) = Base_Operators.mulTuple(expQ, expC, reQ, reC);
+    let (imQ, imC) = Base_Operators.mulTuple(expQ, expC, imQ, imC);
     complexQC(reQ, reC, imQ, imC);
   | `Vector(_)
   | `Matrix(_)
@@ -67,17 +67,17 @@ let log = (a: value): value =>
     let (reQ, reC) = logRealTuple(gtZero, reC);
     realQC(reQ, reC);
   | `Real(isMinusOne, Constant.Unit) when Q.(isMinusOne == minus_one) =>
-    BasicMath.(pi * i)
+    Base_Operators.mul(pi, i)
   | (`Real(_) | `Imag(_) | `Complex(_)) as vV =>
     let (reQ, reC) =
       switch (vV) {
-      | `Real(reQ, reC) => BasicMath.mulTuple(reQ, reC, reQ, reC)
-      | `Imag(imQ, imC) => BasicMath.mulTuple(imQ, imC, imQ, imC)
+      | `Real(reQ, reC) => Base_Operators.mulTuple(reQ, reC, reQ, reC)
+      | `Imag(imQ, imC) => Base_Operators.mulTuple(imQ, imC, imQ, imC)
       | `Complex(reQ, reC, imQ, imC) =>
-        BasicMath.magnitudeSquaredTuple(reQ, reC, imQ, imC)
+        Base_Operators.magnitudeSquaredTuple(reQ, reC, imQ, imC)
       };
     let (reQ, reC) = logRealTuple(reQ, reC);
-    let (reQ, reC) = BasicMath.divTuple(reQ, reC, Q.of_int(2), Unit);
+    let (reQ, reC) = Base_Operators.divTuple(reQ, reC, Q.of_int(2), Unit);
     let (imQ, imC) =
       switch (vV) {
       | `Real(reQ, reC) => argTuple(reQ, reC, Q.zero, Unit)

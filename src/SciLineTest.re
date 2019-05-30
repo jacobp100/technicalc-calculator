@@ -36,7 +36,7 @@ type format = {
 };
 
 let toString = (x, maybeFormat) => {
-  open OutputFormat;
+  open Formatting_Output;
   let f = maybeFormat->Belt.Option.getWithDefault(format());
 
   let (mode, inline) =
@@ -57,14 +57,19 @@ let toString = (x, maybeFormat) => {
       },
     precision:
       precisionGet(f)
-      ->Belt.Option.getWithDefault(OutputFormat.default.precision),
-    base: baseGet(f)->Belt.Option.getWithDefault(OutputFormat.default.base),
+      ->Belt.Option.getWithDefault(Formatting_Output.default.precision),
+    base:
+      baseGet(f)->Belt.Option.getWithDefault(Formatting_Output.default.base),
     decimalMinMagnitude:
       decimalMinMagnitudeGet(f)
-      ->Belt.Option.getWithDefault(OutputFormat.default.decimalMinMagnitude),
+      ->Belt.Option.getWithDefault(
+          Formatting_Output.default.decimalMinMagnitude,
+        ),
     decimalMaxMagnitude:
       decimalMaxMagnitudeGet(f)
-      ->Belt.Option.getWithDefault(OutputFormat.default.decimalMaxMagnitude),
+      ->Belt.Option.getWithDefault(
+          Formatting_Output.default.decimalMaxMagnitude,
+        ),
   };
 
   Value.toString(~format, ~inline, x);
@@ -73,7 +78,7 @@ let toString = (x, maybeFormat) => {
 let ofComplexFloats = (re, im) =>
   Value.add(Types.ofFloat(re), Value.mul(Types.ofFloat(im), Types.i));
 
-let toComplexFloats = (a): (float, float) =>
+let toComplexFloats = a: (float, float) =>
   switch (a) {
   | `Zero => (0., 0.)
   | `Real(q, c) => (QCUtil.toFloat(q, c), 0.)
