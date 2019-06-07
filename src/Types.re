@@ -4,10 +4,12 @@ type scalar = [
   | `Imag(Q.t, Constant.t)
   | `Complex(Q.t, Constant.t, Q.t, Constant.t)
 ];
+type percent = [ | `Percent(scalar)];
 type matrix = [ | `Matrix(Matrix.t(scalar))];
 type vector = [ | `Vector(array(scalar))];
-type value = [ scalar | matrix | vector | `NaN];
+type value = [ percent | scalar | matrix | vector | `NaN];
 
+external valueOfPercent: percent => value = "%identity";
 external valueOfScalar: scalar => value = "%identity";
 external valueOfMatrix: matrix => value = "%identity";
 external valueOfVector: vector => value = "%identity";
@@ -89,6 +91,13 @@ let normalize = (v: value): value =>
   | `Complex(reQ, _, imQ, _) as scalar =>
     qIsNaN(reQ) || qIsNaN(imQ) ?
       `NaN : normalizeScalar(scalar)->valueOfScalar
+  | `Percent(p) =>
+    if (scalarIsNaN(p)) {
+      `NaN;
+    } else {
+      let normalized = normalizeScalar(p);
+      normalized === p ? v : `Percent(normalizeScalar(p));
+    }
   | `Vector(elements) =>
     let isNaN = elements->Belt.Array.some(scalarIsNaN);
     isNaN ? `NaN : `Vector(elements->Belt.Array.map(normalizeScalar));
@@ -98,9 +107,9 @@ let normalize = (v: value): value =>
   | `NaN => `NaN
   };
 
-let ofInt = (a): value => `Real((Q.of_int(a), Unit))->normalize;
+let ofInt = a: value => `Real((Q.of_int(a), Unit))->normalize;
 
-let ofFloat = (v): value =>
+let ofFloat = v: value =>
   switch (classify_float(v)) {
   | FP_normal
   | FP_subnormal =>
@@ -153,7 +162,8 @@ let imagQC = (q: Q.t, c: Constant.t): value => `Imag((q, c))->normalize;
 let complex = (re, im): value => `Complex((re, Unit, im, Unit))->normalize;
 let complexQC = (reQ, reC, imQ, imC): value =>
   `Complex((reQ, reC, imQ, imC))->normalize;
-let vector = (elements): value => `Vector(elements)->normalize;
+let percent = v => `Percent(v)->normalize;
+let vector = elements: value => `Vector(elements)->normalize;
 let vector2 = (a, b): value => `Vector([|a, b|])->normalize;
 let vector3 = (a, b, c): value => `Vector([|a, b, c|])->normalize;
 let matrix = (numRows, numColumns, elements): value =>

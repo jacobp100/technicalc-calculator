@@ -14,5 +14,6 @@ let compareTrigReal = a =>
   | `Complex(reQ, reC, imQ, imC) => `Complex((reQ, reC, imQ, imC))
   | `Vector(_) => `Vector
   | `Matrix(_) => `Matrix
+  | `Percent(_) => `Percent
   | `NaN => `NaN
   };

@@ -150,6 +150,7 @@ let toString = (~format=default, ~inline=false, a: value): string => {
         | MathML => matrixFormatMathML
         };
       formatMatrix(Matrix.map(m, s => formatScalar(s, format)), fmt);
+    | `Percent(p) => formatScalar(p, format) ++ formatOperator("%", format)
     | `NaN => formatVariable("NaN", format)
     };
 

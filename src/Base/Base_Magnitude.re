@@ -5,6 +5,7 @@ let abs = a =>
   switch (a) {
   | (`Zero | `Real(_) | `Imag(_) | `Complex(_)) as aV =>
     Base_Functions.absScalar(aV)->valueOfScalar
+  | `Percent(p) => `Percent(Base_Functions.absScalar(p))
   | `Matrix({numRows: 2, numColumns: 2, elements: [|a, b, c, d|]}) =>
     let (-) = Base_Operators.subScalar;
     let ( * ) = Base_Operators.mulScalar;

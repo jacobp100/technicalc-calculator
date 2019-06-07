@@ -12,6 +12,7 @@ let sin = (x: value): value =>
     Base.(i * (exp(- iX) - exp(iX)) / ofInt(2));
   | `Vector(_)
   | `Matrix(_)
+  | `Percent(_)
   | `NaN => `NaN
   };
 
@@ -36,6 +37,7 @@ let cos = (x: value): value =>
     Base.((exp(iX) + exp(- iX)) / ofInt(2));
   | `Vector(_)
   | `Matrix(_)
+  | `Percent(_)
   | `NaN => `NaN
   };
 
@@ -68,6 +70,7 @@ let tan = (x: value): value =>
     Base.((a - b) / ((a + b) * i));
   | `Matrix
   | `Vector
+  | `Percent
   | `NaN => `NaN
   };
 
@@ -109,6 +112,7 @@ let asin = (a: value): value =>
     }
   | `Matrix
   | `Vector
+  | `Percent
   | `NaN => `NaN
   };
 
@@ -147,6 +151,7 @@ let acos = (a: value): value =>
     }
   | `Matrix
   | `Vector
+  | `Percent
   | `NaN => `NaN
   };
 
@@ -200,6 +205,7 @@ let atan = (a: value): value =>
     complex(Q.(- t1im / two), Q.(t1re / two));
   | `Matrix
   | `Vector
+  | `Percent
   | `NaN => `NaN
   };
 

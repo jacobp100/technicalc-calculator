@@ -61,11 +61,19 @@ let decodeScalar = (a: scalarEncoding): scalar =>
 
 type vectorEncoding = [ | `Vector(array(scalarEncoding))];
 type matrixEncoding = [ | `Matrix(Matrix.t(scalarEncoding))];
+type percentEncoding = [ | `Percent(scalarEncoding)];
 
-type encoding = [ scalarEncoding | vectorEncoding | matrixEncoding | `NaN];
+type encoding = [
+  scalarEncoding
+  | vectorEncoding
+  | matrixEncoding
+  | percentEncoding
+  | `NaN
+];
 
 external scalarEncodingToEncoding: scalarEncoding => encoding = "%identity";
 external matrixEncodingToEncoding: matrixEncoding => encoding = "%identity";
+external percentEncodingToEncoding: percentEncoding => encoding = "%identity";
 
 let encode = (a: value): encoding =>
   switch (a) {
@@ -73,6 +81,7 @@ let encode = (a: value): encoding =>
     encodeScalar(aV)->scalarEncodingToEncoding
   | `Vector(elements) => `Vector(elements->Belt.Array.map(encodeScalar))
   | `Matrix(mat) => `Matrix(mat->Matrix.map(encodeScalar))
+  | `Percent(p) => `Percent(encodeScalar(p))
   | `NaN => `NaN
   };
 
@@ -82,5 +91,6 @@ let decode = (a: encoding): value =>
     decodeScalar(aV)->valueOfScalar
   | `Vector(elements) => `Vector(elements->Belt.Array.map(decodeScalar))
   | `Matrix(mat) => `Matrix(mat->Matrix.map(decodeScalar))
+  | `Percent(p) => `Percent(decodeScalar(p))
   | `NaN => `NaN
   };

@@ -25,7 +25,7 @@ let expTuple = (q, c) =>
   | _ => (QCUtil.mapFloat(q, c, exp), Unit)
   };
 
-let exp = (a: value): value =>
+let rec exp = (a: value): value =>
   switch (a) {
   | `Zero => one
   | `Real(reQ, reC) =>
@@ -42,6 +42,7 @@ let exp = (a: value): value =>
     let (reQ, reC) = Base_Operators.mulTuple(expQ, expC, reQ, reC);
     let (imQ, imC) = Base_Operators.mulTuple(expQ, expC, imQ, imC);
     complexQC(reQ, reC, imQ, imC);
+  | `Percent(p) => exp(Base_Util.percentToNumerical(p))
   | `Vector(_)
   | `Matrix(_)
   | `NaN => `NaN
@@ -60,7 +61,7 @@ let logRealTuple = (q, c) =>
   | _ => invalid_arg("logRealTuple")
   };
 
-let log = (a: value): value =>
+let rec log = (a: value): value =>
   switch (a) {
   | `Zero => `NaN
   | `Real(gtZero, reC) when Q.(gtZero > zero) =>
@@ -85,6 +86,7 @@ let log = (a: value): value =>
       | `Complex(reQ, reC, imQ, imC) => argTuple(reQ, reC, imQ, imC)
       };
     complexQC(reQ, reC, imQ, imC);
+  | `Percent(p) => log(Base_Util.percentToNumerical(p))
   | `Vector(_)
   | `Matrix(_)
   | `NaN => `NaN

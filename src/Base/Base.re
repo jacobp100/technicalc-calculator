@@ -1,3 +1,5 @@
+include Base_Util;
+
 let equal = Base_Comparison.equal;
 let neg = Base_Functions.neg;
 let abs = Base_Magnitude.abs;

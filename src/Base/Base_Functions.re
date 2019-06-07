@@ -21,6 +21,7 @@ let roundScalar = mapQScalar(_, q => QUtil.round(q)->Q.of_bigint);
 let mapQValue = (a: value, fn: scalar => scalar) =>
   switch (a) {
   | (`Zero | `Real(_) | `Imag(_) | `Complex(_)) as aV => fn(aV)->valueOfScalar
+  | `Percent(p) => `Percent(fn(p))
   | `Vector(elements) => `Vector(elements->Belt.Array.map(fn))
   | `Matrix(elements) => `Matrix(elements->Matrix.map(fn))
   | `NaN => `NaN

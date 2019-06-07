@@ -18,6 +18,7 @@ let equal = (a: value, b: value): bool =>
       (`Real(_) | `Imag(_) | `Complex(_)) as bV,
     ) =>
     equalScalar(aV, bV)
+  | (`Percent(aP), `Percent(bP)) => equalScalar(aP, bP)
   | (`Vector(aElements), `Vector(bElements))
       when Belt.Array.length(aElements) == Belt.Array.length(bElements) =>
     Belt.Array.every2(aElements, bElements, equalScalar)
