@@ -36,7 +36,7 @@ type format = {
 };
 
 let toString = (x, maybeFormat) => {
-  open Formatting_Output;
+  open Formatting_Types;
   let f = maybeFormat->Belt.Option.getWithDefault(format());
 
   let (mode, inline) =
@@ -57,18 +57,18 @@ let toString = (x, maybeFormat) => {
       },
     precision:
       precisionGet(f)
-      ->Belt.Option.getWithDefault(Formatting_Output.default.precision),
+      ->Belt.Option.getWithDefault(Formatting_Types.default.precision),
     base:
-      baseGet(f)->Belt.Option.getWithDefault(Formatting_Output.default.base),
+      baseGet(f)->Belt.Option.getWithDefault(Formatting_Types.default.base),
     decimalMinMagnitude:
       decimalMinMagnitudeGet(f)
       ->Belt.Option.getWithDefault(
-          Formatting_Output.default.decimalMinMagnitude,
+          Formatting_Types.default.decimalMinMagnitude,
         ),
     decimalMaxMagnitude:
       decimalMaxMagnitudeGet(f)
       ->Belt.Option.getWithDefault(
-          Formatting_Output.default.decimalMaxMagnitude,
+          Formatting_Types.default.decimalMaxMagnitude,
         ),
   };
 

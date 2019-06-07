@@ -1,5 +1,5 @@
 open Types;
-open Formatting_Output;
+open Formatting_Types;
 
 let maxNaturalDenom = Z.of_int(1_000_000);
 let maxNaturalQ = Q.of_int(100_000_000);

@@ -1,11 +1,13 @@
+open Formatting_Types;
+
 let _f = (format, v) =>
   Formatting_Number.formatInteger(
-    ~base=Formatting_Output.(format.base),
+    ~base=format.base,
     Formatting_Number.createFormat(~digitSeparators=false, ()),
     v,
   );
 
-let toString = (~format=Formatting_Output.default, a) =>
+let toString = (~format=default, a) =>
   switch (format.mode, a) {
   | (_, Constant.Unit) => ""
   | (String, Pi) => "pi"
