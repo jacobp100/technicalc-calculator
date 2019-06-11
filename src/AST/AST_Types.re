@@ -31,6 +31,7 @@ type t = [
   | `OfEncoded(Encoding.encoding)
   | `Vector(array(t))
   | `Matrix(Matrix.t(t))
+  | `Percent(t)
   | `Variable(string)
   | `Add(t, t)
   | `Sub(t, t)
@@ -124,6 +125,7 @@ let gamma = (a): t => `Gamma(a);
 let factorial = (a): t => `Factorial(a);
 let rand = (): t => `Rand;
 let randInt = (a, b): t => `RandInt((a, b));
+let percent = (a): t => `Percent(a);
 let nPr = (a, b): t => `NPR((a, b));
 let nCr = (a, b): t => `NCR((a, b));
 let differential = (x, body): t => `Differential({x, body});

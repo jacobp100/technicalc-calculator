@@ -1,4 +1,4 @@
-let rec eval = (~context, node: ASTTypes.t): Types.value =>
+let rec eval = (~context, node: AST_Types.t): Types.value =>
   switch (node) {
   | `NaN => `NaN
   | `Zero => Value.zero
@@ -20,6 +20,7 @@ let rec eval = (~context, node: ASTTypes.t): Types.value =>
       numColumns,
       elements->Belt.Array.map(evalScalar(~context)),
     )
+  | `Percent(a) => Types.percent(evalScalar(~context, a))
   | `OfEncoded(a) => Encoding.decode(a)
   | `Variable(ident) =>
     Belt.Map.String.getWithDefault(context, ident, Types.nan)
@@ -133,7 +134,7 @@ let solveVar3 = (x0, y0, z0, c0, x1, y1, z1, c1, x2, y2, z2, c2) => {
   let y2 = x2 != `NaN ? eval(y2) : `NaN;
   let z2 = y2 != `NaN ? eval(z2) : `NaN;
   let c2 = z2 != `NaN ? eval(c2) : `NaN;
-  c2 != `NaN ?
-    Value.var3(x0, y0, z0, c0, x1, y1, z1, c1, x2, y2, z2, c2) :
-    (`NaN, `NaN, `NaN);
+  c2 != `NaN
+    ? Value.var3(x0, y0, z0, c0, x1, y1, z1, c1, x2, y2, z2, c2)
+    : (`NaN, `NaN, `NaN);
 };

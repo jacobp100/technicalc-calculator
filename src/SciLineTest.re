@@ -1,4 +1,3 @@
-include ASTTypes;
 include AST;
 
 let encode = Value.encode;
@@ -78,7 +77,7 @@ let toString = (x, maybeFormat) => {
 let ofComplexFloats = (re, im) =>
   Value.add(Types.ofFloat(re), Value.mul(Types.ofFloat(im), Types.i));
 
-let toComplexFloats = a: (float, float) =>
+let toComplexFloats = (a): (float, float) =>
   switch (a) {
   | `Zero => (0., 0.)
   | `Real(q, c) => (QCUtil.toFloat(q, c), 0.)
