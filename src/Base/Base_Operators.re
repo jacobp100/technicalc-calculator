@@ -2,12 +2,14 @@ open Types;
 open Matrix;
 
 let addTuple = (aQ, aC, bQ, bC) =>
-  Constant.(aC == bC) ?
-    (Q.(aQ + bQ), aC) : (Q.(QCUtil.toQ(aQ, aC) + QCUtil.toQ(bQ, bC)), Unit);
+  Constant.(aC == bC)
+    ? (Q.(aQ + bQ), aC)
+    : (Q.(QCUtil.toQ(aQ, aC) + QCUtil.toQ(bQ, bC)), Unit);
 
 let subTuple = (aQ, aC, bQ, bC) =>
-  Constant.(aC == bC) ?
-    (Q.(aQ - bQ), aC) : (Q.(QCUtil.toQ(aQ, aC) - QCUtil.toQ(bQ, bC)), Unit);
+  Constant.(aC == bC)
+    ? (Q.(aQ - bQ), aC)
+    : (Q.(QCUtil.toQ(aQ, aC) - QCUtil.toQ(bQ, bC)), Unit);
 
 let mulTuple = (aQ, aC, bQ, bC) =>
   switch (aC, bC) {
@@ -165,7 +167,11 @@ let add = (a: value, b: value): value =>
     ) =>
     addScalar(aV, bV)->valueOfScalar
   | ((`Real(_) | `Imag(_) | `Complex(_)) as aV, `Percent(p)) =>
-    addScalar(aV, mulScalar(aV, p))->valueOfScalar
+    addScalar(
+      aV,
+      mulScalar(aV, p)->divScalar(`Real((Q.of_int(100), Constant.Unit))),
+    )
+    ->valueOfScalar
   | (`Vector(aElements), `Vector(bElements))
       when Belt.Array.length(aElements) == Belt.Array.length(bElements) =>
     `Vector(Belt.Array.zipBy(aElements, bElements, addScalar))
