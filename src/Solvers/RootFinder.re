@@ -6,7 +6,6 @@ let steffensenRoot = (f, x) => {
   let floatIterations = 50;
 
   let rec resolveReal = (~iterations=realIterations, x) => {
-    let _ = [%raw "console.warn('real ' + iterations)"];
     let fx = f(x);
     if (fx == zero) {
       x;
@@ -24,7 +23,6 @@ let steffensenRoot = (f, x) => {
     };
   }
   and resolveFloat = (~iterations, x) => {
-    let _ = [%raw "console.warn('float ' + _iterations + ' (' + x$2 + ')')"];
     let x' = real(Q.of_float(x));
     let fx' = f(x');
     if (fx' == zero) {
