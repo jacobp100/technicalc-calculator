@@ -23,3 +23,4 @@ let ( * ) = mul;
 let (/) = div;
 let ( ** ) = pow;
 let (==) = equal;
+let (!=) = (a, b) => !equal(a, b);
