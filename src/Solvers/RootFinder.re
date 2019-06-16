@@ -60,7 +60,7 @@ let solveRoot = (f, initial) => {
     } else if (iterations > 0) {
       /*
        Not calling bisect on each branch here - and only calling it once below -
-       means we can avoid creating a closure
+       means we can avoid creating a closure (check the JS output)
        */
       let op =
         switch (previous) {
@@ -83,13 +83,15 @@ let solveRoot = (f, initial) => {
         if (f'x != 0.) {
           let xNext = x -. fx /. f'x;
           newtonFloat(~iterations, ~previous, xNext, ());
-        } else if (x != 0.) {
+        } else {
           /* Steffensen's method */
           let gx = f(Base.(xReal + fxReal))->toFloat;
-          let xNext = x -. fx /. gx;
-          newtonFloat(~iterations, ~previous, xNext, ());
-        } else {
-          nan;
+          if (gx != 0.) {
+            let xNext = x -. fx /. gx;
+            newtonFloat(~iterations, ~previous, xNext, ());
+          } else {
+            nan;
+          };
         };
       };
     } else {
