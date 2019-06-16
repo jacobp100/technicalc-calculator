@@ -30,3 +30,10 @@ it("solves x^5 - 6", () => {
   const value = AST.solveRoot(expr, start);
   expect(value).toMatchJsValue(6 ** (1 / 5));
 });
+
+it("solves x^5 - 6 starting at 1000", () => {
+  const expr = AST.sub(AST.pow(AST.variable("x"), AST.ofInt(5)), AST.ofInt(6));
+  const start = AST.ofInt(1000);
+  const value = AST.solveRoot(expr, start);
+  expect(value).toMatchJsValue(6 ** (1 / 5));
+});

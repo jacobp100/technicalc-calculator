@@ -18,6 +18,9 @@ open Types;
 
  If we experience a sign change when doing NR, we switch to bisection. For
  functions like sin, it's pretty much impossible to not get a root change.
+
+ One optimisation we do is we record both the x and f(x) of the previous
+ iteration. Should
  */
 
 type previous = {
@@ -27,8 +30,9 @@ type previous = {
 
 let solveRoot = (f, initial) => {
   let precision = 1e-8;
+  let optimiseGradientLimit = 2.;
 
-  let rec bisectFloat = (~iterations=50, ~negativeX, ~positiveX, ()) => {
+  let rec bisectFloat = (~iterations=100, ~negativeX, ~positiveX, ()) => {
     let mFloat = (negativeX +. positiveX) /. 2.0;
     let m = real(Q.of_float(mFloat));
     let fm = f(m);
@@ -47,7 +51,7 @@ let solveRoot = (f, initial) => {
     };
   };
 
-  let rec newtonFloat = (~iterations=20, ~fxReal=?, ~previous=None, x, ()) => {
+  let rec newtonFloat = (~iterations=100, ~fxReal=?, ~previous=None, x, ()) => {
     let xReal = ofFloat(x);
     let fxReal =
       switch (fxReal) {
@@ -68,7 +72,10 @@ let solveRoot = (f, initial) => {
           `Bisect((xPrev, x))
         | Some({xPrev, fxPrev}) when fx < 0. && fxPrev > 0. =>
           `Bisect((x, xPrev))
-        | Some({xPrev, fxPrev}) when abs_float(fx -. fxPrev) < 1e-6 =>
+        | Some({xPrev, fxPrev})
+            when
+              abs_float(fx -. fxPrev) < optimiseGradientLimit
+              && abs_float(x -. xPrev) < optimiseGradientLimit =>
           `Gradient((fx -. fxPrev) /. (x -. xPrev))
         | _ => `Gradient(Calculus.derivative(f, xReal)->toFloat)
         };
