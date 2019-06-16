@@ -37,3 +37,14 @@ it("solves x^5 - 6 starting at 1000", () => {
   const value = AST.solveRoot(expr, start);
   expect(value).toMatchJsValue(6 ** (1 / 5));
 });
+
+it("solves 6x^3 - 5x^2 - 17x + 6", () => {
+  const a = AST.mul(AST.ofInt(6), AST.pow(AST.variable("x"), AST.ofInt(3)));
+  const b = AST.mul(AST.ofInt(-5), AST.pow(AST.variable("x"), AST.ofInt(2)));
+  const c = AST.mul(AST.ofInt(-17), AST.variable("x"));
+  const d = AST.ofInt(6);
+  const expr = [b, c, d].reduce(AST.add, a);
+  const start = AST.ofInt(1000);
+  const value = AST.solveRoot(expr, start);
+  expect(value).toMatchJsValue(2);
+});
