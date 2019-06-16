@@ -1,51 +1,116 @@
 open Types;
-open Base;
 
-let steffensenRoot = (f, x) => {
-  let realIterations = 3;
-  let floatIterations = 50;
+/*
+ Root finding!
 
-  let rec resolveReal = (~iterations=realIterations, x) => {
-    let fx = f(x);
-    if (fx == zero) {
-      x;
+ We start by using the Newton Raphson method.
+
+ We do one attempt at NR using arbitrary precision rationals and constants (as
+ does the rest of this library). However, this quickly becomes way too slow to
+ continue using in practise. After one iteration of that, we switch to floats.
+
+ NR gets us a good amount of the way; wowever, in certain scenarios we have to
+ switch to other methods.
+
+ Firstly, if we get a gradient of zero for an iteration (where x is non-zero),
+ we use Steffensen's method instead. This has the same convergence as NR, but
+ can pick roots far away from the origin
+
+ If we experience a sign change when doing NR, we switch to bisection. For
+ functions like sin, it's pretty much impossible to not get a root change.
+ */
+
+type previous = {
+  xPrev: float,
+  fxPrev: float,
+};
+
+let solveRoot = (f, initial) => {
+  let precision = 1e-8;
+
+  let rec bisectFloat = (~iterations=50, ~negativeX, ~positiveX, ()) => {
+    let mFloat = (negativeX +. positiveX) /. 2.0;
+    let m = real(Q.of_float(mFloat));
+    let fm = f(m);
+    let fmFloat = toFloat(fm);
+    if (abs_float(fmFloat) < precision) {
+      m;
     } else if (iterations > 0) {
-      let gx = f(x + fx) / fx - one;
-      if (gx != nan) {
-        let iterations = Pervasives.(iterations - 1);
-        let x' = x - fx / gx;
-        resolveReal(~iterations, x');
+      let iterations = iterations - 1;
+      if (fmFloat > 0.) {
+        bisectFloat(~iterations, ~negativeX, ~positiveX=mFloat, ());
       } else {
-        nan;
+        bisectFloat(~iterations, ~negativeX=mFloat, ~positiveX, ());
       };
     } else {
-      resolveFloat(~iterations=floatIterations, toFloat(x));
-    };
-  }
-  and resolveFloat = (~iterations, x) => {
-    let x' = real(Q.of_float(x));
-    let fx' = f(x');
-    if (fx' == zero) {
-      x';
-    } else if (iterations > 0) {
-      let iterations = Pervasives.(iterations - 1);
-      let fx = toFloat(fx');
-      let gx = f(real(Q.of_float(x +. fx)))->toFloat /. fx -. 1.;
-      let x = x -. fx /. gx;
-      if (FloatUtil.isFinite(x)) {
-        resolveFloat(~iterations, x);
-      } else {
-        nan;
-      };
-    } else {
-      let delta = toFloat(fx')->abs_float /. x;
-      if (delta < 0.01) {
-        x';
-      } else {
-        nan;
-      };
+      nan;
     };
   };
 
-  resolveReal(x);
+  let rec newtonFloat = (~iterations=20, ~fxReal=?, ~previous=None, x, ()) => {
+    let xReal = ofFloat(x);
+    let fxReal =
+      switch (fxReal) {
+      | Some(fxReal) => fxReal
+      | None => f(xReal)
+      };
+    let fx = fxReal->toFloat;
+    if (abs_float(fx) < precision) {
+      xReal;
+    } else if (iterations > 0) {
+      /*
+       Not calling bisect on each branch here - and only calling it once below -
+       means we can avoid creating a closure
+       */
+      let op =
+        switch (previous) {
+        | Some({xPrev, fxPrev}) when fx > 0. && fxPrev < 0. =>
+          `Bisect((xPrev, x))
+        | Some({xPrev, fxPrev}) when fx < 0. && fxPrev > 0. =>
+          `Bisect((x, xPrev))
+        | Some({xPrev, fxPrev}) when abs_float(fx -. fxPrev) < 1e-6 =>
+          `Gradient((fx -. fxPrev) /. (x -. xPrev))
+        | _ => `Gradient(Calculus.derivative(f, xReal)->toFloat)
+        };
+
+      switch (op) {
+      | `Bisect(negativeX, positiveX) =>
+        bisectFloat(~negativeX, ~positiveX, ())
+      | `Gradient(f'x) =>
+        let iterations = iterations - 1;
+        let previous = Some({xPrev: x, fxPrev: fx});
+
+        if (f'x != 0.) {
+          let xNext = x -. fx /. f'x;
+          newtonFloat(~iterations, ~previous, xNext, ());
+        } else if (x != 0.) {
+          /* Steffensen's method */
+          let gx = f(Base.(xReal + fxReal))->toFloat;
+          let xNext = x -. fx /. gx;
+          newtonFloat(~iterations, ~previous, xNext, ());
+        } else {
+          nan;
+        };
+      };
+    } else {
+      nan;
+    };
+  };
+
+  let newtonPrecise = x => {
+    let fx = f(x);
+    let f'x = Calculus.derivative(f, x);
+    let (xPrev, fxPrev) = (x, fx);
+    let x = Base.(x - fx / f'x);
+    let fx = f(x);
+    if (toFloat(fx)->abs_float < precision) {
+      x;
+    } else {
+      let previous = Some({xPrev: toFloat(xPrev), fxPrev: toFloat(fxPrev)});
+      let x = toFloat(x);
+      newtonFloat(~previous, ~fxReal=fx, x, ());
+    };
+  };
+
+  newtonPrecise(initial);
 };

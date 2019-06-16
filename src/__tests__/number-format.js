@@ -1,10 +1,10 @@
 const BN = require("bn.js");
 const rat = require("big-rat");
-const NumberFormat = require("../Formatting/NumberFormat.bs");
+const Formatting = require("../Formatting/Formatting_Number.bs");
 
 it("should format exponentials without a custom exponent format", () => {
-  const format = NumberFormat.createFormat();
+  const format = Formatting.createFormat();
   expect(
-    NumberFormat.formatExponential(undefined, new BN(1), format, rat(10))
+    Formatting.formatExponential(undefined, new BN(1), format, rat(10))
   ).toEqual(["1", "1"]);
 });

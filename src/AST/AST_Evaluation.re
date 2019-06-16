@@ -97,7 +97,7 @@ let solveRoot = (body, initial) => {
   };
 
   let initial = eval(initial);
-  initial != `NaN ? Value.steffensenRoot(fn, initial) : `NaN;
+  initial != `NaN ? Value.solveRoot(fn, initial) : `NaN;
 };
 let solveQuadratic = (a, b, c) => {
   let a = eval(a);
