@@ -14,9 +14,21 @@ type t =
   | Rational(int, int, Real_Constant.t)
   | Float(float);
 
-let equal = (a, b) => a == b;
+let ratFloat = (n, d, c) =>
+  float_of_int(n) /. float_of_int(d) *. Real_Constant.toFloat(c);
 
+let one = Rational(1, 1, Unit);
+let minusOne = Rational(-1, 1, Unit);
+let zero = Rational(0, 1, Unit);
+let nan = Rational(1, 0, Unit);
+let equal = (a, b) => a == b;
 let isNaN = _ => false;
+
+let toFloat = a =>
+  switch (a) {
+  | Rational(n, d, c) => ratFloat(n, d, c)
+  | Float(f) => f
+  };
 
 let fitsInt32 = n => I64Ops.(compare(of_int(to_int(n)), n) === 0);
 
@@ -46,9 +58,6 @@ let rat64 = (n, d, c) => {
     Float(to_float(n) /. to_float(d));
   };
 };
-
-let ratFloat = (n, d, c) =>
-  float_of_int(n) /. float_of_int(d) *. Real_Constant.toFloat(c);
 
 let addRat = (an, ad, bn, bd, c) => {
   open I64Ops;
@@ -136,7 +145,7 @@ let divRat = (an, ad, bn, bd, c) => {
 
 let div = (a, b) =>
   switch (a, b) {
-  | (_, Rational(0, _, _)) => Float(nan)
+  | (_, Rational(0, _, _)) => nan
   | (Rational(an, ad, ac), Rational(bn, bd, bc)) when ac == bc =>
     divRat(an, ad, bn, bd, Unit)
   | (Rational(an, ad, c), Rational(bn, bd, Unit)) =>
