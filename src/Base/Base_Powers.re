@@ -27,8 +27,7 @@ let rec pow = (a: value, b: value): value =>
   | (`Zero, `Real(_) | `Imag(_) | `Complex(_)) => `Zero
   | (`Real(_) | `Imag(_) | `Complex(_), `Zero) => one
   | (`Zero, `Zero) => `NaN
-  | (`Real(aReQ, aReC), `Real(isHalf, Constant.Unit))
-      when Q.(isHalf == qHalf) =>
+  | (`Real(re), `Real(Rational(1, 2, Unit))) =>
     let q = Q.abs(aReQ);
     let denSqrt = Q.den(q)->QUtil.sqrtZ;
     let (q, c) =
@@ -42,17 +41,18 @@ let rec pow = (a: value, b: value): value =>
     } else {
       imagQC(q, c);
     };
-  | (`Real(isOne, Constant.Exp(1)), _) when Q.(isOne == one) => exp(b)
-  | (_, `Real(isTwo, Unit)) when Q.(isTwo == qTwo) => a * a
-  | (`Real(aReQ, Unit), `Real(isInt, Unit)) when QUtil.isInt(isInt) =>
+  | (`Real(Rational(1, 1, Exp(1))), _) => exp(b)
+  | (_, `Real(Rational(2, 1, Unit))) => a * a
+  | (`Real(Rational(_, _, Unit)), `Real(Rational(i, 1, Unit))) =>
     switch (Q.num(isInt)->Z.to_int) {
     | bn => real(QUtil.pow(aReQ, bn))
     | exception Z.Overflow => `NaN
     }
-  | (`Real(aReQ, Unit), `Real(ltZero, Unit)) when Q.(ltZero < zero) =>
+  | (`Real(Rational(_, _, Unit)), `Real(Rational(ltZero, 0, Unit)))
+      when ltZero < 0 =>
     pow(real(Q.inv(aReQ)), real(Q.abs(ltZero)))
-  | (`Imag(aImQ, aImC), `Real(isInt, Unit)) when QUtil.isInt(isInt) =>
-    let aPowB = pow(realQC(aImQ, aImC), b);
+  | (`Imag(im), `Real(Rational(_, 1, Unit))) =>
+    let aPowB = pow(realQC(im), b);
     switch (Q.num(isInt)->ZUtil.safeMod(Z.of_int(4))->Z.to_int) {
     | 0 => aPowB
     | 1 => aPowB * i
@@ -68,7 +68,7 @@ let rec pow = (a: value, b: value): value =>
   | (_, `Percent(p)) => pow(a, Base_Util.percentToNumerical(p))
   | (
       `Matrix({numRows: 2, numColumns: 2, elements: [|a, b, c, d|]}),
-      `Real(isMinusOne, Unit),
+      `Real(Rational((-1), 1, Unit)),
     )
       when Q.(isMinusOne == minus_one) =>
     let (~-) = Base_Functions.negScalar;
@@ -83,7 +83,7 @@ let rec pow = (a: value, b: value): value =>
         numColumns: 3,
         elements: [|a, b, c, d, e, f, g, h, i|],
       }),
-      `Real(isMinusOne, Unit),
+      `Real(Rational((-1), 1, Unit)),
     )
       when Q.(isMinusOne == minus_one) =>
     /* https://www.wolframalpha.com/input/?i=%7B%7Ba,b,c%7D,%7Bd,e,f%7D,%7Bg,h,i%7D%7D%5E-1 */
@@ -111,8 +111,7 @@ let rec pow = (a: value, b: value): value =>
       `Zero,
     ) =>
     toIdentity(aM)
-  | (`Matrix(aM) as a, `Real(intGtZero, Unit))
-      when Q.(intGtZero >= zero) && QUtil.isInt(intGtZero) =>
+  | (`Matrix(aM) as a, `Real(Rational(gtZero, 1, Unit))) when gtZero >= 0 =>
     let x = ref(toIdentity(aM));
     for (_ in 0 to Pervasives.(Q.num(intGtZero)->Z.to_int - 1)) {
       x := x^ * a;

@@ -13,23 +13,23 @@ let arg = (re, im) =>
     Float(atan2(imF, reF));
   };
 
-let expTuple = re =>
+let expReal = re =>
   switch (re) {
   | Real.Rational(0, 1, Unit) => Real.one
   | Rational(i, 1, Unit) => Rational(1, 0, Exp(i))
-  | _ => Float(1.) // FIXME
+  | _ => Float(Real.toFloat(re)->exp)
   };
 
 let rec exp = (a: value): value =>
   switch (a) {
   | `Zero => one
-  | `Real(re) => `Real(expTuple(re))
+  | `Real(re) => `Real(expReal(re))
   | `Imag(im) =>
     let re = Real_Trig.cos(im);
     let im = Real_Trig.sin(im);
     `Complex((re, im));
   | `Complex(re, im) =>
-    let exp = expTuple(re);
+    let exp = expReal(re);
     let re = Real_Trig.cos(im)->Real.mul(exp);
     let im = Real_Trig.sin(im)->Real.mul(exp);
     `Complex((re, im));
@@ -39,22 +39,22 @@ let rec exp = (a: value): value =>
   | `NaN => `NaN
   };
 
-let logRealTuple = q =>
+let logReal = q =>
   switch (q) {
   | Real.Rational((-1), 1, Exp(reExp)) => Real.Rational(1, 1, Exp(reExp))
-  // | (gtZero, reC) when Q.(gtZero > zero) => (
-  //     QCUtil.mapFloat(gtZero, reC, Pervasives.log),
-  //     Unit,
-  //   )
-  | _ => invalid_arg("logRealTuple")
+  | _ =>
+    let f = Real.toFloat(q);
+    if (f > 0.) {
+      Float(Pervasives.log(f));
+    } else {
+      invalid_arg("logReal");
+    };
   };
 
 let rec log = (a: value): value =>
   switch (a) {
   | `Zero => `NaN
-  // | `Real(gtZero) when Q.(gtZero > zero) =>
-  //   let (reQ, reC) = logRealTuple(gtZero, reC);
-  //   realQC(reQ, reC);
+  | `Real(gtZero) when Real.toFloat(gtZero) > 0. => `Real(logReal(gtZero))
   | `Real(Rational((-1), 1, Unit)) => Base_Operators.mul(pi, i)
   | (`Real(_) | `Imag(_) | `Complex(_)) as vV =>
     let re =
@@ -63,15 +63,14 @@ let rec log = (a: value): value =>
       | `Imag(im) => Real.mul(im, im)
       | `Complex(re, im) => Base_Operators.magnitudeSquared(re, im)
       };
-    let re = logRealTuple(re);
-    let re = Real.div(re, Rational(2, 1, Unit));
+    let re = logReal(re)->Real.div(Rational(2, 1, Unit));
     let im =
       switch (vV) {
-      | `Real(re) => arg(re, Rational(0, 1, Unit))
-      | `Imag(im) => arg(Rational(0, 1, Unit), im)
+      | `Real(re) => arg(re, Real.zero)
+      | `Imag(im) => arg(Real.zero, im)
       | `Complex(re, im) => arg(re, im)
       };
-    complexQC(reQ, reC, imQ, imC);
+    `Complex((re, im));
   | `Percent(p) => log(Base_Util.percentToNumerical(p))
   | `Vector(_)
   | `Matrix(_)
