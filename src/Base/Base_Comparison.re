@@ -3,10 +3,10 @@ open Types;
 let equalScalar = (a: scalar, b: scalar): bool =>
   switch (a, b) {
   | (`Zero, `Zero) => true
-  | (`Real(aQ, aC), `Real(bQ, bC))
-  | (`Imag(aQ, aC), `Imag(bQ, bC)) => Q.(aQ == bQ) && Constant.(aC == bC)
-  | (`Complex(aReQ, aReC, aImQ, aImC), `Complex(bReQ, bReC, bImQ, bImC)) =>
-    Q.(aReQ == bReQ && aImQ == bImQ) && Constant.(aReC == bReC && aImC == bImC)
+  | (`Real(a), `Real(b))
+  | (`Imag(a), `Imag(b)) => Real.(a == b)
+  | (`Complex(aRe, aIm), `Complex(bRe, bIm)) =>
+    Real.(aRe == bRe && aIm == bIm)
   | _ => false
   };
 
