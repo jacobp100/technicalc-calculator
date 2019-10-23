@@ -9,7 +9,7 @@ let _f = (format, v) =>
 
 let toString = (~format=default, a) =>
   switch (format.mode, a) {
-  | (_, Constant.Unit) => ""
+  | (_, Real_Constant.Unit) => ""
   | (String, Pi) => "pi"
   | (String, Exp(v)) => "exp(" ++ _f(format, Z.of_int(v)) ++ ")"
   | (String, Sqrt(v)) => "sqrt(" ++ _f(format, v) ++ ")"

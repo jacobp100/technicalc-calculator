@@ -29,24 +29,23 @@ let sqrt2Pi = Base.sqrt(realQC(q2, Pi));
 let gamma = (x: value): value =>
   switch (x) {
   | `Zero => `NaN
-  | `Real(isInt, Unit) when QUtil.isInt(isInt) =>
-    let fact = ref(Z.one);
-    for (mul in 2 to Z.to_int(isInt->Q.num) - 1) {
-      fact := Z.mul(fact^, Z.of_int(mul));
+  | `Real(Rational(n, 1, Unit)) =>
+    let fact = ref(Real.one);
+    for (mul in 2 to n - 1) {
+      fact := Real.(fact^ * fromInt(mul));
     };
-    `Real((Q.of_bigint(fact^), Unit));
+    `Real(fact^);
   | `Real(gtZero, reC) when Q.(gtZero > zero) =>
     /* See https://github.com/josdejong/mathjs/blob/c5971b371a5610caf37de0d6507a1c7150280f09/src/function/probability/gamma.js */
     let n = Q.(QCUtil.toQ(gtZero, reC) - one);
     let x =
-      p
-      ->Belt.Array.reduceWithIndex(
-          p0,
-          (accum, pi, i) => {
-            let i = i + 1;
-            Q.(accum + pi / (n + of_int(i)));
-          },
-        );
+      p->Belt.Array.reduceWithIndex(
+        p0,
+        (accum, pi, i) => {
+          let i = i + 1;
+          Q.(accum + pi / (n + of_int(i)));
+        },
+      );
     let t = `Real((Q.(n + g + qHalf), Constant.Unit));
     let n = `Real((Q.(n + qHalf), Constant.Unit));
     let x = `Real((x, Constant.Unit));
@@ -61,22 +60,21 @@ let gamma = (x: value): value =>
         )
       };
     let (xRe, xIm) =
-      p
-      ->Belt.Array.reduceWithIndex(
-          (p0, Q.zero),
-          ((re, im), p, i) => {
-            let i = i + 1;
-            let real = Q.(nRe + of_int(i));
-            let deno = Q.(real * real + nIm * nIm);
-            if (Q.(deno != zero)) {
-              (Q.(re + p * real / deno), Q.(im + - (p * nIm) / deno));
-            } else if (Q.(p < zero)) {
-              (Q.inf, im);
-            } else {
-              (Q.minus_inf, im);
-            };
-          },
-        );
+      p->Belt.Array.reduceWithIndex(
+        (p0, Q.zero),
+        ((re, im), p, i) => {
+          let i = i + 1;
+          let real = Q.(nRe + of_int(i));
+          let deno = Q.(real * real + nIm * nIm);
+          if (Q.(deno != zero)) {
+            (Q.(re + p * real / deno), Q.(im + - (p * nIm) / deno));
+          } else if (Q.(p < zero)) {
+            (Q.inf, im);
+          } else {
+            (Q.minus_inf, im);
+          };
+        },
+      );
 
     let nRe = Q.(nRe + qHalf);
     let t = complex(Q.(nRe + g), nIm);

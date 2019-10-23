@@ -23,16 +23,16 @@ let expReal = re =>
 let rec exp = (a: value): value =>
   switch (a) {
   | `Zero => one
-  | `Real(re) => `Real(expReal(re))
+  | `Real(re) => real(expReal(re))
   | `Imag(im) =>
     let re = Real_Trig.cos(im);
     let im = Real_Trig.sin(im);
-    `Complex((re, im));
+    complex(re, im);
   | `Complex(re, im) =>
     let exp = expReal(re);
     let re = Real_Trig.cos(im)->Real.mul(exp);
     let im = Real_Trig.sin(im)->Real.mul(exp);
-    `Complex((re, im));
+    complex(re, im);
   | `Percent(p) => exp(Base_Util.percentToNumerical(p))
   | `Vector(_)
   | `Matrix(_)
@@ -54,7 +54,7 @@ let logReal = q =>
 let rec log = (a: value): value =>
   switch (a) {
   | `Zero => `NaN
-  | `Real(gtZero) when Real.toFloat(gtZero) > 0. => `Real(logReal(gtZero))
+  | `Real(gtZero) when Real.toFloat(gtZero) > 0. => real(logReal(gtZero))
   | `Real(Rational((-1), 1, Unit)) => Base_Operators.mul(pi, i)
   | (`Real(_) | `Imag(_) | `Complex(_)) as vV =>
     let re =
@@ -70,7 +70,7 @@ let rec log = (a: value): value =>
       | `Imag(im) => arg(Real.zero, im)
       | `Complex(re, im) => arg(re, im)
       };
-    `Complex((re, im));
+    complex(re, im);
   | `Percent(p) => log(Base_Util.percentToNumerical(p))
   | `Vector(_)
   | `Matrix(_)

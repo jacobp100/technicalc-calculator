@@ -5,7 +5,7 @@ let rec re = (a: value): value =>
   | `Zero
   | `Imag(_) => `Zero
   | `Real(_) => a
-  | `Complex(reQ, reC, _, _) => realQC(reQ, reC)
+  | `Complex(re, _) => real(re)
   | `Percent(p) => re(Base.percentToNumerical(p))
   | _ => `NaN
   };
@@ -15,7 +15,7 @@ let rec im = (a: value): value =>
   | `Zero
   | `Real(_) => `Zero
   | `Imag(_) => a
-  | `Complex(_, _, imQ, imC) => imagQC(imQ, imC)
+  | `Complex(_, im) => imag(im)
   | `Percent(p) => im(Base.percentToNumerical(p))
   | _ => `NaN
   };
@@ -24,8 +24,8 @@ let conjScalar = (a: scalar): scalar =>
   switch (a) {
   | `Zero
   | `Real(_) => a
-  | `Imag(imQ, imC) => `Imag((Q.neg(imQ), imC))
-  | `Complex(reQ, reC, imQ, imC) => `Complex((reQ, reC, Q.neg(imQ), imC))
+  | `Imag(im) => `Imag(Real.neg(im))
+  | `Complex(re, im) => `Complex((re, Real.neg(im)))
   };
 
 let conj = (a: value): value =>

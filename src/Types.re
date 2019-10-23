@@ -23,14 +23,6 @@ let pi: value = `Real(Rational(1, 1, Pi));
 let e: value = `Real(Rational(1, 1, Exp(1)));
 let nan = `NaN;
 
-let qIsNaN = q =>
-  switch (Q.classify(q)) {
-  | INF
-  | MINF
-  | UNDEF => true
-  | _ => false
-  };
-
 let scalarIsNaN = (a: scalar) =>
   switch (a) {
   | `Zero => false
@@ -162,53 +154,47 @@ let ofString = ofStringBase(10) /*   }*/;
 let vector2 = (a, b): value => `Vector([|a, b|])->normalize;
 let vector3 = (a, b, c): value => `Vector([|a, b, c|])->normalize /*   | _ => Pervasives.na*/;
 
-// let real = (q: Q.t): value => `Real((q, Unit))->normalize;
-// let realQC = (q: Q.t, c: Constant.t): value => `Real((q, c))->normalize;
-// let imag = (q: Q.t): value => `Imag((q, Unit))->normalize;
-// let imagQC = (q: Q.t, c: Constant.t): value => `Imag((q, c))->normalize;
-// let complex = (re, im): value => `Complex((re, Unit, im, Unit))->normalize;
-// let complexQC = (reQ, reC, imQ, imC): value =>
-//   `Complex((reQ, reC, imQ, imC))->normalize;
-// let percent = v => `Percent(v)->normalize;
-// let vector = (elements): value => `Vector(elements)->normalize;
+let real = (a: Real.t): value => `Real(a)->normalize;
+let imag = (a: Real.t): value => `Imag(a)->normalize;
+let complex = (re, im): value => `Complex((re, im))->normalize /* let toFloat = (a: value): float =*/;
+let percent = v => `Percent(v)->normalize;
+let vector = (elements): value => `Vector(elements)->normalize;
 
-// let matrix = (numRows, numColumns, elements): value =>
-//   `Matrix(Matrix.{numRows, numColumns, elements});
-// let matrix2 = (a, b, c, d): value =>
-//   `Matrix(Matrix.{numRows: 2, numColumns: 2, elements: [|a, b, c, d|]})
-//   ->normalize;
-// let matrix3 = (a, b, c, d, e, f, g, h, i): value =>
-//   `Matrix(
-//     Matrix.{
-//       numRows: 3,
-//       numColumns: 3,
-//       elements: [|a, b, c, d, e, f, g, h, i|],
-//     },
-//   )
-//   ->normalize;
+let matrix = (numRows, numColumns, elements): value =>
+  `Matrix(Matrix.{numRows, numColumns, elements});
+let matrix2 = (a, b, c, d): value =>
+  `Matrix(Matrix.{numRows: 2, numColumns: 2, elements: [|a, b, c, d|]})
+  ->normalize;
+let matrix3 = (a, b, c, d, e, f, g, h, i): value =>
+  `Matrix(
+    Matrix.{
+      numRows: 3,
+      numColumns: 3,
+      elements: [|a, b, c, d, e, f, g, h, i|],
+    },
+  )
+  ->normalize /*   }*/ /*   | _ => Non*/;
 
 // let valueOfScalar = a => a->valueOfScalar->normalize;
 // let valueOfMatrix = a => a->valueOfMatrix->normalize;
 
-// let toQ = (a: value): Q.t =>
-//   switch (a) {
-//   | `Zero => Q.zero
-//   | `Real(q, c) => QCUtil.toQ(q, c)
-//   | _ => Q.undef
-//   };
+let toFloat = (a: value): float =>
+  switch (a) {
+  | `Zero => 0.
+  | `Real(re) => Real.toFloat(re)
+  | _ => Pervasives.nan
+  };
 
-// let toInt = (a: value): option(int) =>
-//   switch (a) {
-//   | `Zero => Some(0)
-//   | `Real(q, Unit) when QUtil.isInt(q) =>
-//     switch (Q.num(q)->Z.to_int) {
-//     | v => Some(v)
-//     | exception Z.Overflow => None
-//     }
-//   | _ => None
-//   };
-
-// let toFloat = (a: value): float =>
-//   switch (a) {
-//   | `Zero => 0.0
-//   | `Real(q, c) => QCUtil.toFloat(q, c)
+let toInt = (a: value): option(int) =>
+  switch (a) {
+  | `Zero => Some(0)
+  | `Real(re) =>
+    let float = Real.toFloat(re);
+    let intF = int_of_float(float);
+    if (float_of_int(intF) == float) {
+      Some(intF);
+    } else {
+      None;
+    };
+  | _ => None
+  };

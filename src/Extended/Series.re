@@ -11,5 +11,5 @@ let reduceRange = (a, b, initialValue, f, iteratee) =>
   | _ => nan
   };
 
-let sum = (f, a, b) => reduceRange(a, b, zero, f, Value.add);
-let product = (f, a, b) => reduceRange(a, b, one, f, Value.mul);
+let sum = (f, a, b) => reduceRange(a, b, zero, f, Base.add);
+let product = (f, a, b) => reduceRange(a, b, one, f, Base.mul);

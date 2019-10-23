@@ -28,19 +28,18 @@ let formatOperator = (op, format) =>
 let formatVariable = (var, format) =>
   format.mode == MathML ? "<mi>" ++ var ++ "</mi>" : var;
 
-let formatTuple = (q: Q.t, c: Constant.t, format): string => {
+let formatTuple = (re, format): string => {
   let base = format.base;
 
-  switch (format.style) {
-  | Natural when Z.(Q.den(q) < maxNaturalDenom) && Q.(abs(q) < maxNaturalQ) =>
-    let (num, den) = (Q.num(q), Q.den(q));
+  switch (re, format.style) {
+  | (Real.Rational(n, d, c), Natural) =>
     let formatting =
       Formatting_Number.createFormat(~digitSeparators=true, ());
-    let minus = Q.(q < zero) ? formatOperator("-", format) : "";
+    let minus = n < 0 ? formatOperator("-", format) : "";
 
     let (top, needsWrap) =
       switch (
-        Formatting_Number.formatInteger(~base, formatting, Z.abs(num)),
+        Formatting_Number.formatInteger(~base, formatting, abs(d)),
         Formatting_Constant.toString(~format, c),
       ) {
       | ("1", "") => (formatNumber("1", format), false)
@@ -53,7 +52,7 @@ let formatTuple = (q: Q.t, c: Constant.t, format): string => {
 
     switch (
       format.mode,
-      Formatting_Number.formatInteger(~base, formatting, den),
+      Formatting_Number.formatInteger(~base, formatting, d),
     ) {
     | (_, "1") => minus ++ top
     | (String, bottom) => minus ++ top ++ "/" ++ bottom
@@ -63,8 +62,7 @@ let formatTuple = (q: Q.t, c: Constant.t, format): string => {
       let bottom = formatNumber(denominator, format);
       minus ++ "<mfrac>" ++ top ++ bottom ++ "</mfrac>";
     };
-  | Natural
-  | Decimal =>
+  | (_, Natural | Decimal) =>
     let q = QCUtil.toQ(q, c);
     let floatVal = Q.to_float(q);
     let valueMagnitude = floor(log10(abs_float(floatVal)));
@@ -95,7 +93,7 @@ let formatTuple = (q: Q.t, c: Constant.t, format): string => {
       )
       ->formatExponential(format);
     };
-  | Scientific =>
+  | (_, Scientific) =>
     /* Round to multiple of 3 */
     let q = QCUtil.toQ(q, c);
     let exponent = QUtil.magnitude(q) * 3 / 3;

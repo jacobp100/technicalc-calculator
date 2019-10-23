@@ -3,60 +3,65 @@ open Types;
 type constantEncoding = [
   | `Unit
   | `Pi
-  | `Exp(string)
-  | `Sqrt(string)
+  | `Exp(int)
+  | `Sqrt(int)
   | `UnknownValue
 ];
 
-let encodeConstant = (a: Constant.t): constantEncoding =>
+let encodeConstant = (a: Real_Constant.t): constantEncoding =>
   switch (a) {
   | Unit => `Unit
   | Pi => `Pi
-  | Exp(e) => `Exp(string_of_int(e))
-  | Sqrt(s) => `Sqrt(Z.to_string(s))
+  | Exp(e) => `Exp(e)
+  | Sqrt(s) => `Sqrt(s)
   };
 
-let decodeConstant = (a: constantEncoding): Constant.t =>
+let decodeConstant = (a: constantEncoding): Real_Constant.t =>
   switch (a) {
   | `Pi => Pi
-  | `Exp(e) => Exp(int_of_string(e))
-  | `Sqrt(s) => Sqrt(Z.of_string(s))
+  | `Exp(e) => Exp(e)
+  | `Sqrt(s) => Sqrt(s)
   | _ => Unit
+  };
+
+type realEncoding = [
+  | `Rational(int, int, constantEncoding)
+  | `Float(string)
+];
+
+let encodeReal = (a: Real.t): realEncoding =>
+  switch (a) {
+  | Rational(n, d, c) => `Rational((n, d, encodeConstant(c)))
+  | Float(f) => `Float(string_of_float(f))
+  };
+
+let decodeReal = (a: realEncoding): Real.t =>
+  switch (a) {
+  | `Rational(n, d, c) => Rational(n, d, decodeConstant(c))
+  | `Float(f) => Float(float_of_string(f))
   };
 
 type scalarEncoding = [
   | `Zero
-  | `Real(string, constantEncoding)
-  | `Imag(string, constantEncoding)
-  | `Complex(string, constantEncoding, string, constantEncoding)
+  | `Real(realEncoding)
+  | `Imag(realEncoding)
+  | `Complex(realEncoding, realEncoding)
 ];
 
 let encodeScalar = (a: scalar): scalarEncoding =>
   switch (a) {
   | `Zero => `Zero
-  | `Real(q, c) => `Real((Q.to_string(q), encodeConstant(c)))
-  | `Imag(q, c) => `Imag((Q.to_string(q), encodeConstant(c)))
-  | `Complex(reQ, reC, imQ, imC) =>
-    `Complex((
-      Q.to_string(reQ),
-      encodeConstant(reC),
-      Q.to_string(imQ),
-      encodeConstant(imC),
-    ))
+  | `Real(re) => `Real(encodeReal(re))
+  | `Imag(im) => `Imag(encodeReal(im))
+  | `Complex(re, im) => `Complex((encodeReal(re), encodeReal(im)))
   };
 
 let decodeScalar = (a: scalarEncoding): scalar =>
   switch (a) {
   | `Zero => `Zero
-  | `Real(q, c) => `Real((Q.of_string(q), decodeConstant(c)))
-  | `Imag(q, c) => `Imag((Q.of_string(q), decodeConstant(c)))
-  | `Complex(reQ, reC, imQ, imC) =>
-    `Complex((
-      Q.of_string(reQ),
-      decodeConstant(reC),
-      Q.of_string(imQ),
-      decodeConstant(imC),
-    ))
+  | `Real(re) => `Real(decodeReal(re))
+  | `Imag(im) => `Imag(decodeReal(im))
+  | `Complex(re, im) => `Complex((decodeReal(re), decodeReal(im)))
   };
 
 type vectorEncoding = [ | `Vector(array(scalarEncoding))];

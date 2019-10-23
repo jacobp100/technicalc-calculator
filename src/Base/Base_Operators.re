@@ -106,8 +106,7 @@ let add = (a: value, b: value): value =>
   | ((`Real(_) | `Imag(_) | `Complex(_)) as aV, `Percent(p)) =>
     addScalar(
       aV,
-      mulScalar(aV, p)
-      ->divScalar(`Real(Rational(100, 1, Real_Constant.Unit))),
+      mulScalar(aV, p)->divScalar(`Real(Rational(100, 1, Unit))),
     )
     ->valueOfScalar
   | (`Vector(aElements), `Vector(bElements))
