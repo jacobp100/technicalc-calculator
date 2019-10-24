@@ -80,12 +80,9 @@ let ofComplexFloats = (re, im) =>
 let toComplexFloats = (a): (float, float) =>
   switch (a) {
   | `Zero => (0., 0.)
-  | `Real(q, c) => (QCUtil.toFloat(q, c), 0.)
-  | `Imag(q, c) => (0., QCUtil.toFloat(q, c))
-  | `Complex(reQ, reC, imQ, imC) => (
-      QCUtil.toFloat(reQ, reC),
-      QCUtil.toFloat(imQ, imC),
-    )
+  | `Real(re) => (Real.toFloat(re), 0.)
+  | `Imag(re) => (0., Real.toFloat(re))
+  | `Complex(re, im) => (Real.toFloat(re), Real.toFloat(im))
   | _ => Pervasives.(nan, nan)
   };
 

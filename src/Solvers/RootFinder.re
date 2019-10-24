@@ -9,7 +9,7 @@ open Types;
  does the rest of this library). However, this quickly becomes way too slow to
  continue using in practise. After one iteration of that, we switch to floats.
 
- NR gets us a good amount of the way; wowever, in certain scenarios we have to
+ NR gets us a good amount of the way; however, in certain scenarios we have to
  switch to other methods.
 
  Firstly, if we get a gradient of zero for an iteration (where x is non-zero),
@@ -34,7 +34,7 @@ let solveRoot = (f, initial) => {
 
   let rec bisectFloat = (~iterations=100, ~negativeX, ~positiveX, ()) => {
     let mFloat = (negativeX +. positiveX) /. 2.0;
-    let m = real(Q.of_float(mFloat));
+    let m = real(Real.Float(mFloat));
     let fm = f(m);
     let fmFloat = toFloat(fm);
     if (abs_float(fmFloat) < precision) {

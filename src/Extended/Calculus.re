@@ -3,7 +3,7 @@ open Types;
 let derivative = (f, x) => {
   open Base;
 
-  let h = real(Q.of_int(1_000)->Q.inv);
+  let h = real(Rational(1, 1000, Unit));
   let _2h = h * ofInt(2);
   let _8 = ofInt(8);
 
@@ -15,33 +15,31 @@ let derivative = (f, x) => {
 };
 
 let integrate = (f: value => value, a, b) => {
-  let (a, b) = (Types.toQ(a), Types.toQ(b));
+  let (a, b) = (Types.toFloat(a), Types.toFloat(b));
 
-  if (Q.(b > a)) {
-    let n = 100;
-    let n2 = n * 2;
-    let _2 = Q.of_int(2);
-    let _4 = Q.of_int(4);
-    let h = Q.((b - a) / (of_int(n) * _2));
+  if (b > a) {
+    let n = 100.;
+    let n2 = n *. 2.;
+    let h = (b -. a) /. (n *. 2.);
 
-    let sum = Q.(real(a)->f->toQ + real(b)->f->toQ)->ref;
+    let sum = Types.(ofFloat(a)->f->toFloat +. ofFloat(b)->f->toFloat)->ref;
 
-    let i = ref(1);
-    while (i^ < n2 && Q.(sum^ != undef)) {
-      let v = Q.(a + of_int(i^) * h)->real;
-      sum := Q.(sum^ + _4 * f(v)->toQ);
-      i := i^ + 2;
+    let i = ref(1.);
+    while (i^ < n2 && FloatUtil.isFinite(sum^)) {
+      let v = ofFloat(a +. i^ *. h);
+      sum := sum^ +. 4. *. f(v)->toFloat;
+      i := i^ +. 2.;
     };
 
-    i := 2;
-    while (i^ < n2 - 1 && Q.(sum^ != undef)) {
-      let v = Q.(a + of_int(i^) * h)->real;
-      sum := Q.(sum^ + _2 * f(v)->toQ);
-      i := i^ + 2;
+    i := 2.;
+    while (i^ < n2 -. 1. && FloatUtil.isFinite(sum^)) {
+      let v = ofFloat(a +. i^ *. h);
+      sum := sum^ +. 2. *. f(v)->toFloat;
+      i := i^ +. 2.;
     };
 
-    if (Q.(sum^ != undef)) {
-      Q.(sum^ * h / of_int(3))->real;
+    if (FloatUtil.isFinite(sum^)) {
+      ofFloat(sum^ *. h /. 3.);
     } else {
       nan;
     };

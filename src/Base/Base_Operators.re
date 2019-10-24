@@ -104,10 +104,7 @@ let add = (a: value, b: value): value =>
     ) =>
     addScalar(aV, bV)->valueOfScalar
   | ((`Real(_) | `Imag(_) | `Complex(_)) as aV, `Percent(p)) =>
-    addScalar(
-      aV,
-      mulScalar(aV, p)->divScalar(`Real(Rational(100, 1, Unit))),
-    )
+    addScalar(aV, mulScalar(aV, p)->divScalar(`Real(Real.fromInt(100))))
     ->valueOfScalar
   | (`Vector(aElements), `Vector(bElements))
       when Belt.Array.length(aElements) == Belt.Array.length(bElements) =>

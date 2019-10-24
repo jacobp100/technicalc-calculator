@@ -54,66 +54,59 @@ let addDigitSeparators = (~startIndex=0, ~endIndex=?, string) => {
 };
 
 let formatInteger = (~base=10, formatting, num) => {
-  // let str = string_of_int(num);
-  // let str =
-  //   if (formatting.digitSeparators) {
-  //     addDigitSeparators(~startIndex=num < 0 ? 1 : 0, str);
-  //   } else {
-  //     str;
-  //   };
-  "...";
-  // String.uppercase(str);
+  let str = Js.Float.toStringWithRadix(num, ~radix=base);
+  let str =
+    if (formatting.digitSeparators) {
+      addDigitSeparators(~startIndex=num < 0. ? 1 : 0, str);
+    } else {
+      str;
+    };
+  String.uppercase(str);
 };
 
 let formatDecimal = (~base=10, formatting, num) => {
-  // let (minDecimalPlaces, maxDecimalPlaces) = _getDecimalBounds(formatting);
-  // let absNum = Q.abs(num);
-  // let integer =
-  //   formatInteger(
-  //     ~base,
-  //     formatting,
-  //     {
-  //       let absIntegerPart = absNum;
-  //       if (Q.lt(num, Q.zero)) {
-  //         - absIntegerPart;
-  //       } else {
-  //         absIntegerPart;
-  //       };
-  //     },
-  //   );
-  // let decimal =
-  //   if (maxDecimalPlaces == 0) {
-  //     "";
-  //   } else if (QUtil.isInt(num)) {
-  //     String.make(minDecimalPlaces, '0');
-  //   } else {
-  //     let decimalPart = QUtil.safeMod(absNum, Z.one);
-  //     let exp = Q.of_bigint(Z.pow(Z.of_int(base), maxDecimalPlaces));
-  //     let decimalAsInteger = QUtil.floor(Q.mul(decimalPart, exp));
-  //     let baseStr =
-  //       Z.to_string_base(base, decimalAsInteger)->String.uppercase;
-  //     let str =
-  //       String.make(maxDecimalPlaces - String.length(baseStr), '0')
-  //       ++ baseStr;
-  //     trimTraillingZeros(~startIndex=minDecimalPlaces, str);
-  //   };
-  // if (decimal != "") {
-  //   integer ++ "." ++ decimal;
-  // } else {
-  //   integer;
-  "...";
-  // };
+  let (minDecimalPlaces, maxDecimalPlaces) = _getDecimalBounds(formatting);
+  let absNum = abs_float(num);
+  let integerPart = floor(absNum);
+  let decimalPart = absNum -. integerPart;
+  let integer =
+    formatInteger(
+      ~base,
+      formatting,
+      num >= 0. ? integerPart : -. integerPart,
+    );
+  let decimal =
+    if (maxDecimalPlaces == 0) {
+      "";
+    } else if (decimalPart == 0.) {
+      String.make(minDecimalPlaces, '0');
+    } else {
+      let exp = float_of_int(base) ** float_of_int(maxDecimalPlaces);
+      let decimalAsInteger = floor(decimalPart *. exp);
+      let baseStr =
+        Js.Float.toStringWithRadix(decimalAsInteger, ~radix=base)
+        ->String.uppercase;
+      let str =
+        String.make(maxDecimalPlaces - String.length(baseStr), '0')
+        ++ baseStr;
+      trimTraillingZeros(~startIndex=minDecimalPlaces, str);
+    };
+
+  if (decimal != "") {
+    integer ++ "." ++ decimal;
+  } else {
+    integer;
+  };
 };
 
 let formatExponential = (~base=10, ~exponent=?, formatting, num) => {
-  // let exponent = exponent->Belt.Option.getWithDefault(QUtil.magnitude(num));
-  // let decimalPart =
-  //   formatDecimal(
-  //     ~base,
-  //     formatting,
-  //     Q.div(num, QUtil.powInt(10, exponent)),
-  //   );
-  // let exponentPart = string_of_int(exponent);
-  "...";
-  // (decimalPart, exponentPart);
+  let exponent =
+    switch (exponent) {
+    | Some(exponent) => exponent
+    | None => DecimalUtil.magnitude(num)
+    };
+  let decimalPart =
+    formatDecimal(~base, formatting, num /. 10. ** float_of_int(exponent));
+  let exponentPart = string_of_int(exponent);
+  (decimalPart, exponentPart);
 };

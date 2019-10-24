@@ -46,22 +46,21 @@ let _cubicRaphson = (a, b, c, d) => {
   let cf = toFloat(c);
   let df = toFloat(d);
 
-  values
-  ->Belt.List.reduce(None, (current, value) =>
-      switch (current) {
-      | None =>
-        let x0f = Raphson.cubic(af, bf, cf, df, value);
-        let x0 = roundToPrecision(x0f);
-        let fx = a * x0 ** _3 + b * x0 ** _2 + c * x0 + d;
-        if (FloatUtil.isFinite(x0f) && fx == zero) {
-          let (x1, x2) = quadratic(a, a * x0 + b, a * x0 ** _2 + b * x0 + c);
-          Some((x0, x1, x2));
-        } else {
-          None;
-        };
-      | v => v
-      }
-    );
+  values->Belt.List.reduce(None, (current, value) =>
+    switch (current) {
+    | None =>
+      let x0f = Raphson.cubic(af, bf, cf, df, value);
+      let x0 = roundToPrecision(x0f);
+      let fx = a * x0 ** _3 + b * x0 ** _2 + c * x0 + d;
+      if (FloatUtil.isFinite(x0f) && fx == zero) {
+        let (x1, x2) = quadratic(a, a * x0 + b, a * x0 ** _2 + b * x0 + c);
+        Some((x0, x1, x2));
+      } else {
+        None;
+      };
+    | v => v
+    }
+  );
 };
 
 let _cubicNumeric = (a, b, c, d) => {
@@ -82,7 +81,7 @@ let _cubicNumeric = (a, b, c, d) => {
   } else {
     let c0 =
       ((q + _2 * b ** _3 - _9 * a * b * c + _27 * a ** _2 * d) / _2)
-      ** real(Q.of_ints(1, 3));
+      ** real(Rational(1, 3, Unit));
     let x1 =
       - b / (_3 * a) - c0 / (_3 * a) - (b ** _2 - _3 * a * c) / (_3 * a * c0);
     let x2 =

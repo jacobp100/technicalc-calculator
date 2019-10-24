@@ -85,7 +85,7 @@ and createEvalCb = (~context, body, x) =>
 and evalScalar = (~context, x): Types.scalar =>
   switch (eval(~context, x)) {
   | (`Zero | `Real(_) | `Imag(_) | `Complex(_)) as aX => aX
-  | _ => `Real((Q.undef, Constant.Unit))
+  | _ => `Real(Real.nan)
   };
 
 let eval = (~context=Belt.Map.String.empty, v) => eval(~context, v);

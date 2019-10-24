@@ -40,5 +40,3 @@ let toFloat = a =>
   | Rational(n, d, c) => ratFloat(n, d, c)
   | Float(f) => f
   };
-
-let (==) = equal;

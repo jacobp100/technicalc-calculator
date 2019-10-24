@@ -118,7 +118,7 @@ let asin = (a: value): value =>
   | `Real(_)
   | `Imag(_)
   | `Complex(_) =>
-    switch (ValueUtil.realBounds(~lower=-1., ~upper=1., a)) {
+    switch (_realBounds(~lower=-1., ~upper=1., a)) {
     | `BothBound
     | `LowerBound
     | `UpperBound
@@ -157,7 +157,7 @@ let acos = (a: value): value =>
   | `Real(_)
   | `Imag(_)
   | `Complex(_) =>
-    switch (ValueUtil.realBounds(~lower=-1., ~upper=1., a)) {
+    switch (_realBounds(~lower=-1., ~upper=1., a)) {
     | `BothBound
     | `LowerBound
     | `UpperBound
@@ -174,7 +174,7 @@ let acos = (a: value): value =>
   };
 
 let acosh = (x: value): value =>
-  switch (ValueUtil.realBounds(~lower=1.0, x)) {
+  switch (_realBounds(~lower=1.0, x)) {
   | `Inside(f) => FloatUtil.acosh(f)->ofFloat
   | `LowerBound => zero
   | `BothBound
@@ -242,7 +242,7 @@ let atan = (a: value): value =>
   };
 
 let atanh = (x: value): value =>
-  switch (ValueUtil.realBounds(~lower=-1.0, ~upper=1.0, x)) {
+  switch (_realBounds(~lower=-1.0, ~upper=1.0, x)) {
   | `Inside(f) => FloatUtil.atanh(f)->ofFloat
   | `BothBound
   | `LowerBound
