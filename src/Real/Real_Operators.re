@@ -90,7 +90,7 @@ let sub = (a, b) => {
     };
   switch (rat) {
   | Some(rat) => rat
-  | None => Float(toFloat(a) +. toFloat(b))
+  | None => Float(toFloat(a) -. toFloat(b))
   };
 };
 
