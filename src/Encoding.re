@@ -26,19 +26,19 @@ let decodeConstant = (a: constantEncoding): Real_Constant.t =>
 
 type realEncoding = [
   | `Rational(int, int, constantEncoding)
-  | `Float(string)
+  | `Decimal(string)
 ];
 
 let encodeReal = (a: Real.t): realEncoding =>
   switch (a) {
   | Rational(n, d, c) => `Rational((n, d, encodeConstant(c)))
-  | Float(f) => `Float(string_of_float(f))
+  | Decimal(f) => `Decimal(Decimal.toString(f))
   };
 
 let decodeReal = (a: realEncoding): Real.t =>
   switch (a) {
   | `Rational(n, d, c) => Rational(n, d, decodeConstant(c))
-  | `Float(f) => Float(float_of_string(f))
+  | `Decimal(f) => Decimal(Decimal.ofString(f))
   };
 
 type scalarEncoding = [

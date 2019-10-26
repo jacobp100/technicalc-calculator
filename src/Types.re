@@ -114,9 +114,9 @@ let ofFloat = (v): value =>
     if (abs_float(numeratorF) < intMaxF && FloatUtil.isInt(numeratorF)) {
       let numerator = int_of_float(numeratorF);
       let denominator = int_of_float(magnitude);
-      `Real(Rational(numerator, denominator, Unit))->normalize;
+      `Real(Real.rational(numerator, denominator, Unit))->normalize;
     } else {
-      `Real(Float(v))->normalize;
+      `Real(Decimal(Decimal.ofFloat(v)))->normalize;
     };
   | FP_zero => `Zero
   | FP_infinite
@@ -149,14 +149,14 @@ let ofStringBase = (base: int, v: string): value => {
   };
 };
 
-let ofString = ofStringBase(10) /*   }*/;
+let ofDecimal = (f): value => `Real(Decimal(f))->normalize;
+let ofString = ofStringBase(10);
 
 let vector2 = (a, b): value => `Vector([|a, b|])->normalize;
-let vector3 = (a, b, c): value => `Vector([|a, b, c|])->normalize /*   | _ => Pervasives.na*/;
-
+let vector3 = (a, b, c): value => `Vector([|a, b, c|])->normalize;
 let real = (a: Real.t): value => `Real(a)->normalize;
 let imag = (a: Real.t): value => `Imag(a)->normalize;
-let complex = (re, im): value => `Complex((re, im))->normalize /* let toFloat = (a: value): float =*/;
+let complex = (re, im): value => `Complex((re, im))->normalize;
 let percent = v => `Percent(v)->normalize;
 let vector = (elements): value => `Vector(elements)->normalize;
 
@@ -173,26 +173,24 @@ let matrix3 = (a, b, c, d, e, f, g, h, i): value =>
       elements: [|a, b, c, d, e, f, g, h, i|],
     },
   )
-  ->normalize /*   }*/ /*   | _ => Non*/;
+  ->normalize;
 
-// let valueOfScalar = a => a->valueOfScalar->normalize;
-// let valueOfMatrix = a => a->valueOfMatrix->normalize;
-
-let toFloat = (a: value): float =>
+let toDecimal = (a: value): Decimal.t =>
   switch (a) {
-  | `Zero => 0.
-  | `Real(re) => Real.toFloat(re)
-  | _ => Pervasives.nan
+  | `Zero => Decimal.zero
+  | `Real(re) => Real.toDecimal(re)
+  | _ => Decimal.nan
   };
 
 let toInt = (a: value): option(int) =>
   switch (a) {
   | `Zero => Some(0)
   | `Real(re) =>
-    let float = Real.toFloat(re);
-    let intF = int_of_float(float);
-    if (float_of_int(intF) == float) {
-      Some(intF);
+    let f = Real.toDecimal(re);
+    let floatVal = Decimal.toFloat(f);
+    let intVal = int_of_float(floatVal);
+    if (float_of_int(intVal) == floatVal) {
+      Some(intVal);
     } else {
       None;
     };

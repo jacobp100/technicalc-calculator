@@ -7,21 +7,11 @@ expect.extend({ toMatchJsValue });
 
 // Not sure why my implementation gets negative values here
 // MathJS agrees with Wolfram Alpha as the convential value, but both answers are valid
-const negateRealValues = new Set([
-  "0+-2i",
-  "0+-3i",
-  "0+-4i",
-  "0+-5i",
-  "0+2i",
-  "0+3i",
-  "0+4i",
-  "0+5i"
-]);
+const negateImaginaryValues = new Set(["2+0i", "3+0i", "4+0i", "5+0i"]);
 
-imagValues.forEach(v => {
-  it(`atan ${v.title}`, () => {
-    const mathJsValue = mathjs.atan(v.jsValue);
-    if (negateRealValues.has(v.title)) mathJsValue.re *= -1;
-    expect(SciLine.atan(v.sciLineValue)).toMatchJsValue(mathJsValue);
-  });
+test.each(imagValues)("atanh(%s)", v => {
+  const actual = SciLine.atanh(v.sciLineValue);
+  const expected = mathjs.atanh(v.jsValue);
+  if (negateImaginaryValues.has(v.title)) expected.im *= -1;
+  expect(actual).toMatchJsValue(expected);
 });

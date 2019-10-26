@@ -1,27 +1,27 @@
 open Real_Types;
 
 /* Disable ops that can overflow */
-let (+) = None;
-let (-) = None;
-let ( * ) = None;
-let (~-) = None;
+// let (+) = None;
+// let (-) = None;
+// let ( * ) = None;
+// let (~-) = None;
 
 let _safeRat = (n, d, c) => {
   switch (SafeInt.toInt(n), SafeInt.toInt(d)) {
-  | (Some(n), Some(d)) => Some(rat(n, d, c))
+  | (Some(n), Some(d)) => Some(rational(n, d, c))
   | _ => None
   };
 };
 
 let inv = a => {
   switch (a) {
-  | Rational(n, d, Unit) => Rational(d, n, Unit)
+  | Rational(n, d, Unit) => rational(d, n, Unit)
   | Rational(n, d, Exp(exp) as c) =>
     switch (SafeInt.negInt(exp)) {
-    | Some(exp) => Rational(d, n, Exp(exp))
-    | _ => Float(1. /. ratFloat(n, d, c))
+    | Some(exp) => rational(d, n, Exp(exp))
+    | _ => Decimal(ratDecimal(n, d, c)->Decimal.inv)
     }
-  | _ => Float(1. /. toFloat(a))
+  | _ => Decimal(toDecimal(a)->Decimal.inv)
   };
 };
 
@@ -29,50 +29,51 @@ let neg = a =>
   switch (a) {
   | Rational(n, d, c) =>
     switch (SafeInt.negInt(n)) {
-    | Some(n) => Rational(n, d, c)
-    | _ => Float(-. ratFloat(n, d, c))
+    | Some(n) => rational(n, d, c)
+    | _ => Decimal(ratDecimal(n, d, c)->Decimal.neg)
     }
-  | Float(f) => Float(-. f)
+  | Decimal(f) => Decimal(Decimal.neg(f))
   };
 
 let abs = a =>
   switch (a) {
   | Rational(n, d, c) =>
     switch (SafeInt.absInt(n)) {
-    | Some(n) => Rational(n, d, c)
-    | _ => Float(abs_float(ratFloat(n, d, c)))
+    | Some(n) => rational(n, d, c)
+    | _ => Decimal(Decimal.abs(ratDecimal(n, d, c)))
     }
-  | Float(f) => Float(abs_float(f))
+  | Decimal(f) => Decimal(Decimal.abs(f))
   };
 
-let _ofFloatInt = f => {
-  let intF = int_of_float(f);
-  if (float_of_int(intF) == f) {
-    Rational(intF, 1, Unit);
+let _ofDecimalInt = f => {
+  let floatVal = Decimal.toFloat(f);
+  let intVal = int_of_float(floatVal);
+  if (float_of_int(intVal) == floatVal) {
+    rational(intVal, 1, Unit);
   } else {
-    Float(f);
+    Decimal(f);
   };
 };
 
-let round = a => floor(toFloat(a) +. 0.5)->_ofFloatInt;
-let floor = a => toFloat(a)->floor->_ofFloatInt;
-let ceil = a => toFloat(a)->ceil->_ofFloatInt;
+let round = a => toDecimal(a)->Decimal.round->_ofDecimalInt;
+let floor = a => toDecimal(a)->Decimal.floor->_ofDecimalInt;
+let ceil = a => toDecimal(a)->Decimal.ceil->_ofDecimalInt;
 
 let add = (a, b) => {
   let rat =
     switch (a, b) {
     | (Rational(an, ad, c), Rational(bn, bd, bc)) when c == bc =>
       open SafeInt;
-      let ad = fromInt(ad);
-      let bd = fromInt(bd);
-      let n = fromInt(an) * bd + fromInt(bn) * ad;
+      let ad = ofInt(ad);
+      let bd = ofInt(bd);
+      let n = ofInt(an) * bd + ofInt(bn) * ad;
       let d = ad * bd;
       _safeRat(n, d, c);
     | _ => None
     };
   switch (rat) {
   | Some(rat) => rat
-  | None => Float(toFloat(a) +. toFloat(b))
+  | None => Decimal(Decimal.add(toDecimal(a), toDecimal(b)))
   };
 };
 
@@ -81,23 +82,23 @@ let sub = (a, b) => {
     switch (a, b) {
     | (Rational(an, ad, c), Rational(bn, bd, bc)) when c == bc =>
       open SafeInt;
-      let ad = fromInt(ad);
-      let bd = fromInt(bd);
-      let n = fromInt(an) * bd - fromInt(bn) * ad;
+      let ad = ofInt(ad);
+      let bd = ofInt(bd);
+      let n = ofInt(an) * bd - ofInt(bn) * ad;
       let d = ad * bd;
       _safeRat(n, d, c);
     | _ => None
     };
   switch (rat) {
   | Some(rat) => rat
-  | None => Float(toFloat(a) -. toFloat(b))
+  | None => Decimal(Decimal.sub(toDecimal(a), toDecimal(b)))
   };
 };
 
 let _mulRat = (an, ad, bn, bd, c) => {
   open SafeInt;
-  let n = fromInt(an) * fromInt(bn);
-  let d = fromInt(ad) * fromInt(bd);
+  let n = ofInt(an) * ofInt(bn);
+  let d = ofInt(ad) * ofInt(bd);
   _safeRat(n, d, c);
 };
 
@@ -121,14 +122,14 @@ let mul = (a, b) => {
     };
   switch (rat) {
   | Some(rat) => rat
-  | None => Float(toFloat(a) *. toFloat(b))
+  | None => Decimal(Decimal.mul(toDecimal(a), toDecimal(b)))
   };
 };
 
 let _divRat = (an, ad, bn, bd, c) => {
   open SafeInt;
-  let n = fromInt(an) * fromInt(bd);
-  let d = fromInt(ad) * fromInt(bn);
+  let n = ofInt(an) * ofInt(bd);
+  let d = ofInt(ad) * ofInt(bn);
   _safeRat(n, d, c);
 };
 
@@ -155,27 +156,30 @@ let div = (a, b) => {
     };
   switch (rat) {
   | Some(rat) => rat
-  | None => Float(toFloat(a) /. toFloat(b))
+  | None => Decimal(Decimal.div(toDecimal(a), toDecimal(b)))
   };
 };
 
 let powInt = (a, b) => {
-  let baseRat =
+  let powAbsB =
     switch (a, Pervasives.abs(b)) {
+    | (Rational(0, 0, Unit), 0) => Some(nan)
+    | (Rational(_), 0) => Some(ofInt(1))
+    | (_, 1) => Some(a)
+    | (_, 2) => Some(mul(a, a))
     | (Rational(n, d, Unit), b) =>
       open SafeInt;
-      let n = (fromInt(n) ** fromInt(b))->toInt;
-      let d = (fromInt(d) ** fromInt(b))->toInt;
+      let n = (ofInt(n) ** ofInt(b))->toInt;
+      let d = (ofInt(d) ** ofInt(b))->toInt;
       switch (n, d) {
-      | (Some(n), Some(d)) => Some(rat(n, d, Unit))
+      | (Some(n), Some(d)) => Some(rational(n, d, Unit))
       | _ => None
       };
-    | (_, 2) => Some(mul(a, a))
     | _ => None
     };
-  switch (baseRat) {
-  | Some(baseRat) => b >= 0 ? baseRat : inv(baseRat)
-  | _ => Float(toFloat(a) ** float_of_int(b))
+  switch (powAbsB) {
+  | Some(value) => b >= 0 ? value : inv(value)
+  | None => Decimal(Decimal.(toDecimal(a) ** ofInt(b)))
   };
 };
 
@@ -184,7 +188,15 @@ let (+) = add;
 let (-) = sub;
 let ( * ) = mul;
 let (/) = div;
-let cmp = (a, b) => compare(toFloat(a), toFloat(b));
-let (==) = equal;
-let (>) = (a, b) => toFloat(a) > toFloat(b);
-let (<) = (a, b) => toFloat(a) < toFloat(b);
+let (==) = (a, b) =>
+  switch (a, b) {
+  | (Rational(an, ad, ac), Rational(bn, bd, bc)) =>
+    an == bn && ad == bd && ac == bc
+  | (Decimal(af), Decimal(bf)) => Decimal.eq(af, bf)
+  | _ => false
+  };
+let (!=) = (a, b) => !(a == b);
+let (>) = (a, b) => Decimal.(toDecimal(a) > toDecimal(b));
+let (>=) = (a, b) => Decimal.(toDecimal(a) >= toDecimal(b));
+let (<) = (a, b) => Decimal.(toDecimal(a) < toDecimal(b));
+let (<=) = (a, b) => Decimal.(toDecimal(a) <= toDecimal(b));

@@ -5,16 +5,14 @@ const SciLine = require("../Value.bs");
 
 expect.extend({ toMatchJsValue });
 
-matrix2x2.forEach(v => {
-  it(`abs ${v.title}`, () => {
-    const mathJsValue = mathjs.det(v.jsValue);
-    expect(SciLine.abs(v.sciLineValue)).toMatchJsValue(mathJsValue);
-  });
+test.each(matrix2x2)("abs(%s)", v => {
+  const actual = SciLine.abs(v.sciLineValue);
+  const expected = mathjs.det(v.jsValue);
+  expect(actual).toMatchJsValue(expected);
 });
 
-matrix3x3.forEach(v => {
-  it(`abs ${v.title}`, () => {
-    const mathJsValue = mathjs.det(v.jsValue);
-    expect(SciLine.abs(v.sciLineValue)).toMatchJsValue(mathJsValue);
-  });
+test.each(matrix3x3)("abs(%s)", v => {
+  const actual = SciLine.abs(v.sciLineValue);
+  const expected = mathjs.det(v.jsValue);
+  expect(actual).toMatchJsValue(expected);
 });

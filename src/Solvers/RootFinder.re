@@ -34,9 +34,9 @@ let solveRoot = (f, initial) => {
 
   let rec bisectFloat = (~iterations=100, ~negativeX, ~positiveX, ()) => {
     let mFloat = (negativeX +. positiveX) /. 2.0;
-    let m = real(Real.Float(mFloat));
+    let m = ofFloat(mFloat);
     let fm = f(m);
-    let fmFloat = toFloat(fm);
+    let fmFloat = toDecimal(fm)->Decimal.toFloat;
     if (abs_float(fmFloat) < precision) {
       m;
     } else if (iterations > 0) {
@@ -58,7 +58,7 @@ let solveRoot = (f, initial) => {
       | Some(fxReal) => fxReal
       | None => f(xReal)
       };
-    let fx = fxReal->toFloat;
+    let fx = fxReal->toDecimal->Decimal.toFloat;
     if (abs_float(fx) < precision) {
       xReal;
     } else if (iterations > 0) {
@@ -77,7 +77,10 @@ let solveRoot = (f, initial) => {
               abs_float(fx -. fxPrev) < optimiseGradientLimit
               && abs_float(x -. xPrev) < optimiseGradientLimit =>
           `Gradient((fx -. fxPrev) /. (x -. xPrev))
-        | _ => `Gradient(Calculus.derivative(f, xReal)->toFloat)
+        | _ =>
+          `Gradient(
+            Calculus.derivative(f, xReal)->toDecimal->Decimal.toFloat,
+          )
         };
 
       switch (op) {
@@ -92,7 +95,7 @@ let solveRoot = (f, initial) => {
           newtonFloat(~iterations, ~previous, xNext, ());
         } else {
           /* Steffensen's method */
-          let gx = f(Base.(xReal + fxReal))->toFloat;
+          let gx = f(Base.(xReal + fxReal))->toDecimal->Decimal.toFloat;
           if (gx != 0.) {
             let xNext = x -. fx /. gx;
             newtonFloat(~iterations, ~previous, xNext, ());
@@ -112,11 +115,15 @@ let solveRoot = (f, initial) => {
     let (xPrev, fxPrev) = (x, fx);
     let x = Base.(x - fx / f'x);
     let fx = f(x);
-    if (toFloat(fx)->abs_float < precision) {
+    if (toDecimal(fx)->Decimal.toFloat->abs_float < precision) {
       x;
     } else {
-      let previous = Some({xPrev: toFloat(xPrev), fxPrev: toFloat(fxPrev)});
-      let x = toFloat(x);
+      let previous =
+        Some({
+          xPrev: toDecimal(xPrev)->Decimal.toFloat,
+          fxPrev: toDecimal(fxPrev)->Decimal.toFloat,
+        });
+      let x = toDecimal(x)->Decimal.toFloat;
       newtonFloat(~previous, ~fxReal=fx, x, ());
     };
   };

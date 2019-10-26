@@ -19,15 +19,17 @@ let toIdentity = m =>
     ),
   );
 
+let isSquare = x => float_of_int(x)->sqrt->FloatUtil.isInt;
+
 let rec pow = (a: value, b: value): value =>
   switch (a, b) {
   | (`Zero, `Real(_) | `Imag(_) | `Complex(_)) => `Zero
   | (`Real(_) | `Imag(_) | `Complex(_), `Zero) => one
   | (`Zero, `Zero) => `NaN
   | (`Real(Rational(n, d, Unit)), `Real(Rational(1, 2, Unit)))
-      when float_of_int(d)->sqrt->FloatUtil.isInt =>
+      when isSquare(d) =>
     let denSqrt = float_of_int(d)->sqrt->int_of_float;
-    let r = Real.rat(1, denSqrt, Real_Constant.Sqrt(abs(n)));
+    let r = Real.rational(1, denSqrt, Sqrt(abs(n)));
     if (n >= 0) {
       real(r);
     } else {
@@ -35,16 +37,11 @@ let rec pow = (a: value, b: value): value =>
     };
   | (`Real(Rational(1, 1, Exp(1))), _) => exp(b)
   | (_, `Real(Rational(2, 1, Unit))) => a * a
-  | (`Real(re), `Real(Rational(i, 1, Unit))) => `Real(Real.powInt(re, i))
-  | (
-      `Real(Rational(_, _, Unit) as a),
-      `Real(Rational(ltZero, 0, Unit) as b),
-    )
-      when ltZero < 0 =>
-    pow(`Real(Real.inv(a)), `Real(Real.abs(b)))
+  | (`Real(re), `Real(Rational(bInt, 1, Unit))) =>
+    real(Real.powInt(re, bInt))
   | (`Imag(im), `Real(Rational(bInt, 1, Unit))) =>
     let aPowB = Real.powInt(im, bInt);
-    switch (bInt mod 4) {
+    switch (IntUtil.safeMod(bInt, 4)) {
     | 0 => real(aPowB)
     | 1 => imag(aPowB)
     | 2 => real(Real.(- aPowB))

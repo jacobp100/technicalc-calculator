@@ -15,7 +15,7 @@ let resolveWithContext = (jsContext, a) => {
 
 let valueOfString = Types.ofString;
 let valueOfStringBase = Types.ofStringBase;
-let toFloat = Types.toFloat;
+let toFloat = Value.toFloat;
 let isNan = (a: Types.value) => a == `NaN;
 
 [@bs.deriving abstract]
@@ -29,9 +29,9 @@ type format = {
   [@bs.optional]
   base: int,
   [@bs.optional]
-  decimalMinMagnitude: float,
+  decimalMinMagnitude: int,
   [@bs.optional]
-  decimalMaxMagnitude: float,
+  decimalMaxMagnitude: int,
 };
 
 let toString = (x, maybeFormat) => {
@@ -80,9 +80,12 @@ let ofComplexFloats = (re, im) =>
 let toComplexFloats = (a): (float, float) =>
   switch (a) {
   | `Zero => (0., 0.)
-  | `Real(re) => (Real.toFloat(re), 0.)
-  | `Imag(re) => (0., Real.toFloat(re))
-  | `Complex(re, im) => (Real.toFloat(re), Real.toFloat(im))
+  | `Real(re) => (Real.toDecimal(re)->Decimal.toFloat, 0.)
+  | `Imag(re) => (0., Real.toDecimal(re)->Decimal.toFloat)
+  | `Complex(re, im) => (
+      Real.toDecimal(re)->Decimal.toFloat,
+      Real.toDecimal(im)->Decimal.toFloat,
+    )
   | _ => Pervasives.(nan, nan)
   };
 
@@ -105,5 +108,5 @@ let _mapMatrix = (fn: Types.value => 'a, a: Types.value): array(array('a)) => {
   };
 };
 
-let toFloatsMatrix = _mapMatrix(Types.toFloat);
+let toFloatsMatrix = _mapMatrix(Value.toFloat);
 let toComplexFloatsMatrix = _mapMatrix(toComplexFloats);

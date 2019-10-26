@@ -122,14 +122,12 @@ const sinImaginaryOnlyValues = new Set([
   "(12/1+12i/1)pi"
 ]);
 
-trigValues.forEach(v => {
-  it(`sin ${v.title}`, () => {
-    let mathJsValue = mathjs.sin(v.jsValue);
-    if (sinRealOnlyValues.has(v.title)) {
-      mathJsValue = { re: mathJsValue.re, im: 0 };
-    } else if (sinImaginaryOnlyValues.has(v.title)) {
-      mathJsValue = { re: 0, im: mathJsValue.im };
-    }
-    expect(SciLine.sin(v.sciLineValue)).toMatchJsValue(mathJsValue);
-  });
+test.each(trigValues)("sin(%s)", v => {
+  let mathJsValue = mathjs.sin(v.jsValue);
+  if (sinRealOnlyValues.has(v.title)) {
+    mathJsValue = { re: mathJsValue.re, im: 0 };
+  } else if (sinImaginaryOnlyValues.has(v.title)) {
+    mathJsValue = { re: 0, im: mathJsValue.im };
+  }
+  expect(SciLine.sin(v.sciLineValue)).toMatchJsValue(mathJsValue);
 });

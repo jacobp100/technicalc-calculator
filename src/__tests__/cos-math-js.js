@@ -122,14 +122,12 @@ const cosImaginaryOnlyValues = new Set([
   "(11/2+12i/1)pi"
 ]);
 
-trigValues.forEach(v => {
-  it(`cos ${v.title}`, () => {
-    let mathJsValue = mathjs.cos(v.jsValue);
-    if (cosRealOnlyValues.has(v.title)) {
-      mathJsValue = { re: mathJsValue.re, im: 0 };
-    } else if (cosImaginaryOnlyValues.has(v.title)) {
-      mathJsValue = { re: 0, im: mathJsValue.im };
-    }
-    expect(SciLine.cos(v.sciLineValue)).toMatchJsValue(mathJsValue);
-  });
+test.each(trigValues)("cos(%s)", v => {
+  let mathJsValue = mathjs.cos(v.jsValue);
+  if (cosRealOnlyValues.has(v.title)) {
+    mathJsValue = { re: mathJsValue.re, im: 0 };
+  } else if (cosImaginaryOnlyValues.has(v.title)) {
+    mathJsValue = { re: 0, im: mathJsValue.im };
+  }
+  expect(SciLine.cos(v.sciLineValue)).toMatchJsValue(mathJsValue);
 });

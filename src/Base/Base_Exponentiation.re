@@ -1,23 +1,23 @@
 open Types;
 
 let arg = (re, im) =>
-  if (Real.(re == zero)) {
-    switch (Pervasives.compare(Real.toFloat(im), 0.0)) {
-    | 1 => Real.Rational(1, 2, Pi)
-    | (-1) => Rational(-1, 2, Pi)
-    | _ => Real.nan
-    };
+  if (Real.(re != zero)) {
+    let reF = Real.toDecimal(re);
+    let imF = Real.toDecimal(im);
+    Real.Decimal(Decimal.atan2(imF, reF));
+  } else if (Real.(im > zero)) {
+    Real.rational(1, 2, Pi);
+  } else if (Real.(im < zero)) {
+    Real.rational(-1, 2, Pi);
   } else {
-    let reF = Real.toFloat(re);
-    let imF = Real.toFloat(im);
-    Float(atan2(imF, reF));
+    Real.nan;
   };
 
 let expReal = re =>
   switch (re) {
   | Real.Rational(0, 1, Unit) => Real.one
-  | Rational(i, 1, Unit) => Rational(1, 0, Exp(i))
-  | _ => Float(Real.toFloat(re)->exp)
+  | Rational(i, 1, Unit) => Real.rational(1, 1, Exp(i))
+  | _ => Decimal(Real.toDecimal(re)->Decimal.exp)
   };
 
 let rec exp = (a: value): value =>
@@ -41,11 +41,11 @@ let rec exp = (a: value): value =>
 
 let logReal = q =>
   switch (q) {
-  | Real.Rational((-1), 1, Exp(reExp)) => Real.Rational(1, 1, Exp(reExp))
+  | Real.Rational((-1), 1, Exp(reExp)) => Real.rational(1, 1, Exp(reExp))
   | _ =>
-    let f = Real.toFloat(q);
-    if (f > 0.) {
-      Float(Pervasives.log(f));
+    let f = Real.toDecimal(q);
+    if (Decimal.(f > zero)) {
+      Decimal(Decimal.ln(f));
     } else {
       invalid_arg("logReal");
     };
@@ -54,7 +54,8 @@ let logReal = q =>
 let rec log = (a: value): value =>
   switch (a) {
   | `Zero => `NaN
-  | `Real(gtZero) when Real.toFloat(gtZero) > 0. => real(logReal(gtZero))
+  | `Real(gtZero) when Decimal.(Real.toDecimal(gtZero) > zero) =>
+    real(logReal(gtZero))
   | `Real(Rational((-1), 1, Unit)) => Base_Operators.mul(pi, i)
   | (`Real(_) | `Imag(_) | `Complex(_)) as vV =>
     let re =
@@ -63,7 +64,7 @@ let rec log = (a: value): value =>
       | `Imag(im) => Real.mul(im, im)
       | `Complex(re, im) => Base_Operators.magnitudeSquared(re, im)
       };
-    let re = logReal(re)->Real.div(Rational(2, 1, Unit));
+    let re = logReal(re)->Real.(div(rational(2, 1, Unit)));
     let im =
       switch (vV) {
       | `Real(re) => arg(re, Real.zero)

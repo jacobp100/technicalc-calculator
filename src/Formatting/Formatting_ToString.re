@@ -39,7 +39,7 @@ let formatTuple = (re, format): string => {
         Formatting_Number.formatInteger(
           ~base,
           formatting,
-          abs(d)->float_of_int,
+          abs(d)->Decimal.ofInt,
         ),
         Formatting_Constant.toString(~format, c),
       ) {
@@ -53,7 +53,7 @@ let formatTuple = (re, format): string => {
 
     switch (
       format.mode,
-      Formatting_Number.formatInteger(~base, formatting, float_of_int(d)),
+      Formatting_Number.formatInteger(~base, formatting, Decimal.ofInt(d)),
     ) {
     | (_, "1") => minus ++ top
     | (String, bottom) => minus ++ top ++ "/" ++ bottom
@@ -64,8 +64,8 @@ let formatTuple = (re, format): string => {
       minus ++ "<mfrac>" ++ top ++ bottom ++ "</mfrac>";
     };
   | (_, Natural | Decimal) =>
-    let floatVal = Real.toFloat(re);
-    let valueMagnitude = floor(log10(abs_float(floatVal)));
+    let f = Real.toDecimal(re);
+    let valueMagnitude = DecimalUtil.magnitude(f);
     let insideMagnitudeThreshold =
       valueMagnitude >= format.decimalMinMagnitude
       && valueMagnitude <= format.decimalMaxMagnitude;
@@ -75,40 +75,35 @@ let formatTuple = (re, format): string => {
         ~base,
         Formatting_Number.createFormat(
           ~maxDecimalPlaces=format.precision,
-          ~digitSeparators=valueMagnitude >= 5.,
+          ~digitSeparators=valueMagnitude >= 5,
           (),
         ),
-        floatVal,
+        f,
       )
       ->formatNumber(format);
     } else {
       Formatting_Number.formatExponential(
         ~base,
-        ~exponent=DecimalUtil.magnitude(floatVal),
+        ~exponent=DecimalUtil.magnitude(f),
         Formatting_Number.createFormat(
           ~maxDecimalPlaces=format.precision,
           (),
         ),
-        floatVal,
+        f,
       )
       ->formatExponential(format);
     };
   | (_, Scientific) =>
     /* Round to multiple of 3 */
-    let floatVal = Real.toFloat(re);
-    let exponent = DecimalUtil.magnitude(floatVal) * 3 / 3;
+    let f = Real.toDecimal(re);
+    let exponent = DecimalUtil.magnitude(f) * 3 / 3;
     let formatting =
       Formatting_Number.createFormat(
         ~minDecimalPlaces=format.precision,
         ~maxDecimalPlaces=format.precision,
         (),
       );
-    Formatting_Number.formatExponential(
-      ~base,
-      ~exponent,
-      formatting,
-      floatVal,
-    )
+    Formatting_Number.formatExponential(~base, ~exponent, formatting, f)
     ->formatExponential(format);
   };
 };
@@ -130,7 +125,10 @@ let formatScalar = (a: scalar, format): string =>
   | `Imag(im) => formatImagTuple(im, format)
   | `Complex(re, im) =>
     formatTuple(re, format)
-    ++ formatOperator(Real.toFloat(im) < 0. ? "-" : "+", format)
+    ++ formatOperator(
+         Decimal.(Real.toDecimal(im) < zero) ? "-" : "+",
+         format,
+       )
     ++ formatImagTuple(Real.abs(im), format)
   };
 

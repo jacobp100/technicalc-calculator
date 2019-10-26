@@ -53,11 +53,20 @@ let addDigitSeparators = (~startIndex=0, ~endIndex=?, string) => {
   baseStr^;
 };
 
+let _decimalToString = (~base=10, num) =>
+  switch (base) {
+  | 2 => Decimal.toBinary(num)
+  | 8 => Decimal.toOctal(num)
+  | 10 => Decimal.toString(num)
+  | 16 => Decimal.toHexedecimal(num)
+  | _ => failwith("Invalid base")
+  };
+
 let formatInteger = (~base=10, formatting, num) => {
-  let str = Js.Float.toStringWithRadix(num, ~radix=base);
+  let str = _decimalToString(~base, num);
   let str =
     if (formatting.digitSeparators) {
-      addDigitSeparators(~startIndex=num < 0. ? 1 : 0, str);
+      addDigitSeparators(~startIndex=Decimal.(num < zero) ? 1 : 0, str);
     } else {
       str;
     };
@@ -66,26 +75,26 @@ let formatInteger = (~base=10, formatting, num) => {
 
 let formatDecimal = (~base=10, formatting, num) => {
   let (minDecimalPlaces, maxDecimalPlaces) = _getDecimalBounds(formatting);
-  let absNum = abs_float(num);
-  let integerPart = floor(absNum);
-  let decimalPart = absNum -. integerPart;
+  let absNum = Decimal.abs(num);
+  let integerPart = Decimal.floor(absNum);
+  let decimalPart = Decimal.sub(absNum, integerPart);
   let integer =
     formatInteger(
       ~base,
       formatting,
-      num >= 0. ? integerPart : -. integerPart,
+      Decimal.(num >= zero ? integerPart : - integerPart),
     );
   let decimal =
     if (maxDecimalPlaces == 0) {
       "";
-    } else if (decimalPart == 0.) {
+    } else if (Decimal.(decimalPart == zero)) {
       String.make(minDecimalPlaces, '0');
     } else {
-      let exp = float_of_int(base) ** float_of_int(maxDecimalPlaces);
-      let decimalAsInteger = floor(decimalPart *. exp);
-      let baseStr =
-        Js.Float.toStringWithRadix(decimalAsInteger, ~radix=base)
-        ->String.uppercase;
+      let decimalAsInteger =
+        Decimal.(
+          floor(decimalPart * ofInt(base) ** ofInt(maxDecimalPlaces))
+        );
+      let baseStr = _decimalToString(~base, decimalAsInteger);
       let str =
         String.make(maxDecimalPlaces - String.length(baseStr), '0')
         ++ baseStr;
@@ -106,7 +115,11 @@ let formatExponential = (~base=10, ~exponent=?, formatting, num) => {
     | None => DecimalUtil.magnitude(num)
     };
   let decimalPart =
-    formatDecimal(~base, formatting, num /. 10. ** float_of_int(exponent));
+    formatDecimal(
+      ~base,
+      formatting,
+      Decimal.(num / ofInt(10) ** ofInt(exponent)),
+    );
   let exponentPart = string_of_int(exponent);
   (decimalPart, exponentPart);
 };

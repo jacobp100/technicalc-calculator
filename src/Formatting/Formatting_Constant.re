@@ -4,7 +4,7 @@ let _f = (format, v) =>
   Formatting_Number.formatInteger(
     ~base=format.base,
     Formatting_Number.createFormat(~digitSeparators=false, ()),
-    float_of_int(v),
+    Decimal.ofInt(v),
   );
 
 let toString = (~format=default, a) =>

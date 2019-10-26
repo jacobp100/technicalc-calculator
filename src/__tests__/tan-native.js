@@ -20,13 +20,12 @@ const tanInfiniteValues = new Set([
   "-11pi/2"
 ]);
 
-trigValues.forEach(v => {
-  it(`tan ${v.title}`, () => {
-    const sciLineValue = SciLine.tan(v.sciLineValue);
-    if (tanInfiniteValues.has(v.title)) {
-      expect(SciLineTest.toString(sciLineValue)).toBe("NaN");
-    } else {
-      expect(sciLineValue).toMatchJsValue(Math.tan(v.jsValue));
-    }
-  });
+test.each(trigValues)("tan(%s)", v => {
+  const actual = SciLine.tan(v.sciLineValue);
+  if (tanInfiniteValues.has(v.title)) {
+    expect(SciLineTest.toString(actual)).toBe("NaN");
+  } else {
+    const expected = Math.tan(v.jsValue);
+    expect(actual).toMatchJsValue(expected);
+  }
 });

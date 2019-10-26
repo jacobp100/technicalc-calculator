@@ -56,7 +56,7 @@ let mulScalar = (a: scalar, b: scalar): scalar =>
 
 let divScalar = (a: scalar, b: scalar): scalar =>
   switch (a, b) {
-  | (_, `Zero) => `Real(Rational(1, 0, Unit))
+  | (_, `Zero) => `Real(Real.nan)
   | (`Zero, _) => `Zero
   | (`Real(a), `Real(b)) => `Real(Real.div(a, b))
   | (`Imag(im), `Real(re)) => `Imag(Real.div(im, re))
@@ -104,7 +104,7 @@ let add = (a: value, b: value): value =>
     ) =>
     addScalar(aV, bV)->valueOfScalar
   | ((`Real(_) | `Imag(_) | `Complex(_)) as aV, `Percent(p)) =>
-    addScalar(aV, mulScalar(aV, p)->divScalar(`Real(Real.fromInt(100))))
+    addScalar(aV, mulScalar(aV, p)->divScalar(`Real(Real.ofInt(100))))
     ->valueOfScalar
   | (`Vector(aElements), `Vector(bElements))
       when Belt.Array.length(aElements) == Belt.Array.length(bElements) =>

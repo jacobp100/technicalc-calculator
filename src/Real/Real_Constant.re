@@ -4,12 +4,12 @@ type t =
   | Exp(int)
   | Sqrt(int);
 
-let toFloat = a =>
+let toDecimal = a =>
   switch (a) {
-  | Unit => 1.
-  | Pi => 3.14
-  | Exp(ac) => 2.78 ** float_of_int(ac)
-  | Sqrt(ac) => sqrt(float_of_int(ac))
+  | Unit => Decimal.ofInt(1)
+  | Pi => Decimal.pi
+  | Exp(ac) => Decimal.(ofInt(ac)->exp)
+  | Sqrt(ac) => Decimal.(ofInt(ac)->sqrt)
   };
 
 let simplifySqrt = ac =>
@@ -17,21 +17,16 @@ let simplifySqrt = ac =>
   | 0 => `Zero
   | 1 => `Factor((1, Unit))
   | _ =>
-    let upper = ac;
-
     let sqrtArg = ref(ac);
     let multiplier = ref(1);
 
-    let current_sqrt_value = ref(2);
-    while (current_sqrt_value^ <= upper) {
-      let factor = current_sqrt_value^ * current_sqrt_value^;
+    for (currentSqrtValue in 2 to ac / 2) {
+      let factor = currentSqrtValue * currentSqrtValue;
 
-      while (sqrtArg^ mod factor != 0) {
+      while (sqrtArg^ mod factor == 0) {
         sqrtArg := sqrtArg^ / factor;
-        multiplier := multiplier^ * current_sqrt_value^;
+        multiplier := multiplier^ * currentSqrtValue;
       };
-
-      current_sqrt_value := current_sqrt_value^ + 1;
     };
 
     let constant = sqrtArg^ == 1 ? Unit : Sqrt(sqrtArg^);

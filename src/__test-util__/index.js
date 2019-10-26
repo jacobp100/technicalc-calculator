@@ -40,9 +40,7 @@ module.exports.Value = class Value {
   }
 
   toString() {
-    return `(js: ${this.jsValue}, sciline: ${SciLineTest.toString(
-      this.sciLineValue
-    )})`;
+    return this.title;
   }
 };
 
