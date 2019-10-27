@@ -31,75 +31,41 @@ let scalarIsNaN = (a: scalar) =>
   | `Complex(re, im) => Real.isNaN(re) || Real.isNaN(im)
   };
 
-let simplifyConstant = (v: scalar): scalar =>
-  switch (v) {
-  | _ => v
-  // | `Zero => `Zero
-  // | `Real(q, c) =>
-  //   switch (Constant.simplify(c)) {
-  //   | `Factor(f, c) => `Real((Q.(f * q), c))
-  //   | `Zero => `Zero
-  //   | `None => v
-  //   }
-  // | `Imag(q, c) =>
-  //   switch (Constant.simplify(c)) {
-  //   | `Factor(f, c) => `Imag((Q.(f * q), c))
-  //   | `Zero => `Zero
-  //   | `None => v
-  //   }
-  // | `Complex(reQ, reC, imQ, imC) =>
-  //   switch (Constant.simplify(reC), Constant.simplify(imC)) {
-  //   | (`None, `None) => v
-  //   | (`Factor(reF, reC), `None) => `Complex((Q.(reF * reQ), reC, imQ, imC))
-  //   | (`None, `Factor(imF, imC)) => `Complex((reQ, reC, Q.(imF * imQ), imC))
-  //   | (`Factor(reF, reC), `Factor(imF, imC)) =>
-  //     `Complex((Q.(reF * reQ), reC, Q.(imQ * imF), imC))
-  //   | (`Zero, `Zero) => `Zero
-  //   | (`Zero, `None) => `Imag((imQ, imC))
-  //   | (`None, `Zero) => `Real((reQ, reC))
-  //   | (`Zero, `Factor(imF, imC)) => `Imag((Q.(imF * imQ), imC))
-  //   | (`Factor(reF, reC), `Zero) => `Real((Q.(reF * reQ), reC))
-  //   }
-  };
-
 let normalizeScalar = (v: scalar): scalar =>
   switch (v) {
-  | _ => v
-  // | `Zero => `Zero
-  // | `Real(q, _)
-  // | `Imag(q, _) => Q.(q == zero) ? `Zero : v->simplifyConstant
-  // | `Complex(reQ, reC, imQ, imC) =>
-  //   switch (Q.(reQ == zero, imQ == zero)) {
-  //   | (true, true) => `Zero
-  //   | (false, true) => `Real((reQ, reC))->simplifyConstant
-  //   | (true, false) => `Imag((imQ, imC))->simplifyConstant
-  //   | (false, false) => v->simplifyConstant
-  //   }
+  | `Zero
+  | `Real(Rational(0, _, _))
+  | `Imag(Rational(0, _, _))
+  | `Complex(Rational(0, _, _), Rational(0, _, _)) => `Zero
+  | `Complex(Rational(0, _, _), v) => `Imag(v)
+  | `Complex(v, Rational(0, _, _)) => `Real(v)
+  | `Real(_)
+  | `Imag(_)
+  | `Complex(_) => v
   };
 
 let normalize = (v: value): value =>
   switch (v) {
-  | _ => v
-  // | `Zero => `Zero
-  // | (`Real(q, _) | `Imag(q, _)) as scalar =>
-  //   qIsNaN(q) ? `NaN : normalizeScalar(scalar)->valueOfScalar
-  // | `Complex(reQ, _, imQ, _) as scalar =>
-  //   qIsNaN(reQ) || qIsNaN(imQ)
-  //     ? `NaN : normalizeScalar(scalar)->valueOfScalar
-  // | `Percent(p) =>
-  //   if (scalarIsNaN(p)) {
-  //     `NaN;
-  //   } else {
-  //     let normalized = normalizeScalar(p);
-  //     normalized === p ? v : `Percent(normalizeScalar(p));
-  //   }
-  // | `Vector(elements) =>
-  //   let isNaN = elements->Belt.Array.some(scalarIsNaN);
-  //   isNaN ? `NaN : `Vector(elements->Belt.Array.map(normalizeScalar));
-  // | `Matrix(mat) =>
-  //   let isNaN = mat.elements->Belt.Array.some(scalarIsNaN);
-  //   isNaN ? `NaN : `Matrix(mat->Matrix.map(normalizeScalar));
-  // | `NaN => `NaN
+  | `Zero => `Zero
+  | (`Real(v) | `Imag(v)) as scalar =>
+    Real.isNaN(v) ? `NaN : normalizeScalar(scalar)->valueOfScalar
+  | `Complex(re, im) as scalar =>
+    Real.isNaN(re) || Real.isNaN(im)
+      ? `NaN : normalizeScalar(scalar)->valueOfScalar
+  | `Percent(p) =>
+    if (scalarIsNaN(p)) {
+      `NaN;
+    } else {
+      let normalized = normalizeScalar(p);
+      normalized === p ? v : `Percent(normalizeScalar(p));
+    }
+  | `Vector(elements) =>
+    let isNaN = elements->Belt.Array.some(scalarIsNaN);
+    isNaN ? `NaN : `Vector(elements->Belt.Array.map(normalizeScalar));
+  | `Matrix(mat) =>
+    let isNaN = mat.elements->Belt.Array.some(scalarIsNaN);
+    isNaN ? `NaN : `Matrix(mat->Matrix.map(normalizeScalar));
+  | `NaN => `NaN
   };
 
 let ofInt = (a): value => `Real(Rational(a, 1, Unit))->normalize;
@@ -174,6 +140,9 @@ let matrix3 = (a, b, c, d, e, f, g, h, i): value =>
     },
   )
   ->normalize;
+
+let valueOfScalar = a => a->valueOfScalar->normalize;
+let valueOfMatrix = a => a->valueOfMatrix->normalize;
 
 let toDecimal = (a: value): Decimal.t =>
   switch (a) {

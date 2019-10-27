@@ -54,8 +54,7 @@ let logReal = q =>
 let rec log = (a: value): value =>
   switch (a) {
   | `Zero => `NaN
-  | `Real(gtZero) when Decimal.(Real.toDecimal(gtZero) > zero) =>
-    real(logReal(gtZero))
+  | `Real(gtZero) when Real.(gtZero > zero) => real(logReal(gtZero))
   | `Real(Rational((-1), 1, Unit)) => Base_Operators.mul(pi, i)
   | (`Real(_) | `Imag(_) | `Complex(_)) as vV =>
     let re =

@@ -39,7 +39,7 @@ let formatTuple = (re, format): string => {
         Formatting_Number.formatInteger(
           ~base,
           formatting,
-          abs(d)->Decimal.ofInt,
+          abs(n)->Decimal.ofInt,
         ),
         Formatting_Constant.toString(~format, c),
       ) {

@@ -1,5 +1,5 @@
 let percentToNumerical = {
   open Types;
-  let _100 = `Real(Real.rational(100, 1, Unit));
+  let _100 = ofInt(100);
   x => Base_Operators.div(valueOfScalar(x), _100);
 };
