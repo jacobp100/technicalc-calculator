@@ -12,14 +12,14 @@ const {
 } = require("../Value.bs");
 const { toString } = require("../SciLineTest.bs");
 
-it("Converts via ofString", () => {
-  const convert = x => toString(ofString(x));
+test("Converts via ofString", () => {
+  const convert = (x, opt) => toString(ofString(x), opt);
   expect(convert("1")).toBe("1");
   expect(convert("1e2")).toBe("100");
   expect(convert("1e+2")).toBe("100");
   expect(convert("1e-2")).toBe("1/100");
   expect(convert("1e1000")).toBe("1e1000");
-  expect(convert("1.23456789")).toBe("1.23456789");
+  expect(convert("1.23456789", { style: "decimal" })).toBe("1.23456789");
   expect(convert("1.23456789e-100")).toBe("1.23456789e-100");
   expect(convert("1.23456789e100")).toBe("1.23456789e100");
   expect(convert("-1")).toBe("-1");
@@ -27,28 +27,30 @@ it("Converts via ofString", () => {
   expect(convert("-1e+2")).toBe("-100");
   expect(convert("-1e-2")).toBe("-1/100");
   expect(convert("-1e1000")).toBe("-1e1000");
-  expect(convert("-1.23456789")).toBe("-1.23456789");
+  expect(convert("-1.23456789", { style: "decimal" })).toBe("-1.23456789");
   expect(convert("-1.23456789e-100")).toBe("-1.23456789e-100");
   expect(convert("-1.23456789e100")).toBe("-1.23456789e100");
 });
 
-it("Converts decimals to fractions", () => {
+test("Converts decimals to fractions", () => {
   expect(toString(ofString("0.4"))).toBe("2/5");
-  expect(toString(ofString("0.123456789"))).toBe("0.123456789");
+  expect(toString(ofString("0.123456789"), { style: "decimal" })).toBe(
+    "0.123456789"
+  );
 });
 
-it("Simplifies division by two square roots", () => {
+test("Simplifies division by two square roots", () => {
   expect(toString(div(sqrt(ofFloat(10)), sqrt(ofFloat(2))))).toEqual("sqrt(5)");
   expect(toString(div(sqrt(ofFloat(1000)), sqrt(ofFloat(2))))).toEqual(
     "10sqrt(5)"
   );
 });
 
-it("Tracks exp values through log", () => {
+test("Tracks exp values through log", () => {
   expect(toString(log(exp(ofFloat(47))))).toEqual("47");
 });
 
-it("Simplifies square roots and exponentials", () => {
+test("Simplifies square roots and exponentials", () => {
   expect(toString(mul(ofFloat(2), sqrt(ofFloat(2))))).toEqual("2sqrt(2)");
   expect(toString(sqrt(ofFloat(1000)))).toEqual("10sqrt(10)");
   expect(toString(sqrt(ofFloat(4)))).toEqual("2");
@@ -63,15 +65,15 @@ it("Simplifies square roots and exponentials", () => {
   expect(toString(exp(ofFloat(-1)))).toEqual("exp(-1)");
 });
 
-it("Does not simplify pi", () => {
+test("Does not simplify pi", () => {
   expect(toString(pi)).toEqual("pi");
 });
 
-it("Takes sin of pi + 1", () => {
+test("Takes sin of pi + 1", () => {
   expect(toString(sin(add(pi, ofFloat(1))))).toBe("0.841470984807");
 });
 
-it("Formats various numbers correctly", () => {
+test("Formats various numbers correctly", () => {
   const convert = x => toString(ofString(x));
   expect(convert("46.47897327055571")).toBe("46.478973270555");
   expect(convert("-47.86759243619015")).toBe("-47.86759243619");

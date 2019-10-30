@@ -1,9 +1,6 @@
 open Types;
 open Formatting_Types;
 
-let maxNaturalDenom = Z.of_int(1_000_000);
-let maxNaturalQ = Q.of_int(100_000_000);
-
 let formatNumber = (x, format) =>
   switch (format.mode) {
   | String
@@ -28,19 +25,22 @@ let formatOperator = (op, format) =>
 let formatVariable = (var, format) =>
   format.mode == MathML ? "<mi>" ++ var ++ "</mi>" : var;
 
-let formatTuple = (q: Q.t, c: Constant.t, format): string => {
+let formatTuple = (re, format): string => {
   let base = format.base;
 
-  switch (format.style) {
-  | Natural when Z.(Q.den(q) < maxNaturalDenom) && Q.(abs(q) < maxNaturalQ) =>
-    let (num, den) = (Q.num(q), Q.den(q));
+  switch (re, format.style) {
+  | (Real.Rational(n, d, c), Natural) =>
     let formatting =
       Formatting_Number.createFormat(~digitSeparators=true, ());
-    let minus = Q.(q < zero) ? formatOperator("-", format) : "";
+    let minus = n < 0 ? formatOperator("-", format) : "";
 
     let (top, needsWrap) =
       switch (
-        Formatting_Number.formatInteger(~base, formatting, Z.abs(num)),
+        Formatting_Number.formatInteger(
+          ~base,
+          formatting,
+          abs(n)->Decimal.ofInt,
+        ),
         Formatting_Constant.toString(~format, c),
       ) {
       | ("1", "") => (formatNumber("1", format), false)
@@ -53,7 +53,7 @@ let formatTuple = (q: Q.t, c: Constant.t, format): string => {
 
     switch (
       format.mode,
-      Formatting_Number.formatInteger(~base, formatting, den),
+      Formatting_Number.formatInteger(~base, formatting, Decimal.ofInt(d)),
     ) {
     | (_, "1") => minus ++ top
     | (String, bottom) => minus ++ top ++ "/" ++ bottom
@@ -63,11 +63,9 @@ let formatTuple = (q: Q.t, c: Constant.t, format): string => {
       let bottom = formatNumber(denominator, format);
       minus ++ "<mfrac>" ++ top ++ bottom ++ "</mfrac>";
     };
-  | Natural
-  | Decimal =>
-    let q = QCUtil.toQ(q, c);
-    let floatVal = Q.to_float(q);
-    let valueMagnitude = floor(log10(abs_float(floatVal)));
+  | (_, Natural | Decimal) =>
+    let f = Real.toDecimal(re);
+    let valueMagnitude = DecimalUtil.magnitude(f);
     let insideMagnitudeThreshold =
       valueMagnitude >= format.decimalMinMagnitude
       && valueMagnitude <= format.decimalMaxMagnitude;
@@ -77,58 +75,61 @@ let formatTuple = (q: Q.t, c: Constant.t, format): string => {
         ~base,
         Formatting_Number.createFormat(
           ~maxDecimalPlaces=format.precision,
-          ~digitSeparators=valueMagnitude >= 5.,
+          ~digitSeparators=valueMagnitude >= 5,
           (),
         ),
-        q,
+        f,
       )
       ->formatNumber(format);
     } else {
       Formatting_Number.formatExponential(
         ~base,
-        ~exponent=QUtil.magnitude(q),
+        ~exponent=DecimalUtil.magnitude(f),
         Formatting_Number.createFormat(
           ~maxDecimalPlaces=format.precision,
           (),
         ),
-        q,
+        f,
       )
       ->formatExponential(format);
     };
-  | Scientific =>
+  | (_, Scientific) =>
     /* Round to multiple of 3 */
-    let q = QCUtil.toQ(q, c);
-    let exponent = QUtil.magnitude(q) * 3 / 3;
+    let f = Real.toDecimal(re);
+    let exponent = DecimalUtil.magnitude(f) * 3 / 3;
     let formatting =
       Formatting_Number.createFormat(
         ~minDecimalPlaces=format.precision,
         ~maxDecimalPlaces=format.precision,
         (),
       );
-    Formatting_Number.formatExponential(~base, ~exponent, formatting, q)
+    Formatting_Number.formatExponential(~base, ~exponent, formatting, f)
     ->formatExponential(format);
   };
 };
 
-let formatImagTuple = (q: Q.t, c: Constant.t, format): string => {
+let formatImagTuple = (re: Real.t, format): string => {
   let i = formatVariable("i", format);
-  switch (format.style, q, c) {
-  | (Natural | Decimal, isOne, Unit) when Q.(isOne == one) => i
-  | (Natural | Decimal, isMinusOne, Unit) when Q.(isMinusOne == minus_one) =>
+  switch (format.style, re) {
+  | (Natural | Decimal, Rational(1, 1, Unit)) => i
+  | (Natural | Decimal, Rational((-1), 1, Unit)) =>
     formatOperator("-", format) ++ i
-  | (_, q, c) => formatTuple(q, c, format) ++ i
+  | _ => formatTuple(re, format) ++ i
   };
 };
 
 let formatScalar = (a: scalar, format): string =>
   switch (a) {
   | `Zero => formatNumber("0", format)
-  | `Real(q, c) => formatTuple(q, c, format)
-  | `Imag(q, c) => formatImagTuple(q, c, format)
-  | `Complex(reQ, reC, imQ, imC) =>
-    formatTuple(reQ, reC, format)
-    ++ formatOperator(Q.(imQ < zero) ? "-" : "+", format)
-    ++ formatImagTuple(Q.abs(imQ), imC, format)
+  | `Real(re) => formatTuple(re, format)
+  | `Imag(im) => formatImagTuple(im, format)
+  | `Complex(re, im) =>
+    formatTuple(re, format)
+    ++ formatOperator(
+         Decimal.(Real.toDecimal(im) < zero) ? "-" : "+",
+         format,
+       )
+    ++ formatImagTuple(Real.abs(im), format)
   };
 
 let toString = (~format=default, ~inline=false, a: value): string => {

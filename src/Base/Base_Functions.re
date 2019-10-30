@@ -1,24 +1,20 @@
 open Types;
 
-let mapQScalar = (a: scalar, f: Q.t => Q.t): scalar =>
+let mapScalar = (a: scalar, f: Real.t => Real.t): scalar =>
   switch (a) {
   | `Zero => `Zero
-  | `Real(aQ, aC) => `Real((f(aQ), aC))
-  | `Imag(aQ, aC) => `Imag((f(aQ), aC))
-  | `Complex(reQ, reC, imQ, imC) => `Complex((f(reQ), reC, f(imQ), imC))
+  | `Real(re) => `Real(f(re))
+  | `Imag(im) => `Imag(f(im))
+  | `Complex(re, im) => `Complex((f(re), f(im)))
   };
 
-let negScalar = mapQScalar(_, Q.neg);
+let negScalar = mapScalar(_, Real.neg);
+let absScalar = mapScalar(_, Real.abs);
+let roundScalar = mapScalar(_, Real.round);
+let floorScalar = mapScalar(_, Real.floor);
+let ceilScalar = mapScalar(_, Real.ceil);
 
-let absScalar = mapQScalar(_, Q.abs);
-
-let floorScalar = mapQScalar(_, q => QUtil.floor(q)->Q.of_bigint);
-
-let ceilScalar = mapQScalar(_, q => QUtil.ceil(q)->Q.of_bigint);
-
-let roundScalar = mapQScalar(_, q => QUtil.round(q)->Q.of_bigint);
-
-let mapQValue = (a: value, fn: scalar => scalar) =>
+let mapCompositeValue = (a: value, fn: scalar => scalar) =>
   switch (a) {
   | (`Zero | `Real(_) | `Imag(_) | `Complex(_)) as aV => fn(aV)->valueOfScalar
   | `Percent(p) => `Percent(fn(p))
@@ -26,11 +22,8 @@ let mapQValue = (a: value, fn: scalar => scalar) =>
   | `Matrix(elements) => `Matrix(elements->Matrix.map(fn))
   | `NaN => `NaN
   };
-
-let neg = mapQValue(_, negScalar);
-
-let floor = mapQValue(_, floorScalar);
-
-let ceil = mapQValue(_, ceilScalar);
-
-let round = mapQValue(_, roundScalar);
+let neg = mapCompositeValue(_, negScalar);
+let abs = mapCompositeValue(_, absScalar);
+let round = mapCompositeValue(_, roundScalar);
+let floor = mapCompositeValue(_, floorScalar);
+let ceil = mapCompositeValue(_, ceilScalar);

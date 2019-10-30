@@ -9,12 +9,9 @@ let (==) = Base_Comparison.equal;
 let exp = Base_Exponentiation.exp;
 let log = Base_Exponentiation.log;
 
-let qTwo = Q.of_int(2);
-let qHalf = Q.of_ints(1, 2);
-let half = `Real((qHalf, Constant.Unit));
-
-let zeroS = `Real((Q.zero, Constant.Unit));
-let oneS = `Real((Q.one, Constant.Unit));
+let halfS = `Real(Real.Rational(1, 2, Unit));
+let zeroS = `Real(Real.zero);
+let oneS = `Real(Real.one);
 let toIdentity = m =>
   `Matrix(
     Matrix.mapWithIndex(m, (row, column, _) =>
@@ -22,42 +19,33 @@ let toIdentity = m =>
     ),
   );
 
+let isSquare = x => float_of_int(x)->sqrt->FloatUtil.isInt;
+
 let rec pow = (a: value, b: value): value =>
   switch (a, b) {
   | (`Zero, `Real(_) | `Imag(_) | `Complex(_)) => `Zero
   | (`Real(_) | `Imag(_) | `Complex(_), `Zero) => one
   | (`Zero, `Zero) => `NaN
-  | (`Real(aReQ, aReC), `Real(isHalf, Constant.Unit))
-      when Q.(isHalf == qHalf) =>
-    let q = Q.abs(aReQ);
-    let denSqrt = Q.den(q)->QUtil.sqrtZ;
-    let (q, c) =
-      if (QUtil.isInt(denSqrt) && Constant.(aReC == Unit)) {
-        (Q.inv(denSqrt), Constant.Sqrt(Q.num(q)));
-      } else {
-        (QCUtil.mapFloat(q, aReC, sqrt), Unit);
-      };
-    if (Q.(aReQ > zero)) {
-      realQC(q, c);
+  | (`Real(Rational(n, d, Unit)), `Real(Rational(1, 2, Unit)))
+      when isSquare(d) =>
+    let denSqrt = float_of_int(d)->sqrt->int_of_float;
+    let r = Real.rational(1, denSqrt, Sqrt(abs(n)));
+    if (n >= 0) {
+      real(r);
     } else {
-      imagQC(q, c);
+      imag(r);
     };
-  | (`Real(isOne, Constant.Exp(1)), _) when Q.(isOne == one) => exp(b)
-  | (_, `Real(isTwo, Unit)) when Q.(isTwo == qTwo) => a * a
-  | (`Real(aReQ, Unit), `Real(isInt, Unit)) when QUtil.isInt(isInt) =>
-    switch (Q.num(isInt)->Z.to_int) {
-    | bn => real(QUtil.pow(aReQ, bn))
-    | exception Z.Overflow => `NaN
-    }
-  | (`Real(aReQ, Unit), `Real(ltZero, Unit)) when Q.(ltZero < zero) =>
-    pow(real(Q.inv(aReQ)), real(Q.abs(ltZero)))
-  | (`Imag(aImQ, aImC), `Real(isInt, Unit)) when QUtil.isInt(isInt) =>
-    let aPowB = pow(realQC(aImQ, aImC), b);
-    switch (Q.num(isInt)->ZUtil.safeMod(Z.of_int(4))->Z.to_int) {
-    | 0 => aPowB
-    | 1 => aPowB * i
-    | 2 => - aPowB
-    | 3 => aPowB * minusI
+  | (`Real(Rational(1, 1, Exp(1))), _) => exp(b)
+  | (_, `Real(Rational(2, 1, Unit))) => a * a
+  | (`Real(re), `Real(Rational(bInt, 1, Unit))) =>
+    real(Real.powInt(re, bInt))
+  | (`Imag(im), `Real(Rational(bInt, 1, Unit))) =>
+    let aPowB = Real.powInt(im, bInt);
+    switch (IntUtil.safeMod(bInt, 4)) {
+    | 0 => real(aPowB)
+    | 1 => imag(aPowB)
+    | 2 => real(Real.(- aPowB))
+    | 3 => imag(Real.(- aPowB))
     | _ => raise(Not_found)
     };
   | (`Real(_) | `Imag(_) | `Complex(_), `Real(_) | `Imag(_) | `Complex(_)) =>
@@ -68,9 +56,8 @@ let rec pow = (a: value, b: value): value =>
   | (_, `Percent(p)) => pow(a, Base_Util.percentToNumerical(p))
   | (
       `Matrix({numRows: 2, numColumns: 2, elements: [|a, b, c, d|]}),
-      `Real(isMinusOne, Unit),
-    )
-      when Q.(isMinusOne == minus_one) =>
+      `Real(Rational((-1), 1, Unit)),
+    ) =>
     let (~-) = Base_Functions.negScalar;
     let (-) = Base_Operators.subScalar;
     let ( * ) = Base_Operators.mulScalar;
@@ -83,9 +70,8 @@ let rec pow = (a: value, b: value): value =>
         numColumns: 3,
         elements: [|a, b, c, d, e, f, g, h, i|],
       }),
-      `Real(isMinusOne, Unit),
-    )
-      when Q.(isMinusOne == minus_one) =>
+      `Real(Rational((-1), 1, Unit)),
+    ) =>
     /* https://www.wolframalpha.com/input/?i=%7B%7Ba,b,c%7D,%7Bd,e,f%7D,%7Bg,h,i%7D%7D%5E-1 */
     let (+) = Base_Operators.addScalar;
     let (-) = Base_Operators.subScalar;
@@ -111,10 +97,9 @@ let rec pow = (a: value, b: value): value =>
       `Zero,
     ) =>
     toIdentity(aM)
-  | (`Matrix(aM) as a, `Real(intGtZero, Unit))
-      when Q.(intGtZero >= zero) && QUtil.isInt(intGtZero) =>
+  | (`Matrix(aM) as a, `Real(Rational(gtZero, 1, Unit))) when gtZero >= 0 =>
     let x = ref(toIdentity(aM));
-    for (_ in 0 to Pervasives.(Q.num(intGtZero)->Z.to_int - 1)) {
+    for (_ in 0 to Pervasives.(gtZero - 1)) {
       x := x^ * a;
     };
     x^;
@@ -122,4 +107,4 @@ let rec pow = (a: value, b: value): value =>
   | (_, `NaN | `Vector(_) | `Matrix(_)) => `NaN
   };
 
-let sqrt = (x: value): value => pow(x, half);
+let sqrt = (x: value): value => pow(x, halfS);

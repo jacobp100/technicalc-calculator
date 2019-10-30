@@ -1,15 +1,36 @@
 open Types;
 
+let _mapReal = (x: value, f: Real.t => Real.t) =>
+  switch (x) {
+  | `Real(re) => `Real(f(re))
+  | _ => x
+  };
+
+let _realBounds = (~lower=?, ~upper=?, x: value) =>
+  switch (x) {
+  | `Zero => DecimalUtil.bounds(~lower?, ~upper?, Decimal.zero)
+  | `Real(re) => DecimalUtil.bounds(~lower?, ~upper?, Real.toDecimal(re))
+  | `Imag(im) => `Imag(im)
+  | `Complex(re, im) => `Complex((re, im))
+  | _ => `NaN
+  };
+
+let _mapRealDecimal = (x: value, f: Decimal.t => Decimal.t): value =>
+  switch (x) {
+  | `Zero => ofDecimal(f(Decimal.zero))
+  | `Real(re) => Real.toDecimal(re)->f->ofDecimal
+  | _ => `NaN
+  };
+
 let sin = (x: value): value =>
   switch (x) {
   | `Zero => zero
-  | `Real(reQ, reC) =>
-    let (q, c) = TrigTuples.sinReal(reQ, reC);
-    realQC(q, c);
+  | `Real(re) => Real.sin(re)->real
   | `Imag(_)
   | `Complex(_) =>
-    let iX = Base.(x * i);
-    Base.(i * (exp(- iX) - exp(iX)) / ofInt(2));
+    open Base;
+    let iX = x * i;
+    i * (exp(- iX) - exp(iX)) / ofInt(2);
   | `Vector(_)
   | `Matrix(_)
   | `Percent(_)
@@ -19,8 +40,8 @@ let sin = (x: value): value =>
 let sinh = (x: value): value =>
   switch (x) {
   | `Zero => zero
-  | `Real(q, c) => QCUtil.toFloat(q, c)->sinh->ofFloat
-  | `Imag(q, c) => Base.(i * realQC(q, c)->sin)
+  | `Real(re) => Real.toDecimal(re)->Decimal.sinh->ofDecimal
+  | `Imag(im) => Base.(i * real(im)->sin)
   | `Complex(_) => Base.((exp(x) - exp(- x)) / ofInt(2))
   | _ => `NaN
   };
@@ -28,9 +49,7 @@ let sinh = (x: value): value =>
 let cos = (x: value): value =>
   switch (x) {
   | `Zero => one
-  | `Real(reQ, reC) =>
-    let (q, c) = TrigTuples.cosReal(reQ, reC);
-    realQC(q, c);
+  | `Real(re) => Real.cos(re)->real
   | `Imag(_)
   | `Complex(_) =>
     let iX = Base.(x * i);
@@ -44,41 +63,41 @@ let cos = (x: value): value =>
 let cosh = (x: value): value =>
   switch (x) {
   | `Zero => one
-  | `Real(q, c) => QCUtil.toFloat(q, c)->cosh->ofFloat
-  | `Imag(q, c) => realQC(q, c)->cos
+  | `Real(re) => Real.toDecimal(re)->Decimal.cosh->ofDecimal
+  | `Imag(im) => real(im)->cos
   | `Complex(_) => Base.((exp(x) + exp(- x)) / ofInt(2))
   | _ => `NaN
   };
 
 let tan = (x: value): value =>
-  switch (TrigUtil.compareTrigReal(x)) {
+  switch (_mapReal(x, Real.mod2Pi)) {
   | `Zero
-  | `Real(1 | 2, 1, `Pi) => zero
-  | `Real(1 | 5, 4, `Pi) => one
-  | `Real(3 | 7, 4, `Pi) => minusOne
-  | `Real(1 | 4, 3, `Pi) => realQC(Q.of_int(1), Sqrt(Z.of_int(3)))
-  | `Real(2 | 5, 3, `Pi) => realQC(Q.of_int(-1), Sqrt(Z.of_int(3)))
-  | `Real(1 | 7, 6, `Pi) => realQC(Q.of_ints(1, 3), Sqrt(Z.of_int(3)))
-  | `Real(5 | 11, 6, `Pi) => realQC(Q.of_ints(-1, 3), Sqrt(Z.of_int(3)))
-  | `Real(1 | 3, 2, `Pi) => `NaN
-  | `Real(_) => ValueUtil.mapRealFloat(x, tan)
+  | `Real(Rational(1 | 2, 1, Pi)) => zero
+  | `Real(Rational(1 | 5, 4, Pi)) => one
+  | `Real(Rational(3 | 7, 4, Pi)) => minusOne
+  | `Real(Rational(1 | 4, 3, Pi)) => `Real(Real.rational(1, 1, Sqrt(3)))
+  | `Real(Rational(2 | 5, 3, Pi)) => `Real(Real.rational(-1, 1, Sqrt(3)))
+  | `Real(Rational(1 | 7, 6, Pi)) => `Real(Real.rational(1, 3, Sqrt(3)))
+  | `Real(Rational(5 | 11, 6, Pi)) => `Real(Real.rational(-1, 3, Sqrt(3)))
+  | `Real(Rational(1 | 3, 2, Pi)) => `NaN
+  | `Real(_) => _mapRealDecimal(x, Decimal.tan)
   | `Imag(_)
   | `Complex(_) =>
     let iX = Base.(x * i);
     let a = Base.(exp(iX));
     let b = Base.(exp(- iX));
     Base.((a - b) / ((a + b) * i));
-  | `Matrix
-  | `Vector
-  | `Percent
+  | `Matrix(_)
+  | `Vector(_)
+  | `Percent(_)
   | `NaN => `NaN
   };
 
 let tanh = (x: value): value =>
   switch (x) {
   | `Zero => zero
-  | `Real(q, c) => QCUtil.toFloat(q, c)->tanh->ofFloat
-  | `Imag(q, c) => Base.(i * realQC(q, c)->tan)
+  | `Real(re) => Real.toDecimal(re)->Decimal.tanh->ofDecimal
+  | `Imag(im) => Base.(i * real(im)->tan)
   | `Complex(_) =>
     let a = Base.(exp(x));
     let b = Base.(exp(- x));
@@ -87,77 +106,77 @@ let tanh = (x: value): value =>
   };
 
 let asin = (a: value): value =>
-  switch (TrigUtil.compareTrigReal(a)) {
-  | `Real((-1), 1, `Unit) => realQC(Q.of_ints(-1, 2), Pi)
-  | `Real((-1), 2, `Sqrt(3)) => realQC(Q.of_ints(-1, 3), Pi)
-  | `Real((-1), 2, `Sqrt(2)) => realQC(Q.of_ints(-1, 4), Pi)
-  | `Real((-1), 2, `Unit) => realQC(Q.of_ints(-1, 6), Pi)
+  switch (_mapReal(a, Real.mod2Pi)) {
+  | `Real(Rational((-1), 1, Unit)) => `Real(Real.rational(-1, 2, Pi))
+  | `Real(Rational((-1), 2, Sqrt(3))) => `Real(Real.rational(-1, 3, Pi))
+  | `Real(Rational((-1), 2, Sqrt(2))) => `Real(Real.rational(-1, 4, Pi))
+  | `Real(Rational((-1), 2, Unit)) => `Real(Real.rational(-1, 6, Pi))
   | `Zero => zero
-  | `Real(1, 2, `Unit) => realQC(Q.of_ints(1, 6), Pi)
-  | `Real(1, 2, `Sqrt(2)) => realQC(Q.of_ints(1, 4), Pi)
-  | `Real(1, 2, `Sqrt(3)) => realQC(Q.of_ints(1, 3), Pi)
-  | `Real(1, 1, `Unit) => realQC(Q.of_ints(1, 2), Pi)
+  | `Real(Rational(1, 2, Unit)) => `Real(Real.rational(1, 6, Pi))
+  | `Real(Rational(1, 2, Sqrt(2))) => `Real(Real.rational(1, 4, Pi))
+  | `Real(Rational(1, 2, Sqrt(3))) => `Real(Real.rational(1, 3, Pi))
+  | `Real(Rational(1, 1, Unit)) => `Real(Real.rational(1, 2, Pi))
   | `Real(_)
   | `Imag(_)
   | `Complex(_) =>
-    switch (ValueUtil.realBounds(~lower=-1., ~upper=1., a)) {
+    switch (_realBounds(~lower=Decimal.minusOne, ~upper=Decimal.one, a)) {
     | `BothBound
     | `LowerBound
     | `UpperBound
-    | `Inside(_) => ValueUtil.mapRealFloat(a, asin)
+    | `Inside(_) => _mapRealDecimal(a, Decimal.asin)
     | `Outside
     | `Imag(_)
     | `Complex(_) => Base.(- i * log(i * a + sqrt(one - a * a)))
     | `NaN => `NaN
     }
-  | `Matrix
-  | `Vector
-  | `Percent
+  | `Matrix(_)
+  | `Vector(_)
+  | `Percent(_)
   | `NaN => `NaN
   };
 
 let asinh = (x: value): value =>
   switch (x) {
   | `Zero => zero
-  | `Real(q, c) => QCUtil.toFloat(q, c)->FloatUtil.asinh->ofFloat
-  | `Imag(q, c) => Base.(i * realQC(q, c)->asin)
+  | `Real(re) => Real.toDecimal(re)->Decimal.asinh->ofDecimal
+  | `Imag(im) => Base.(i * real(im)->asin)
   | `Complex(_) => Base.(log(x + sqrt(x * x + one)))
   | _ => `NaN
   };
 
 let acos = (a: value): value =>
-  switch (TrigUtil.compareTrigReal(a)) {
-  | `Real((-1), 1, `None) => realQC(Q.of_int(1), Pi)
-  | `Real((-1), 2, `Sqrt(3)) => realQC(Q.of_ints(5, 6), Pi)
-  | `Real((-1), 2, `Sqrt(2)) => realQC(Q.of_ints(3, 4), Pi)
-  | `Real((-1), 2, `None) => realQC(Q.of_ints(2, 3), Pi)
-  | `Zero => realQC(Q.of_ints(1, 2), Pi)
-  | `Real(1, 2, `None) => realQC(Q.of_ints(1, 3), Pi)
-  | `Real(1, 2, `Sqrt(2)) => realQC(Q.of_ints(1, 4), Pi)
-  | `Real(1, 2, `Sqrt(3)) => realQC(Q.of_ints(1, 6), Pi)
-  | `Real(1, 1, `None) => zero
+  switch (_mapReal(a, Real.mod2Pi)) {
+  | `Real(Rational((-1), 1, Unit)) => `Real(Real.rational(1, 1, Pi))
+  | `Real(Rational((-1), 2, Sqrt(3))) => `Real(Real.rational(5, 6, Pi))
+  | `Real(Rational((-1), 2, Sqrt(2))) => `Real(Real.rational(3, 4, Pi))
+  | `Real(Rational((-1), 2, Unit)) => `Real(Real.rational(2, 3, Pi))
+  | `Zero => `Real(Real.rational(1, 2, Pi))
+  | `Real(Rational(1, 2, Unit)) => `Real(Real.rational(1, 3, Pi))
+  | `Real(Rational(1, 2, Sqrt(2))) => `Real(Real.rational(1, 4, Pi))
+  | `Real(Rational(1, 2, Sqrt(3))) => `Real(Real.rational(1, 6, Pi))
+  | `Real(Rational(1, 1, Unit)) => zero
   | `Real(_)
   | `Imag(_)
   | `Complex(_) =>
-    switch (ValueUtil.realBounds(~lower=-1., ~upper=1., a)) {
+    switch (_realBounds(~lower=Decimal.minusOne, ~upper=Decimal.one, a)) {
     | `BothBound
     | `LowerBound
     | `UpperBound
-    | `Inside(_) => ValueUtil.mapRealFloat(a, acos)
+    | `Inside(_) => _mapRealDecimal(a, Decimal.acos)
     | `Outside
     | `Imag(_)
-    | `Complex(_) => Base.(realQC(Q.of_ints(1, 2), Pi) - asin(a))
+    | `Complex(_) => Base.(real(Real.rational(1, 2, Pi)) - asin(a))
     | `NaN => `NaN
     }
-  | `Matrix
-  | `Vector
-  | `Percent
+  | `Matrix(_)
+  | `Vector(_)
+  | `Percent(_)
   | `NaN => `NaN
   };
 
 let acosh = (x: value): value =>
-  switch (ValueUtil.realBounds(~lower=1.0, x)) {
-  | `Inside(f) => FloatUtil.acosh(f)->ofFloat
+  switch (_realBounds(~lower=Decimal.one, x)) {
+  | `Inside(f) => Decimal.acosh(f)->ofDecimal
   | `LowerBound => zero
   | `BothBound
   | `UpperBound
@@ -167,8 +186,15 @@ let acosh = (x: value): value =>
   | `Complex(_) =>
     /* From complex.js library */
     let res = acos(x);
-    let (_, imf) = ValueUtil.toFloats(res);
-    if (imf <= 0.) {
+    let imLteZero =
+      switch (res) {
+      | `Zero
+      | `Real(_) => true
+      | `Imag(im)
+      | `Complex(_, im) => Real.(im <= zero)
+      | _ => false
+      };
+    if (imLteZero) {
       Base.(res * i);
     } else {
       Base.(- res * i);
@@ -177,48 +203,55 @@ let acosh = (x: value): value =>
   };
 
 let atan = (a: value): value =>
-  switch (TrigUtil.compareTrigReal(a)) {
-  | `Real((-1), 1, `Sqrt(3)) => realQC(Q.of_ints(-1, 3), Pi)
-  | `Real((-1), 1, `Unit) => realQC(Q.of_ints(-1, 4), Pi)
-  | `Real((-1), 3, `Sqrt(3)) => realQC(Q.of_ints(-1, 6), Pi)
+  switch (_mapReal(a, Real.mod2Pi)) {
+  | `Real(Rational((-1), 1, Sqrt(3))) => `Real(Real.rational(-1, 3, Pi))
+  | `Real(Rational((-1), 1, Unit)) => `Real(Real.rational(-1, 4, Pi))
+  | `Real(Rational((-1), 3, Sqrt(3))) => `Real(Real.rational(-1, 6, Pi))
   | `Zero => zero
-  | `Real(1, 3, `Sqrt(3)) => realQC(Q.of_ints(1, 6), Pi)
-  | `Real(1, 1, `Unit) => realQC(Q.of_ints(1, 4), Pi)
-  | `Real(1, 1, `Sqrt(3)) => realQC(Q.of_ints(1, 3), Pi)
-  | `Real(_) => ValueUtil.mapRealFloat(a, atan)
-  | `Imag(isAbsOne, Constant.Unit) when Q.(abs(isAbsOne) == one) => `NaN
+  | `Real(Rational(1, 3, Sqrt(3))) => `Real(Real.rational(1, 6, Pi))
+  | `Real(Rational(1, 1, Unit)) => `Real(Real.rational(1, 4, Pi))
+  | `Real(Rational(1, 1, Sqrt(3))) => `Real(Real.rational(1, 3, Pi))
+  | `Real(_) => _mapRealDecimal(a, Decimal.atan)
+  | `Imag(Rational(1 | (-1), 1, Unit)) => `NaN
   | (`Imag(_) | `Complex(_)) as vV =>
-    let (reQ, reC, imQ, imC) =
+    let (re, im) =
       switch (vV) {
-      | `Imag(imQ, imC) => (Q.zero, Constant.Unit, imQ, imC)
-      | `Complex(reQ, reC, imQ, imC) => (reQ, reC, imQ, imC)
+      | `Imag(im) => (Real.zero, im)
+      | `Complex(re, im) => (re, im)
       };
-    let a = QCUtil.toQ(reQ, reC);
-    let b = QCUtil.toQ(imQ, imC);
-    let b' = Q.(one - b);
-    let d = Q.(a * a + b' * b');
-    let two = Q.of_int(2);
+    let a = re;
+    let b = im;
+    let b' = Real.(one - b);
+    let d = Real.(a * a + b' * b');
+    let two = Real.ofInt(2);
+    let t1 =
+      complex(Real.((one - b * b - a * a) / d), Real.(- two * a / d))
+      ->Base.log;
     let (t1re, t1im) =
-      complex(Q.((one - b * b - a * a) / d), Q.(- two * a / d))
-      ->Base.log
-      ->ValueUtil.toQs;
-    complex(Q.(- t1im / two), Q.(t1re / two));
-  | `Matrix
-  | `Vector
-  | `Percent
+      switch (t1) {
+      | `Zero => (Real.zero, Real.zero)
+      | `Real(re) => (re, Real.zero)
+      | `Imag(im) => (Real.zero, im)
+      | `Complex(re, im) => (re, im)
+      | _ => (Real.nan, Real.nan)
+      };
+    complex(Real.(- t1im / two), Real.(t1re / two));
+  | `Matrix(_)
+  | `Vector(_)
+  | `Percent(_)
   | `NaN => `NaN
   };
 
 let atanh = (x: value): value =>
-  switch (ValueUtil.realBounds(~lower=-1.0, ~upper=1.0, x)) {
-  | `Inside(f) => FloatUtil.atanh(f)->ofFloat
+  switch (_realBounds(~lower=Decimal.minusOne, ~upper=Decimal.one, x)) {
+  | `Inside(f) => Decimal.atanh(f)->ofDecimal
   | `BothBound
   | `LowerBound
   | `UpperBound => `NaN
-  | `Imag(q, c) => Base.(i * realQC(q, c)->atan)
+  | `Imag(im) => Base.(i * real(im)->atan)
   | `Outside
   | `Complex(_) =>
-    let two = real(Q.of_int(2));
+    let two = ofInt(2);
     Base.(log((one + x) / (one - x)) / two);
   | `NaN => `NaN
   };

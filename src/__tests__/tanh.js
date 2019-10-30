@@ -5,8 +5,8 @@ const SciLine = require("../Value.bs");
 
 expect.extend({ toMatchJsValue });
 
-imagValues.forEach(v => {
-  it(`tanh ${v.title}`, () => {
-    expect(SciLine.tanh(v.sciLineValue)).toMatchJsValue(mathjs.tanh(v.jsValue));
-  });
+test.each(imagValues)(`tanh(%s)`, v => {
+  const actual = SciLine.tanh(v.sciLineValue);
+  const expected = mathjs.tanh(v.jsValue);
+  expect(actual).toMatchJsValue(expected);
 });

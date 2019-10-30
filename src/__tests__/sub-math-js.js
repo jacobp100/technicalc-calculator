@@ -6,10 +6,10 @@ const SciLine = require("../Value.bs");
 
 expect.extend({ toMatchJsValue });
 
-cartesian([imagValues, imagValues]).forEach(([a, b]) => {
-  it(`${a.title} - ${b.title}`, () => {
-    expect(SciLine.sub(a.sciLineValue, b.sciLineValue)).toMatchJsValue(
-      mathjs.subtract(a.jsValue, b.jsValue)
-    );
-  });
+const values = cartesian([imagValues, imagValues]);
+
+test.each(values)("%s + %s", (a, b) => {
+  const actual = SciLine.sub(a.sciLineValue, b.sciLineValue);
+  const expected = mathjs.subtract(a.jsValue, b.jsValue);
+  expect(actual).toMatchJsValue(expected);
 });

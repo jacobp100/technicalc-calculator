@@ -2,7 +2,7 @@ include Base;
 
 let ofFloat = Types.ofFloat;
 let ofString = Types.ofString;
-let toFloat = Types.toFloat;
+let toFloat = x => Types.toDecimal(x)->Decimal.toFloat;
 let zero = Types.zero;
 let one = Types.one;
 let minusOne = Types.minusOne;

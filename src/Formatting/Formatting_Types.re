@@ -13,8 +13,8 @@ type format = {
   style,
   base: int,
   precision: int,
-  decimalMinMagnitude: float,
-  decimalMaxMagnitude: float,
+  decimalMinMagnitude: int,
+  decimalMaxMagnitude: int,
 };
 
 let default = {
@@ -22,6 +22,6 @@ let default = {
   style: Natural,
   base: 10,
   precision: 12,
-  decimalMinMagnitude: (-3.),
-  decimalMaxMagnitude: 8.,
+  decimalMinMagnitude: (-3),
+  decimalMaxMagnitude: 8,
 };

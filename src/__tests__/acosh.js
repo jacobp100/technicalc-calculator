@@ -5,10 +5,8 @@ const SciLine = require("../Value.bs");
 
 expect.extend({ toMatchJsValue });
 
-imagValues.forEach(v => {
-  it(`acos ${v.title}`, () => {
-    expect(SciLine.acos(v.sciLineValue)).toMatchJsValue(
-      mathjs.acos(v.jsValue)
-    );
-  });
+test.each(imagValues)("acosh(%s)", v => {
+  const actual = SciLine.acosh(v.sciLineValue);
+  const expected = mathjs.acosh(v.jsValue);
+  expect(actual).toMatchJsValue(expected);
 });

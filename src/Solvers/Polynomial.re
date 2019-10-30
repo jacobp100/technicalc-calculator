@@ -34,34 +34,33 @@ let _cubicRaphson = (a, b, c, d) => {
    the cubic
    */
   let (m0, m1) = quadratic(_3 * a, _2 * b, c);
-  let m0 = toFloat(m0);
-  let m1 = toFloat(m1);
+  let m0 = toDecimal(m0)->Decimal.toFloat;
+  let m1 = toDecimal(m1)->Decimal.toFloat;
 
   let midpoint = (m0 +. m1) /. 2.;
   let range = abs_float(m0 -. m1);
   let values = [midpoint, midpoint -. range, midpoint +. range];
 
-  let af = toFloat(a);
-  let bf = toFloat(b);
-  let cf = toFloat(c);
-  let df = toFloat(d);
+  let af = toDecimal(a)->Decimal.toFloat;
+  let bf = toDecimal(b)->Decimal.toFloat;
+  let cf = toDecimal(c)->Decimal.toFloat;
+  let df = toDecimal(d)->Decimal.toFloat;
 
-  values
-  ->Belt.List.reduce(None, (current, value) =>
-      switch (current) {
-      | None =>
-        let x0f = Raphson.cubic(af, bf, cf, df, value);
-        let x0 = roundToPrecision(x0f);
-        let fx = a * x0 ** _3 + b * x0 ** _2 + c * x0 + d;
-        if (FloatUtil.isFinite(x0f) && fx == zero) {
-          let (x1, x2) = quadratic(a, a * x0 + b, a * x0 ** _2 + b * x0 + c);
-          Some((x0, x1, x2));
-        } else {
-          None;
-        };
-      | v => v
-      }
-    );
+  values->Belt.List.reduce(None, (current, value) =>
+    switch (current) {
+    | None =>
+      let x0f = Raphson.cubic(af, bf, cf, df, value);
+      let x0 = roundToPrecision(x0f);
+      let fx = a * x0 ** _3 + b * x0 ** _2 + c * x0 + d;
+      if (FloatUtil.isFinite(x0f) && fx == zero) {
+        let (x1, x2) = quadratic(a, a * x0 + b, a * x0 ** _2 + b * x0 + c);
+        Some((x0, x1, x2));
+      } else {
+        None;
+      };
+    | v => v
+    }
+  );
 };
 
 let _cubicNumeric = (a, b, c, d) => {
@@ -82,7 +81,7 @@ let _cubicNumeric = (a, b, c, d) => {
   } else {
     let c0 =
       ((q + _2 * b ** _3 - _9 * a * b * c + _27 * a ** _2 * d) / _2)
-      ** real(Q.of_ints(1, 3));
+      ** real(Real.rational(1, 3, Unit));
     let x1 =
       - b / (_3 * a) - c0 / (_3 * a) - (b ** _2 - _3 * a * c) / (_3 * a * c0);
     let x2 =

@@ -6,10 +6,8 @@ expect.extend({ toMatchJsValue });
 
 const mathematicallyAccuratePow = (a, b) => (a === 0 && b === 0 ? NaN : a ** b);
 
-positiveBinaryValues.forEach(([lhs, rhs]) => {
-  it(`${lhs.title} ** ${rhs.title}`, () => {
-    expect(SciLine.pow(lhs.sciLineValue, rhs.sciLineValue)).toMatchJsValue(
-      mathematicallyAccuratePow(lhs.jsValue, rhs.jsValue)
-    );
-  });
+test.each(positiveBinaryValues)("(%s) ** (%s)", (a, b) => {
+  const actual = SciLine.pow(a.sciLineValue, b.sciLineValue);
+  const expected = mathematicallyAccuratePow(a.jsValue, b.jsValue);
+  expect(actual).toMatchJsValue(expected);
 });

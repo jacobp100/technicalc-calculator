@@ -5,7 +5,8 @@
     "build": "bsb -make-world",
     "start": "bsb -make-world -w",
     "clean": "bsb -clean-world",
-    "test": "jest"
+    "test": "jest",
+    "playground": "node -r esm ./playground.js"
   },
   "keywords": [
     "BuckleScript"
@@ -16,7 +17,7 @@
     "@babel/core": "^7.4.4",
     "@babel/preset-env": "^7.4.4",
     "babel-jest": "^24.8.0",
-    "bs-platform": "^5.0.4",
+    "bs-platform": "^5.2.1",
     "cartesian": "^1.0.1",
     "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.1.0",
@@ -29,7 +30,6 @@
     "mathjs": "^5.10.0"
   },
   "dependencies": {
-    "big-rat": "^1.0.4",
-    "bn.js": "^4.11.8"
+    "decimal.js": "^10.2.0"
   }
 }

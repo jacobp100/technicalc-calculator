@@ -23,10 +23,10 @@ const expValues = [].concat(
   Value.pi(2)
 );
 
-cartesian([expValues, expValues]).forEach(([a, b]) => {
-  it(`(${a.title}) ** (${b.title})`, () => {
-    expect(SciLine.pow(a.sciLineValue, b.sciLineValue)).toMatchJsValue(
-      mathematicallyAccuratePow(a.jsValue, b.jsValue)
-    );
-  });
+const values = cartesian([expValues, expValues]);
+
+test.each(values)("(%s) ** (%s)", (a, b) => {
+  const actual = SciLine.pow(a.sciLineValue, b.sciLineValue);
+  const expected = mathematicallyAccuratePow(a.jsValue, b.jsValue);
+  expect(actual).toMatchJsValue(expected);
 });

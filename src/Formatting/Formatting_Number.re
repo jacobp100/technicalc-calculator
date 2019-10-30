@@ -53,11 +53,20 @@ let addDigitSeparators = (~startIndex=0, ~endIndex=?, string) => {
   baseStr^;
 };
 
+let _decimalToString = (~base=10, num) =>
+  switch (base) {
+  | 2 => Decimal.toBinary(num)
+  | 8 => Decimal.toOctal(num)
+  | 10 => Decimal.toString(num)
+  | 16 => Decimal.toHexedecimal(num)
+  | _ => failwith("Invalid base")
+  };
+
 let formatInteger = (~base=10, formatting, num) => {
-  let str = Z.to_string_base(base, num);
+  let str = _decimalToString(~base, num);
   let str =
     if (formatting.digitSeparators) {
-      addDigitSeparators(~startIndex=Z.lt(num, Z.zero) ? 1 : 0, str);
+      addDigitSeparators(~startIndex=Decimal.(num < zero) ? 1 : 0, str);
     } else {
       str;
     };
@@ -66,34 +75,26 @@ let formatInteger = (~base=10, formatting, num) => {
 
 let formatDecimal = (~base=10, formatting, num) => {
   let (minDecimalPlaces, maxDecimalPlaces) = _getDecimalBounds(formatting);
-
-  let absNum = Q.abs(num);
-
+  let absNum = Decimal.abs(num);
+  let integerPart = Decimal.floor(absNum);
+  let decimalPart = Decimal.sub(absNum, integerPart);
   let integer =
     formatInteger(
       ~base,
       formatting,
-      {
-        let absIntegerPart = QUtil.floor(absNum);
-        if (Q.lt(num, Q.zero)) {
-          Z.neg(absIntegerPart);
-        } else {
-          absIntegerPart;
-        };
-      },
+      Decimal.(num >= zero ? integerPart : - integerPart),
     );
-
   let decimal =
     if (maxDecimalPlaces == 0) {
       "";
-    } else if (QUtil.isInt(num)) {
+    } else if (Decimal.(decimalPart == zero)) {
       String.make(minDecimalPlaces, '0');
     } else {
-      let decimalPart = QUtil.safeMod(absNum, Z.one);
-      let exp = Q.of_bigint(Z.pow(Z.of_int(base), maxDecimalPlaces));
-      let decimalAsInteger = QUtil.floor(Q.mul(decimalPart, exp));
-      let baseStr =
-        Z.to_string_base(base, decimalAsInteger)->String.uppercase;
+      let decimalAsInteger =
+        Decimal.(
+          floor(decimalPart * ofInt(base) ** ofInt(maxDecimalPlaces))
+        );
+      let baseStr = _decimalToString(~base, decimalAsInteger);
       let str =
         String.make(maxDecimalPlaces - String.length(baseStr), '0')
         ++ baseStr;
@@ -108,12 +109,16 @@ let formatDecimal = (~base=10, formatting, num) => {
 };
 
 let formatExponential = (~base=10, ~exponent=?, formatting, num) => {
-  let exponent = exponent->Belt.Option.getWithDefault(QUtil.magnitude(num));
+  let exponent =
+    switch (exponent) {
+    | Some(exponent) => exponent
+    | None => DecimalUtil.magnitude(num)
+    };
   let decimalPart =
     formatDecimal(
       ~base,
       formatting,
-      Q.div(num, QUtil.powInt(10, exponent)),
+      Decimal.(num / ofInt(10) ** ofInt(exponent)),
     );
   let exponentPart = string_of_int(exponent);
   (decimalPart, exponentPart);
