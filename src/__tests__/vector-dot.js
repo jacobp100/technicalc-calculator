@@ -3,7 +3,7 @@ const mathjs = require("mathjs");
 const { toMatchJsValue } = require("../__test-util__");
 const { vector2, vector3 } = require("../__test-util__/math-js-vector");
 const SciLine = require("../Value.bs");
-const SciLineTest = require("../SciLineTest.bs");
+const ScilineTest = require("../ScilineTest.bs");
 
 expect.extend({ toMatchJsValue });
 
@@ -30,6 +30,6 @@ describe("3", () => {
 describe("Type checking", () => {
   it("Cannot dot incompatible sizes", () => {
     const value = SciLine.dot(vector3[0].sciLineValue, vector2[0].sciLineValue);
-    expect(SciLineTest.toString(value)).toBe("NaN");
+    expect(ScilineTest.toString(value)).toBe("NaN");
   });
 });

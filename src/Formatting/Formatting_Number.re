@@ -70,7 +70,7 @@ let formatInteger = (~base=10, formatting, num) => {
     } else {
       str;
     };
-  String.uppercase(str);
+  String.uppercase_ascii(str);
 };
 
 let formatDecimal = (~base=10, formatting, num) => {

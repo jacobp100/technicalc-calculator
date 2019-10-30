@@ -91,7 +91,7 @@ let ofFloat = (v): value =>
 
 let ofStringBase = (base: int, v: string): value => {
   let (withoutMagnitude, magnitudePart) =
-    switch (StringUtil.stringSplitOnChar('e', String.lowercase(v))) {
+    switch (StringUtil.stringSplitOnChar('e', String.lowercase_ascii(v))) {
     | [b, m] => (Some(b), Some(m))
     | [b] => (Some(b), Some("0"))
     | _ => (None, None)

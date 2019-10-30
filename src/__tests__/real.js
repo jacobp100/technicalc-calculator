@@ -10,7 +10,7 @@ const {
   exp,
   sin
 } = require("../Value.bs");
-const { toString } = require("../SciLineTest.bs");
+const { toString } = require("../ScilineTest.bs");
 
 test("Converts via ofString", () => {
   const convert = (x, opt) => toString(ofString(x), opt);

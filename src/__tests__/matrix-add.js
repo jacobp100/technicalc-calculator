@@ -3,7 +3,7 @@ const mathjs = require("mathjs");
 const { toMatchJsMatrix } = require("../__test-util__");
 const { matrix2x2, matrix3x3 } = require("../__test-util__/math-js-matrix");
 const SciLine = require("../Value.bs");
-const SciLineTest = require("../SciLineTest.bs");
+const ScilineTest = require("../ScilineTest.bs");
 
 expect.extend({ toMatchJsMatrix });
 
@@ -29,6 +29,6 @@ describe("Type checking", () => {
       matrix2x2[0].sciLineValue,
       matrix3x3[0].sciLineValue
     );
-    expect(SciLineTest.toString(value)).toBe("NaN");
+    expect(ScilineTest.toString(value)).toBe("NaN");
   });
 });

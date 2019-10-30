@@ -1,5 +1,5 @@
 const { one, minusOne, ofString, add, mul, pi, i } = require("../Value.bs");
-const { toString } = require("../SciLineTest.bs");
+const { toString } = require("../ScilineTest.bs");
 
 const [three, minusThree, threeHalves, minusThreeHalves, half, minusHalf] = [
   "3",
