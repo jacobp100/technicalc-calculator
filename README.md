@@ -2,9 +2,9 @@
 
 A math library similar to math-js, built in ReasonML. It supports complex numbers and matrices. Designed for use in the [SciLine iOS app](https://itunes.apple.com/sg/app/sciline-scientific-engineering-calculator/id1219218410?mt=8).
 
-It uses Zarith rational numbers (or big-rat and bn.js when using Bucklescript).
+It uses rational numbers most of the time. When it is using rational numbers, it tracks some (Pi, sqrt() and exp()) values for more accurate results. For example, `sin(pi)` is exactly `1`, but this is not the output when using floating point arithmetic. In addition, special trig values can be output, like `sin(pi / 2)` giving `sqrt(2)/2`.
 
-It tracks some (Pi, sqrt() and exp()) values for more accurate results. For example, `sin(pi)` is exactly `1`, but this is not the output when using floating point arithmetic. In addition, special trig values can be output, like `sin(pi / 2)` giving `sqrt(2)/2`.
+When a number cannot be expressed as a rational, we represent it as a decimal using the decimal.js library. When this happens, precision is lost, so it is hard to go back to the rational representation (although multiplying by zero will do it).
 
 The final output can either be a fraction with up to one tracked value, or float.
 
