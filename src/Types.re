@@ -104,14 +104,37 @@ let ofStringBase = (base: int, v: string): value => {
     | Some([i]) => (Some(i), Some("0"))
     | _ => (None, None)
     };
-  switch (integerPart, decimalPart, magnitudePart) {
-  | (Some(integer), Some(decimal), Some(magnitude)) =>
-    // let numer = Z.of_string_base(base, integer ++ decimal);
-    // let denom = Z.pow(Z.of_int(base), String.length(decimal));
-    // let exponent = QUtil.powInt(10, int_of_string(magnitude));
-    // `Real((Q.(make(numer, denom) * exponent), Unit))->normalize;
-    failwith("TEST")
-  | _ => `NaN
+  let value =
+    switch (integerPart, decimalPart, magnitudePart) {
+    | (Some(integer), Some(decimal), Some(magnitude)) =>
+      let basePrefix =
+        switch (base) {
+        | 10 => ""
+        | 2 => "0b"
+        | 8 => "0o"
+        | 16 => "0x"
+        | _ => failwith("Unhandled base")
+        };
+      let num = Decimal.(ofString(basePrefix ++ integer ++ decimal));
+      let den = Decimal.(ofInt(10) ** ofInt(String.length(decimal)));
+      let magnitude = Decimal.(ofString(magnitude));
+      let (num, den) =
+        switch (Decimal.(cmp(magnitude, zero))) {
+        | 1 => (Decimal.(num * ofInt(10) ** magnitude), den)
+        | (-1) => (num, Decimal.(den * ofInt(10) ** abs(magnitude)))
+        | _ => (num, den)
+        };
+      let value =
+        switch (Decimal.toInt(num), Decimal.toInt(den)) {
+        | (Some(num), Some(den)) => Real.rational(num, den, Unit)
+        | _ => Decimal(Decimal.(num / den))
+        };
+      Some(value);
+    | _ => None
+    };
+  switch (value) {
+  | Some(v) => `Real(v)
+  | None => `NaN
   };
 };
 

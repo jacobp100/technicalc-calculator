@@ -65,6 +65,12 @@ external max: array(t) => t = "max";
 [@bs.module "./Decimal"] [@bs.scope "default"] [@bs.variadic]
 external min: array(t) => t = "min";
 
+let toInt = v => {
+  let floatV = toFloat(v);
+  let intV = int_of_float(floatV);
+  float_of_int(intV) == floatV ? Some(intV) : None;
+};
+
 [@bs.send] external (==): (t, t) => bool = "eq";
 let (!=) = (a, b) => !(a == b);
 [@bs.send] external (>): (t, t) => bool = "gt";

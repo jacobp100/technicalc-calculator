@@ -10,23 +10,17 @@ expect.extend({ toMatchJsMatrix });
 const constantValues = range(-2, 2 + 1).map(Value.float);
 
 describe("2x2", () => {
-  cartesian([matrix2x2, constantValues]).forEach(([a, b]) => {
-    it(`${a.title} * ${b.title}`, () => {
-      const mathJsValue = mathjs.multiply(a.jsValue, b.jsValue);
-      expect(SciLine.mul(a.sciLineValue, b.sciLineValue)).toMatchJsMatrix(
-        mathJsValue
-      );
-    });
+  test.each(cartesian([matrix2x2, constantValues]))("%s * %s", (a, b) => {
+    const actualValue = SciLine.mul(a.sciLineValue, b.sciLineValue);
+    const expectedValue = mathjs.multiply(a.jsValue, b.jsValue);
+    expect(actualValue).toMatchJsMatrix(expectedValue);
   });
 });
 
 describe("3x3", () => {
-  cartesian([matrix3x3, constantValues]).forEach(([a, b]) => {
-    it(`${a.title} * ${b.title}`, () => {
-      const mathJsValue = mathjs.multiply(a.jsValue, b.jsValue);
-      expect(SciLine.mul(a.sciLineValue, b.sciLineValue)).toMatchJsMatrix(
-        mathJsValue
-      );
-    });
+  test.each(cartesian([matrix3x3, constantValues]))("%s * %s", (a, b) => {
+    const actualValue = SciLine.mul(a.sciLineValue, b.sciLineValue);
+    const expectedValue = mathjs.multiply(a.jsValue, b.jsValue);
+    expect(actualValue).toMatchJsMatrix(expectedValue);
   });
 });

@@ -8,24 +8,18 @@ const SciLineTest = require("../SciLineTest.bs");
 expect.extend({ toMatchJsMatrix });
 
 describe("2x2", () => {
-  cartesian([matrix2x2, matrix2x2]).forEach(([a, b]) => {
-    it(`${a.title} + ${b.title}`, () => {
-      const mathJsValue = mathjs.subtract(a.jsValue, b.jsValue);
-      expect(SciLine.sub(a.sciLineValue, b.sciLineValue)).toMatchJsMatrix(
-        mathJsValue
-      );
-    });
+  test.each(cartesian([matrix2x2, matrix2x2]))("%s - %s", (a, b) => {
+    const actualValue = SciLine.sub(a.sciLineValue, b.sciLineValue);
+    const expectedValue = mathjs.subtract(a.jsValue, b.jsValue);
+    expect(actualValue).toMatchJsMatrix(expectedValue);
   });
 });
 
 describe("3x3", () => {
-  cartesian([matrix3x3, matrix3x3]).forEach(([a, b]) => {
-    it(`${a.title} + ${b.title}`, () => {
-      const mathJsValue = mathjs.subtract(a.jsValue, b.jsValue);
-      expect(SciLine.sub(a.sciLineValue, b.sciLineValue)).toMatchJsMatrix(
-        mathJsValue
-      );
-    });
+  test.each(cartesian([matrix3x3, matrix3x3]))("%s - %s", (a, b) => {
+    const actualValue = SciLine.sub(a.sciLineValue, b.sciLineValue);
+    const expectedValue = mathjs.subtract(a.jsValue, b.jsValue);
+    expect(actualValue).toMatchJsMatrix(expectedValue);
   });
 });
 

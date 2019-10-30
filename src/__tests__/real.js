@@ -13,13 +13,13 @@ const {
 const { toString } = require("../SciLineTest.bs");
 
 test("Converts via ofString", () => {
-  const convert = x => toString(ofString(x));
+  const convert = (x, opt) => toString(ofString(x), opt);
   expect(convert("1")).toBe("1");
   expect(convert("1e2")).toBe("100");
   expect(convert("1e+2")).toBe("100");
   expect(convert("1e-2")).toBe("1/100");
   expect(convert("1e1000")).toBe("1e1000");
-  expect(convert("1.23456789")).toBe("1.23456789");
+  expect(convert("1.23456789", { style: "decimal" })).toBe("1.23456789");
   expect(convert("1.23456789e-100")).toBe("1.23456789e-100");
   expect(convert("1.23456789e100")).toBe("1.23456789e100");
   expect(convert("-1")).toBe("-1");
@@ -27,14 +27,16 @@ test("Converts via ofString", () => {
   expect(convert("-1e+2")).toBe("-100");
   expect(convert("-1e-2")).toBe("-1/100");
   expect(convert("-1e1000")).toBe("-1e1000");
-  expect(convert("-1.23456789")).toBe("-1.23456789");
+  expect(convert("-1.23456789", { style: "decimal" })).toBe("-1.23456789");
   expect(convert("-1.23456789e-100")).toBe("-1.23456789e-100");
   expect(convert("-1.23456789e100")).toBe("-1.23456789e100");
 });
 
 test("Converts decimals to fractions", () => {
   expect(toString(ofString("0.4"))).toBe("2/5");
-  expect(toString(ofString("0.123456789"))).toBe("0.123456789");
+  expect(toString(ofString("0.123456789"), { style: "decimal" })).toBe(
+    "0.123456789"
+  );
 });
 
 test("Simplifies division by two square roots", () => {
