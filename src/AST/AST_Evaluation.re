@@ -79,6 +79,8 @@ let rec eval = (~context, node: AST_Types.t): Types.value =>
       eval(~context, a),
       eval(~context, b),
     )
+  | `Convert({a, fromUnits, toUnits}) =>
+    Units.convert(eval(~context, a), ~fromUnits, ~toUnits)
   }
 and createEvalCb = (~context, body, x) =>
   eval(~context=Belt.Map.String.set(context, "x", x), body)

@@ -15,6 +15,12 @@ type range('t) = {
   body: 't,
 };
 
+type conversion('t) = {
+  a: 't,
+  toUnits: Unit_Types.units,
+  fromUnits: Unit_Types.units,
+};
+
 type t = [
   | `NaN
   | `Zero
@@ -72,6 +78,7 @@ type t = [
   | `Integral(integral(t))
   | `Sum(range(t))
   | `Product(range(t))
+  | `Convert(conversion(t))
 ];
 
 let nan = `NaN;
@@ -132,3 +139,5 @@ let differential = (x, body): t => `Differential({x, body});
 let integral = (a, b, body): t => `Integral({a, b, body});
 let sum = (a, b, body): t => `Sum({a, b, body});
 let product = (a, b, body): t => `Product({a, b, body});
+let convert = (a, fromUnits, toUnits): t =>
+  `Convert({a, fromUnits, toUnits});
