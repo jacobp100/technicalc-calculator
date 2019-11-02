@@ -8,9 +8,7 @@ let linearValue = (unit: unitType) =>
   | Minute => 60.
   | Hour => 3600.
   | Day => 86400.
-  | Weekday => 120960.
   | Week => 604800.
-  | Fortnight => 1209600.
   | Month => 2628000.
   | Year => 31536000.
   | Decade => 315360000.
@@ -26,13 +24,9 @@ let linearValue = (unit: unitType) =>
   | Foot => 0.3048
   | Yard => 0.9144
   | Mile => 1609.
-  | League => 4827.
-  | Fathom => 1.8288
-  | Furlong => 201.
   | LightYear => 9.4605284e15
   | Parsec => 3.086e16
   | Angstrom => 1e-10
-  | NauticalMile => 1852.
   | Femtometer => 1e-15
   | Picometer => 1e-12
   | Nanometer => 1e-9

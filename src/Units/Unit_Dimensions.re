@@ -33,9 +33,7 @@ let unitDimensions = (v: unitType) =>
   | Minute
   | Hour
   | Day
-  | Weekday
   | Week
-  | Fortnight
   | Month
   | Year
   | Decade
@@ -51,13 +49,9 @@ let unitDimensions = (v: unitType) =>
   | Foot
   | Yard
   | Mile
-  | League
-  | Fathom
-  | Furlong
   | LightYear
   | Parsec
   | Angstrom
-  | NauticalMile
   | Femtometer
   | Picometer
   | Nanometer

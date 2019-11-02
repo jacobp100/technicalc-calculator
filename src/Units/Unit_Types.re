@@ -9,9 +9,7 @@ type unitType =
   | Minute
   | Hour
   | Day
-  | Weekday
   | Week
-  | Fortnight
   | Month
   | Year
   | Decade
@@ -27,13 +25,9 @@ type unitType =
   | Foot
   | Yard
   | Mile
-  | League
-  | Fathom
-  | Furlong
   | LightYear
   | Parsec
   | Angstrom
-  | NauticalMile
   | Femtometer
   | Picometer
   | Nanometer
