@@ -15,8 +15,8 @@ module Comparable =
 type dimensionMap('value) =
   Belt.Map.t(Comparable.t, 'value, Comparable.identity);
 
-let lengthDimensions = [(Length, 1)];
 let timeDimensions = [(Time, 1)];
+let lengthDimensions = [(Length, 1)];
 let massDimensions = [(Mass, 1)];
 let areaDimensions = [(Length, 2)];
 let volumeDimensions = [(Length, 3)];
@@ -26,18 +26,142 @@ let memoryDimensions = [(Memory, 1)];
 let unitlessDimensions = [];
 let temperatureDimensions = [(Temperature, 1)];
 
-let unitDimensions = (v: unit) =>
+let unitDimensions = (v: unitType) =>
   switch (v) {
-  | #length => lengthDimensions
-  | #time => timeDimensions
-  | #mass => massDimensions
-  | #area => areaDimensions
-  | #volume => volumeDimensions
-  | #energy => energyDimensions
-  | #power => powerDimensions
-  | #memory => memoryDimensions
-  | #unitless => unitlessDimensions
-  | #temperature => temperatureDimensions
+  /* Time */
+  | Second
+  | Minute
+  | Hour
+  | Day
+  | Weekday
+  | Week
+  | Fortnight
+  | Month
+  | Year
+  | Decade
+  | Century
+  | Femtosecond
+  | Picosecond
+  | Nanosecond
+  | Microsecond
+  | Millisecond => timeDimensions
+  /* Length */
+  | Meter
+  | Inch
+  | Foot
+  | Yard
+  | Mile
+  | League
+  | Fathom
+  | Furlong
+  | LightYear
+  | Parsec
+  | Angstrom
+  | NauticalMile
+  | Femtometer
+  | Picometer
+  | Nanometer
+  | Micrometer
+  | Millimeter
+  | Centimeter
+  | Kilometer
+  | Megameter
+  | Gigameter
+  | Terameter
+  | Petameter => lengthDimensions
+  /* Mass */
+  | Gram
+  | Tonne
+  | Ounce
+  | Pound
+  | Stone
+  | Femtogram
+  | Picogram
+  | Nanogram
+  | Microgram
+  | Milligram
+  | Kilogram
+  | Megagram
+  | Gigagram
+  | Teragram
+  | Petagram => massDimensions
+  /* Area */
+  | Acre
+  | Hectare => areaDimensions
+  /* Volume */
+  | Liter
+  | Gallon
+  | USGallon
+  | Quart
+  | Cup
+  | USCup
+  | Teaspoon
+  | Tablespoon
+  | Drop
+  | FluidOunce
+  | Milliliter
+  | Centiliter => volumeDimensions
+  /* Energy */
+  | Joule
+  | Calorie
+  | ElectronVolt
+  | BTU
+  | Therm
+  | Femtojoule
+  | Picojoule
+  | Nanojoule
+  | Microjoule
+  | Millijoule
+  | Centijoule
+  | Kilojoule
+  | Megajoule
+  | Gigajoule
+  | Terajoule
+  | Petajoule => energyDimensions
+  /* Power */
+  | Watt
+  | Femtowatt
+  | Picowatt
+  | Nanowatt
+  | Microwatt
+  | Milliwatt
+  | Kilowatt
+  | Megawatt
+  | Gigawatt
+  | Terawatt
+  | Petawatt => powerDimensions
+  /* Memory */
+  | Bit
+  | Byte
+  | Kilobit
+  | Megabit
+  | Gigabit
+  | Terabit
+  | Petabit
+  | Kibibit
+  | Mebibit
+  | Gibibit
+  | Tebibit
+  | Pebibit
+  | Kilobyte
+  | Megabyte
+  | Gigabyte
+  | Terabyte
+  | Petabyte
+  | Kibibyte
+  | Mebibyte
+  | Gibibyte
+  | Tebibyte
+  | Pebibyte => memoryDimensions
+  /* Temperature */
+  | Kelvin
+  | Celsius
+  | Fahrenheit => temperatureDimensions
+  /* Unitless */
+  | Degree
+  | Radian
+  | Arcminute
+  | Arcsecond => unitlessDimensions
   };
 
 let baseDimensions = (units: units) => {
