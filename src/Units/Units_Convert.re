@@ -66,7 +66,6 @@ let linearValue = (unit: unitType) =>
   | USCup => 2.3559e-4
   | Teaspoon => 4.929e-6
   | Tablespoon => 1.479e-5
-  | Drop => 5e-8
   | FluidOunce => 2.8413e-5
   | Milliliter => 1e-6
   | Centiliter => 1e-5
@@ -126,11 +125,6 @@ let linearValue = (unit: unitType) =>
   | Kelvin => 1.
   | Celsius
   | Fahrenheit => failwith("non-linear unit")
-  /* Unitless */
-  | Degree => 0.0174532925199432957692369
-  | Radian => 1.
-  | Arcminute => 0.000290888208665721596153948
-  | Arcsecond => 4.848136811095359935899141e-6
   };
 
 let celsiusToKelvin = value => Decimal.(value + ofFloat(273.15));

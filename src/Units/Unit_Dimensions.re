@@ -23,7 +23,6 @@ let volumeDimensions = [(Length, 3)];
 let energyDimensions = [(Mass, 1), (Length, 2), (Time, (-2))];
 let powerDimensions = [(Mass, 1), (Length, 2), (Time, (-3))];
 let memoryDimensions = [(Memory, 1)];
-let unitlessDimensions = [];
 let temperatureDimensions = [(Temperature, 1)];
 
 let unitDimensions = (v: unitType) =>
@@ -151,11 +150,6 @@ let unitDimensions = (v: unitType) =>
   | Kelvin
   | Celsius
   | Fahrenheit => temperatureDimensions
-  /* Unitless */
-  | Degree
-  | Radian
-  | Arcminute
-  | Arcsecond => unitlessDimensions
   };
 
 let baseDimensions = (units: units) => {

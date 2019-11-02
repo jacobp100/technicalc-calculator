@@ -126,12 +126,7 @@ type unitType =
   /* Temperature */
   | Kelvin
   | Celsius
-  | Fahrenheit
-  /* Unitless */
-  | Degree
-  | Radian
-  | Arcminute
-  | Arcsecond;
+  | Fahrenheit;
 
 type unitPower = (unitType, int);
 type units = list(unitPower);
