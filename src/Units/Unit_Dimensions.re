@@ -15,15 +15,15 @@ module Comparable =
 type dimensionMap('value) =
   Belt.Map.t(Comparable.t, 'value, Comparable.identity);
 
-let timeDimensions = [(Time, 1)];
-let lengthDimensions = [(Length, 1)];
-let massDimensions = [(Mass, 1)];
-let areaDimensions = [(Length, 2)];
-let volumeDimensions = [(Length, 3)];
-let energyDimensions = [(Mass, 1), (Length, 2), (Time, (-2))];
-let powerDimensions = [(Mass, 1), (Length, 2), (Time, (-3))];
-let memoryDimensions = [(Memory, 1)];
-let temperatureDimensions = [(Temperature, 1)];
+let timeDimensions = [|(Time, 1)|];
+let lengthDimensions = [|(Length, 1)|];
+let massDimensions = [|(Mass, 1)|];
+let areaDimensions = [|(Length, 2)|];
+let volumeDimensions = [|(Length, 3)|];
+let energyDimensions = [|(Mass, 1), (Length, 2), (Time, (-2))|];
+let powerDimensions = [|(Mass, 1), (Length, 2), (Time, (-3))|];
+let memoryDimensions = [|(Memory, 1)|];
+let temperatureDimensions = [|(Temperature, 1)|];
 
 let unitDimensions = (v: unitType) =>
   switch (v) {
@@ -164,10 +164,10 @@ let baseDimensions = (units: units) => {
         },
       );
 
-    Belt.List.reduce(unitDimensions(unit), map, addDimension);
+    Belt.Array.reduce(unitDimensions(unit), map, addDimension);
   };
 
-  Belt.List.reduce(units, Belt.Map.make(~id=(module Comparable)), addUnit);
+  Belt.Array.reduce(units, Belt.Map.make(~id=(module Comparable)), addUnit);
 };
 
 let powEq = (aPow: int, bPow: int) => aPow == bPow;

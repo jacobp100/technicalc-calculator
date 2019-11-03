@@ -128,4 +128,4 @@ type unitType =
   | Fahrenheit;
 
 type unitPower = (unitType, int);
-type units = list(unitPower);
+type units = array(unitPower);

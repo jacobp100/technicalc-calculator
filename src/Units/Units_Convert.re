@@ -142,30 +142,28 @@ let _transformUnits =
       value: Decimal.t,
       units: units,
     ) => {
-  let rec iterLinearUnits = (value, units) =>
-    switch (units) {
-    | [(Celsius | Fahrenheit, _), ..._] => Decimal.nan
-    | [(linearUnit, power), ...tail] =>
-      let nextValue =
-        Belt.List.reduce(
-          Unit_Dimensions.unitDimensions(linearUnit),
-          value,
-          (value, (_, unitPower)) => {
-            let nextPower = power * unitPower * unitPowerMultiplier;
-            Decimal.(
-              value
-              * linearValue(linearUnit)->ofFloat
-              ** Decimal.ofInt(nextPower)
-            );
-          },
-        );
-      iterLinearUnits(nextValue, tail);
-    | [] => value
+  let handleLinearUnit = (value, unit) =>
+    switch (unit) {
+    | (Celsius | Fahrenheit, _) => Decimal.nan
+    | (linearUnit, power) =>
+      Belt.Array.reduce(
+        Unit_Dimensions.unitDimensions(linearUnit),
+        value,
+        (value, (_, unitPower)) => {
+          let nextPower = power * unitPower * unitPowerMultiplier;
+          Decimal.(
+            value
+            * linearValue(linearUnit)->ofFloat
+            ** Decimal.ofInt(nextPower)
+          );
+        },
+      )
     };
+
   switch (units) {
-  | [(Celsius, 1)] => transformCelsius(value)
-  | [(Fahrenheit, 1)] => transformFahrenheit(value)
-  | _ => iterLinearUnits(value, units)
+  | [|(Celsius, 1)|] => transformCelsius(value)
+  | [|(Fahrenheit, 1)|] => transformFahrenheit(value)
+  | _ => Belt.Array.reduce(units, value, handleLinearUnit)
   };
 };
 
