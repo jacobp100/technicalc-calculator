@@ -90,7 +90,6 @@ let unitDimensions = (v: unitType) =>
   | USCup
   | Teaspoon
   | Tablespoon
-  | Drop
   | FluidOunce
   | Milliliter
   | Centiliter => volumeDimensions
