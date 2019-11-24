@@ -161,6 +161,28 @@ let mul = (a: value, b: value): value =>
         },
       );
     `Matrix(m);
+  | (
+      `Matrix({numColumns: 1, numRows: 2, elements: [|a1, a2, a3, a4|]}),
+      `Vector([|b1, b2|]),
+    ) =>
+    let (+) = addScalar;
+    let ( * ) = mulScalar;
+    `Vector([|a1 * b1 + a2 * b2, a3 * b1 + a4 * b2|]);
+  | (
+      `Matrix({
+        numColumns: 1,
+        numRows: 3,
+        elements: [|a1, a2, a3, a4, a5, a6, a7, a8, a9|],
+      }),
+      `Vector([|b1, b2, b3|]),
+    ) =>
+    let (+) = addScalar;
+    let ( * ) = mulScalar;
+    `Vector([|
+      a1 * b1 + a2 * b2 + a3 * b3,
+      a4 * b1 + a5 * b2 + a6 * b3,
+      a7 * b1 + a8 * b2 + a9 * b3,
+    |]);
   | _ => `NaN
   };
 

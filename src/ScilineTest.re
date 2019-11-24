@@ -110,3 +110,11 @@ let _mapMatrix = (fn: Types.value => 'a, a: Types.value): array(array('a)) => {
 
 let toFloatsMatrix = _mapMatrix(Value.toFloat);
 let toComplexFloatsMatrix = _mapMatrix(toComplexFloats);
+
+let testUnits = Js.Dict.empty();
+Js.Dict.set(testUnits, "second", Unit_Types.Second);
+Js.Dict.set(testUnits, "hour", Unit_Types.Hour);
+Js.Dict.set(testUnits, "meter", Unit_Types.Meter);
+Js.Dict.set(testUnits, "inch", Unit_Types.Inch);
+Js.Dict.set(testUnits, "acre", Unit_Types.Acre);
+Js.Dict.set(testUnits, "liter", Unit_Types.Liter);

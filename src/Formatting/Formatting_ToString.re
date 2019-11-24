@@ -14,7 +14,7 @@ let formatExponential = ((base, exponent), format) =>
   | Tex => base ++ "*10^{" ++ exponent ++ "}"
   | MathML =>
     formatNumber(base, format)
-    ++ "<mo>&times;</mo><msup><mn>10</mn>"
+    ++ "<mo>&#xD7;</mo><msup><mn>10</mn>"
     ++ formatNumber(exponent, format)
     ++ "</msup>"
   };

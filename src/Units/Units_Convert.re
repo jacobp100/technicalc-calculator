@@ -146,18 +146,10 @@ let _transformUnits =
     switch (unit) {
     | (Celsius | Fahrenheit, _) => Decimal.nan
     | (linearUnit, power) =>
-      Belt.Array.reduce(
-        Unit_Dimensions.unitDimensions(linearUnit),
-        value,
-        (value, (_, unitPower)) => {
-          let nextPower = power * unitPower * unitPowerMultiplier;
-          Decimal.(
-            value
-            * linearValue(linearUnit)->ofFloat
-            ** Decimal.ofInt(nextPower)
-          );
-        },
-      )
+      let nextPower = power * unitPowerMultiplier;
+      Decimal.(
+        value * linearValue(linearUnit)->ofFloat ** Decimal.ofInt(nextPower)
+      );
     };
 
   switch (units) {
