@@ -35,8 +35,8 @@ test("Converts via ofString", () => {
 
 test("Converts via ofStringBase", () => {
   const convert = (x, base, opt) => toString(ofStringBase(base, x), opt);
-  expect(convert("1", 10)).toBe("1");
   expect(convert("1", 16)).toBe("1");
+  expect(convert("FF", 16)).toBe("255");
 });
 
 test("Converts decimals to fractions", () => {
