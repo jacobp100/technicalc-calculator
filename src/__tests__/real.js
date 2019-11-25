@@ -1,5 +1,6 @@
 const {
   ofString,
+  ofStringBase,
   ofFloat,
   pi,
   add,
@@ -30,6 +31,12 @@ test("Converts via ofString", () => {
   expect(convert("-1.23456789", { style: "decimal" })).toBe("-1.23456789");
   expect(convert("-1.23456789e-100")).toBe("-1.23456789e-100");
   expect(convert("-1.23456789e100")).toBe("-1.23456789e100");
+});
+
+test("Converts via ofStringBase", () => {
+  const convert = (x, base, opt) => toString(ofStringBase(base, x), opt);
+  expect(convert("1", 10)).toBe("1");
+  expect(convert("1", 16)).toBe("1");
 });
 
 test("Converts decimals to fractions", () => {

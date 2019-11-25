@@ -93,7 +93,7 @@ let ofStringBase = (base: int, v: string): value => {
   let (withoutMagnitude, magnitudePart) =
     switch (StringUtil.stringSplitOnChar('e', String.lowercase_ascii(v))) {
     | [b, m] => (Some(b), Some(m))
-    | [b] => (Some(b), Some("0"))
+    | [b] => (Some(b), Some(""))
     | _ => (None, None)
     };
   let (integerPart, decimalPart) =
@@ -101,7 +101,7 @@ let ofStringBase = (base: int, v: string): value => {
       withoutMagnitude->Belt.Option.map(StringUtil.stringSplitOnChar('.'))
     ) {
     | Some([i, d]) => (Some(i), Some(d))
-    | Some([i]) => (Some(i), Some("0"))
+    | Some([i]) => (Some(i), Some(""))
     | _ => (None, None)
     };
   let value =
@@ -117,7 +117,8 @@ let ofStringBase = (base: int, v: string): value => {
         };
       let num = Decimal.(ofString(basePrefix ++ integer ++ decimal));
       let den = Decimal.(ofInt(10) ** ofInt(String.length(decimal)));
-      let magnitude = Decimal.(ofString(magnitude));
+      let magnitude =
+        magnitude == "" ? Decimal.zero : Decimal.(ofString(magnitude));
       let (num, den) =
         switch (Decimal.(cmp(magnitude, zero))) {
         | 1 => (Decimal.(num * ofInt(10) ** magnitude), den)

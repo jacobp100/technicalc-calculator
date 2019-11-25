@@ -55,10 +55,10 @@ let addDigitSeparators = (~startIndex=0, ~endIndex=?, string) => {
 
 let _decimalToString = (~base=10, num) =>
   switch (base) {
-  | 2 => Decimal.toBinary(num)
-  | 8 => Decimal.toOctal(num)
+  | 2 => Decimal.toBinary(num)->Js.String.sliceToEnd(~from=2)
+  | 8 => Decimal.toOctal(num)->Js.String.sliceToEnd(~from=2)
   | 10 => Decimal.toString(num)
-  | 16 => Decimal.toHexedecimal(num)
+  | 16 => Decimal.toHexadecimal(num)->Js.String.sliceToEnd(~from=2)
   | _ => failwith("Invalid base")
   };
 

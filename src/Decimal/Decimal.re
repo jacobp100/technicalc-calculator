@@ -5,7 +5,7 @@ type t;
 [@bs.send] external toFloat: t => float = "toNumber";
 [@bs.send] external toBinary: t => string = "toBinary";
 [@bs.send] external toOctal: t => string = "toOctal";
-[@bs.send] external toHexedecimal: t => string = "toHexedecimal";
+[@bs.send] external toHexadecimal: t => string = "toHexadecimal";
 [@bs.send] external toString: t => string = "toString";
 let zero = ofInt(0);
 let one = ofInt(1);
