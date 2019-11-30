@@ -129,10 +129,10 @@ let linearValue = (unit: unitType) =>
 
 let celsiusToKelvin = value => Decimal.(value + ofFloat(273.15));
 let fahrenheitToKelvin = value =>
-  Decimal.((value - ofFloat(273.15)) * ofFloat(1.8) + ofFloat(32.));
+  Decimal.((value - ofFloat(32.)) / ofFloat(1.8) + ofFloat(273.15));
 let celsiusFromKelvin = value => Decimal.(value - ofFloat(273.15));
 let fahrenheitFromKelvin = value =>
-  Decimal.((value - ofFloat(32.)) / ofFloat(1.8) + ofFloat(273.15));
+  Decimal.((value - ofFloat(273.15)) * ofFloat(1.8) + ofFloat(32.));
 
 let _transformUnits =
     (
