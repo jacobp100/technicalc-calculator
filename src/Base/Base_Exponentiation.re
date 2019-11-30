@@ -41,7 +41,7 @@ let rec exp = (a: value): value =>
 
 let logReal = q =>
   switch (q) {
-  | Real.Rational((-1), 1, Exp(reExp)) => Real.rational(1, 1, Exp(reExp))
+  | Real.Rational(1, 1, Exp(reExp)) => Real.rational(reExp, 1, Unit)
   | _ =>
     let f = Real.toDecimal(q);
     if (Decimal.(f > zero)) {

@@ -17,7 +17,7 @@ let toString = (~format=default, a) =>
   | (Tex, Exp(1)) => "e"
   | (Tex, Exp(v)) => "e^{" ++ _f(format, v) ++ "}"
   | (Tex, Sqrt(v)) => "\\sqrt{" ++ _f(format, v) ++ "}"
-  | (MathML, Pi) => "<mi>&pi;</mi>"
+  | (MathML, Pi) => "<mi>&#960;</mi>"
   | (MathML, Exp(1)) => "<mi>e</mi>"
   | (MathML, Exp(v)) =>
     "<msup><mi>e</mi><mn>" ++ _f(format, v) ++ "</mn></msup>"
