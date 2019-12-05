@@ -134,7 +134,7 @@ let ofStringBase = (base: int, v: string): value => {
     | _ => None
     };
   switch (value) {
-  | Some(v) => `Real(v)
+  | Some(v) => `Real(v)->normalize
   | None => `NaN
   };
 };
