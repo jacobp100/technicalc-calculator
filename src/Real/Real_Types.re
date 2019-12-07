@@ -11,8 +11,12 @@ let one = Rational(1, 1, Unit);
 let minusOne = Rational(-1, 1, Unit);
 let zero = Rational(0, 1, Unit);
 let nan = Rational(1, 0, Unit);
-let equal = (a, b) => a == b;
-let isNaN = _ => false;
+let isNaN = a =>
+  switch (a) {
+  | Rational(_, 0, _) => true
+  | Decimal(f) => !Decimal.isFinite(f)
+  | _ => false
+  };
 
 let ofInt = n => Rational(n, 1, Unit);
 

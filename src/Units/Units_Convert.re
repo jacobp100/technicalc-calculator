@@ -34,10 +34,6 @@ let linearValue = (unit: unitType) =>
   | Millimeter => 1e-3
   | Centimeter => 1e-2
   | Kilometer => 1e3
-  | Megameter => 1e6
-  | Gigameter => 1e9
-  | Terameter => 1e12
-  | Petameter => 1e15
   /* Mass */
   | Gram => 1e-3
   | Tonne => 1e3
@@ -50,10 +46,6 @@ let linearValue = (unit: unitType) =>
   | Microgram => 1e-9
   | Milligram => 1e-6
   | Kilogram => 1.
-  | Megagram => 1e3
-  | Gigagram => 1e6
-  | Teragram => 1e9
-  | Petagram => 1e12
   /* Area */
   | Acre => 4047.
   | Hectare => 1e4
@@ -88,6 +80,7 @@ let linearValue = (unit: unitType) =>
   | Petajoule => 1e15
   /* Power */
   | Watt => 1.
+  | Horsepower => 0.00134102
   | Femtowatt => 1e-15
   | Picowatt => 1e-12
   | Nanowatt => 1e-9

@@ -78,28 +78,28 @@ it("Formats mathml", () => {
   expect(format(add(minusOne, mul(minusOne, i)), "mathml")).toBe(
     math("<mo>-</mo><mn>1</mn><mo>-</mo><mi>i</mi>")
   );
-  expect(format(mul(one, pi), "mathml")).toBe(math("<mi>&pi;</mi>"));
+  expect(format(mul(one, pi), "mathml")).toBe(math("<mi>&#960;</mi>"));
   expect(format(mul(minusOne, pi), "mathml")).toBe(
-    math("<mo>-</mo><mi>&pi;</mi>")
+    math("<mo>-</mo><mi>&#960;</mi>")
   );
   expect(format(mul(half, pi), "mathml")).toBe(
-    math("<mfrac><mi>&pi;</mi><mn>2</mn></mfrac>")
+    math("<mfrac><mi>&#960;</mi><mn>2</mn></mfrac>")
   );
   expect(format(mul(minusHalf, pi), "mathml")).toBe(
-    math("<mo>-</mo><mfrac><mi>&pi;</mi><mn>2</mn></mfrac>")
+    math("<mo>-</mo><mfrac><mi>&#960;</mi><mn>2</mn></mfrac>")
   );
   expect(format(mul(three, pi), "mathml")).toBe(
-    math("<mn>3</mn><mi>&pi;</mi>")
+    math("<mn>3</mn><mi>&#960;</mi>")
   );
   expect(format(mul(minusThree, pi), "mathml")).toBe(
-    math("<mo>-</mo><mn>3</mn><mi>&pi;</mi>")
+    math("<mo>-</mo><mn>3</mn><mi>&#960;</mi>")
   );
   expect(format(mul(threeHalves, pi), "mathml")).toBe(
-    math("<mfrac><mrow><mn>3</mn><mi>&pi;</mi></mrow><mn>2</mn></mfrac>")
+    math("<mfrac><mrow><mn>3</mn><mi>&#960;</mi></mrow><mn>2</mn></mfrac>")
   );
   expect(format(mul(minusThreeHalves, pi), "mathml")).toBe(
     math(
-      "<mo>-</mo><mfrac><mrow><mn>3</mn><mi>&pi;</mi></mrow><mn>2</mn></mfrac>"
+      "<mo>-</mo><mfrac><mrow><mn>3</mn><mi>&#960;</mi></mrow><mn>2</mn></mfrac>"
     )
   );
 

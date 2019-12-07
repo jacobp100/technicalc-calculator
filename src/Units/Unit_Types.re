@@ -35,10 +35,6 @@ type unitType =
   | Millimeter
   | Centimeter
   | Kilometer
-  | Megameter
-  | Gigameter
-  | Terameter
-  | Petameter
   /* Mass */
   | Gram
   | Tonne
@@ -51,10 +47,6 @@ type unitType =
   | Microgram
   | Milligram
   | Kilogram
-  | Megagram
-  | Gigagram
-  | Teragram
-  | Petagram
   /* Area */
   | Acre
   | Hectare
@@ -89,6 +81,7 @@ type unitType =
   | Petajoule
   /* Power */
   | Watt
+  | Horsepower
   | Femtowatt
   | Picowatt
   | Nanowatt

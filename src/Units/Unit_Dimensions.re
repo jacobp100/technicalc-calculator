@@ -57,11 +57,7 @@ let unitDimensions = (v: unitType) =>
   | Micrometer
   | Millimeter
   | Centimeter
-  | Kilometer
-  | Megameter
-  | Gigameter
-  | Terameter
-  | Petameter => lengthDimensions
+  | Kilometer => lengthDimensions
   /* Mass */
   | Gram
   | Tonne
@@ -73,11 +69,7 @@ let unitDimensions = (v: unitType) =>
   | Nanogram
   | Microgram
   | Milligram
-  | Kilogram
-  | Megagram
-  | Gigagram
-  | Teragram
-  | Petagram => massDimensions
+  | Kilogram => massDimensions
   /* Area */
   | Acre
   | Hectare => areaDimensions
@@ -112,6 +104,7 @@ let unitDimensions = (v: unitType) =>
   | Petajoule => energyDimensions
   /* Power */
   | Watt
+  | Horsepower
   | Femtowatt
   | Picowatt
   | Nanowatt
