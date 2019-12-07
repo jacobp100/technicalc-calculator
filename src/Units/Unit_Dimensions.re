@@ -105,6 +105,7 @@ let unitDimensions = (v: unitType) =>
   /* Power */
   | Watt
   | Horsepower
+  | MetricHorsepower
   | Femtowatt
   | Picowatt
   | Nanowatt

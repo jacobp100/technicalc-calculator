@@ -81,6 +81,7 @@ let linearValue = (unit: unitType) =>
   /* Power */
   | Watt => 1.
   | Horsepower => 745.7
+  | MetricHorsepower => 735.5
   | Femtowatt => 1e-15
   | Picowatt => 1e-12
   | Nanowatt => 1e-9
