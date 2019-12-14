@@ -162,7 +162,7 @@ let mul = (a: value, b: value): value =>
       );
     `Matrix(m);
   | (
-      `Matrix({numColumns: 1, numRows: 2, elements: [|a1, a2, a3, a4|]}),
+      `Matrix({numColumns: 2, numRows: 2, elements: [|a1, a2, a3, a4|]}),
       `Vector([|b1, b2|]),
     ) =>
     let (+) = addScalar;
@@ -170,7 +170,7 @@ let mul = (a: value, b: value): value =>
     `Vector([|a1 * b1 + a2 * b2, a3 * b1 + a4 * b2|]);
   | (
       `Matrix({
-        numColumns: 1,
+        numColumns: 3,
         numRows: 3,
         elements: [|a1, a2, a3, a4, a5, a6, a7, a8, a9|],
       }),
