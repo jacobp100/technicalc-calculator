@@ -106,16 +106,12 @@ let unitDimensions = (v: unitType) =>
   | Watt
   | Horsepower
   | MetricHorsepower
-  | Femtowatt
-  | Picowatt
   | Nanowatt
   | Microwatt
   | Milliwatt
   | Kilowatt
   | Megawatt
-  | Gigawatt
-  | Terawatt
-  | Petawatt => powerDimensions
+  | Gigawatt => powerDimensions
   /* Memory */
   | Bit
   | Byte

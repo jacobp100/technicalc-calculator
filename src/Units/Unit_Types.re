@@ -83,16 +83,12 @@ type unitType =
   | Watt
   | Horsepower
   | MetricHorsepower
-  | Femtowatt
-  | Picowatt
   | Nanowatt
   | Microwatt
   | Milliwatt
   | Kilowatt
   | Megawatt
   | Gigawatt
-  | Terawatt
-  | Petawatt
   /* Memory */
   | Bit
   | Byte
