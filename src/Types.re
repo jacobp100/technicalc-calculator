@@ -90,23 +90,25 @@ let ofFloat = (v): value =>
   };
 
 let ofStringBase = (base: int, v: string): value => {
-  let (withoutMagnitude, magnitudePart) =
-    switch (StringUtil.stringSplitOnChar('e', String.lowercase_ascii(v))) {
-    | [b, m] => (Some(b), Some(m))
-    | [b] => (Some(b), Some(""))
-    | _ => (None, None)
+  let (valuePart, exp10Magnitude) =
+    switch (base) {
+    | 10 =>
+      switch (StringUtil.splitOnChar('e', String.lowercase_ascii(v))) {
+      | [b, m] => (Some(b), Some(Decimal.ofString(m)))
+      | [b] => (Some(b), Some(Decimal.zero))
+      | _ => (None, None)
+      }
+    | _ => (Some(v), Some(Decimal.zero))
     };
   let (integerPart, decimalPart) =
-    switch (
-      withoutMagnitude->Belt.Option.map(StringUtil.stringSplitOnChar('.'))
-    ) {
+    switch (valuePart->Belt.Option.map(StringUtil.splitOnChar('.'))) {
     | Some([i, d]) => (Some(i), Some(d))
     | Some([i]) => (Some(i), Some(""))
     | _ => (None, None)
     };
   let value =
-    switch (integerPart, decimalPart, magnitudePart) {
-    | (Some(integer), Some(decimal), Some(magnitude)) =>
+    switch (integerPart, decimalPart, exp10Magnitude) {
+    | (Some(integer), Some(decimal), Some(exp10Magnitude)) =>
       let basePrefix =
         switch (base) {
         | 10 => ""
@@ -116,13 +118,11 @@ let ofStringBase = (base: int, v: string): value => {
         | _ => failwith("Unhandled base")
         };
       let num = Decimal.(ofString(basePrefix ++ integer ++ decimal));
-      let den = Decimal.(ofInt(10) ** ofInt(String.length(decimal)));
-      let magnitude =
-        magnitude == "" ? Decimal.zero : Decimal.(ofString(magnitude));
+      let den = Decimal.(ofInt(base) ** ofInt(String.length(decimal)));
       let (num, den) =
-        switch (Decimal.(cmp(magnitude, zero))) {
-        | 1 => (Decimal.(num * ofInt(10) ** magnitude), den)
-        | (-1) => (num, Decimal.(den * ofInt(10) ** abs(magnitude)))
+        switch (Decimal.(cmp(exp10Magnitude, zero))) {
+        | 1 => (Decimal.(num * ofInt(10) ** exp10Magnitude), den)
+        | (-1) => (num, Decimal.(den * ofInt(10) ** abs(exp10Magnitude)))
         | _ => (num, den)
         };
       let value =
