@@ -14,6 +14,7 @@ let (_1, _2, _3, _6, _4, _9, _27) = (
 );
 let epsilon = 1.e-4;
 let base = 27720; /* Divisible by all numbers 1-12 */
+/* FIXME - test int overflow */
 let roundToPrecision = x =>
   int_of_float(x *. float_of_int(base))->ofInt / ofInt(base);
 

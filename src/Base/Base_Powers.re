@@ -28,13 +28,16 @@ let rec pow = (a: value, b: value): value =>
   | (`Zero, `Zero) => `NaN
   | (`Real(Rational(n, d, Unit)), `Real(Rational(1, 2, Unit)))
       when isSquare(d) =>
-    let denSqrt = float_of_int(d)->sqrt->int_of_float;
-    let r = Real.rational(1, denSqrt, Sqrt(abs(n)));
-    if (n >= 0) {
-      real(r);
-    } else {
-      imag(r);
-    };
+    switch (float_of_int(d)->sqrt->FloatUtil.toInt) {
+    | Some(denSqrt) =>
+      let r = Real.rational(1, denSqrt, Sqrt(abs(n)));
+      if (n >= 0) {
+        real(r);
+      } else {
+        imag(r);
+      };
+    | _ => failwith("Invalid rational provided to pow")
+    }
   | (`Real(Rational(1, 1, Exp(1))), _) => exp(b)
   | (_, `Real(Rational(2, 1, Unit))) => a * a
   | (`Real(re), `Real(Rational(bInt, 1, Unit))) =>
