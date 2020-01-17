@@ -68,7 +68,7 @@ let normalize = (v: value): value =>
   | `NaN => `NaN
   };
 
-let ofInt = (a): value => `Real(Rational(a, 1, Unit))->normalize;
+let ofInt = (a): value => `Real(Real.ofInt(a))->normalize;
 
 let ofFloat = (v): value =>
   switch (classify_float(v)) {
@@ -82,7 +82,7 @@ let ofFloat = (v): value =>
       let denominator = int_of_float(magnitude);
       `Real(Real.rational(numerator, denominator, Unit))->normalize;
     } else {
-      `Real(Decimal(Decimal.ofFloat(v)))->normalize;
+      `Real(Real.decimal(Decimal.ofFloat(v)))->normalize;
     };
   | FP_zero => `Zero
   | FP_infinite
@@ -126,9 +126,12 @@ let ofStringBase = (base: int, v: string): value => {
         | _ => (num, den)
         };
       let value =
-        switch (Decimal.toInt(num), Decimal.toInt(den)) {
+        switch (
+          Decimal.toFloat(num)->FloatUtil.toInt,
+          Decimal.toFloat(den)->FloatUtil.toInt,
+        ) {
         | (Some(num), Some(den)) => Real.rational(num, den, Unit)
-        | _ => Decimal(Decimal.(num / den))
+        | _ => Real.decimal(Decimal.(num / den))
         };
       Some(value);
     | _ => None

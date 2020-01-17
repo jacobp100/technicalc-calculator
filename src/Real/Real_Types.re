@@ -18,7 +18,12 @@ let isNaN = a =>
   | _ => false
   };
 
-let ofInt = n => Rational(n, 1, Unit);
+let ofInt = n =>
+  if (n->float_of_int->int_of_float == n) {
+    Rational(n, 1, Unit);
+  } else {
+    failwith("Not an integer");
+  };
 
 let decimal = f => Decimal(f);
 

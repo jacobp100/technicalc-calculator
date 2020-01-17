@@ -45,15 +45,11 @@ let abs = a =>
   | Decimal(f) => Decimal(Decimal.abs(f))
   };
 
-let _ofDecimalInt = f => {
-  let floatVal = Decimal.toFloat(f);
-  let intVal = int_of_float(floatVal);
-  if (float_of_int(intVal) == floatVal) {
-    rational(intVal, 1, Unit);
-  } else {
-    Decimal(f);
+let _ofDecimalInt = f =>
+  switch (Decimal.toFloat(f)->FloatUtil.toInt) {
+  | Some(intVal) => rational(intVal, 1, Unit)
+  | None => Decimal(f)
   };
-};
 
 let round = a => toDecimal(a)->Decimal.round->_ofDecimalInt;
 let floor = a => toDecimal(a)->Decimal.floor->_ofDecimalInt;
