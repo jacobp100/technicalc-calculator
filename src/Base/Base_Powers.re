@@ -28,7 +28,7 @@ let rec pow = (a: value, b: value): value =>
   | (`Zero, `Zero) => `NaN
   | (`Real(Rational(n, d, Unit)), `Real(Rational(1, 2, Unit)))
       when isSquare(d) =>
-    switch (float_of_int(d)->sqrt->FloatUtil.toInt) {
+    switch (float_of_int(d)->sqrt->FloatUtil.intValue) {
     | Some(denSqrt) =>
       let r = Real.rational(1, denSqrt, Sqrt(abs(n)));
       if (n >= 0) {

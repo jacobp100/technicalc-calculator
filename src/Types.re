@@ -77,12 +77,11 @@ let ofFloat = (v): value =>
     let magnitude = 1.e6;
     let intMaxF = float_of_int(max_int);
     let numeratorF = v *. magnitude;
-    if (abs_float(numeratorF) < intMaxF && FloatUtil.isInt(numeratorF)) {
-      let numerator = int_of_float(numeratorF);
-      let denominator = int_of_float(magnitude);
-      `Real(Real.rational(numerator, denominator, Unit))->normalize;
-    } else {
-      `Real(Real.decimal(Decimal.ofFloat(v)))->normalize;
+    switch (FloatUtil.intValue(numeratorF), FloatUtil.intValue(magnitude)) {
+    | (Some(numerator), Some(denominator))
+        when abs_float(numeratorF) < intMaxF =>
+      `Real(Real.rational(numerator, denominator, Unit))->normalize
+    | _ => `Real(Real.decimal(Decimal.ofFloat(v)))->normalize
     };
   | FP_zero => `Zero
   | FP_infinite
@@ -127,8 +126,8 @@ let ofStringBase = (base: int, v: string): value => {
         };
       let value =
         switch (
-          Decimal.toFloat(num)->FloatUtil.toInt,
-          Decimal.toFloat(den)->FloatUtil.toInt,
+          Decimal.toFloat(num)->FloatUtil.intValue,
+          Decimal.toFloat(den)->FloatUtil.intValue,
         ) {
         | (Some(num), Some(den)) => Real.rational(num, den, Unit)
         | _ => Real.decimal(Decimal.(num / den))
@@ -181,14 +180,6 @@ let toDecimal = (a: value): Decimal.t =>
 let toInt = (a: value): option(int) =>
   switch (a) {
   | `Zero => Some(0)
-  | `Real(re) =>
-    let f = Real.toDecimal(re);
-    let floatVal = Decimal.toFloat(f);
-    let intVal = int_of_float(floatVal);
-    if (float_of_int(intVal) == floatVal) {
-      Some(intVal);
-    } else {
-      None;
-    };
+  | `Real(re) => Real.toDecimal(re)->Decimal.toFloat->FloatUtil.intValue
   | _ => None
   };

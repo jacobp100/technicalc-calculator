@@ -16,7 +16,10 @@ let epsilon = 1.e-4;
 let base = 27720; /* Divisible by all numbers 1-12 */
 /* FIXME - test int overflow */
 let roundToPrecision = x =>
-  int_of_float(x *. float_of_int(base))->ofInt / ofInt(base);
+  switch (FloatUtil.toInt(x *. float_of_int(base))) {
+  | Some(i) => ofInt(i) / ofInt(base)
+  | None => ofFloat(x)
+  };
 
 let quadratic = (a, b, c) => {
   let determinant = sqrt(b ** _2 - _4 * a * c);
