@@ -19,6 +19,9 @@ test("Converts via ofString", () => {
   expect(convert("1e2")).toBe("100");
   expect(convert("1e+2")).toBe("100");
   expect(convert("1e-2")).toBe("1/100");
+  expect(convert("1e3")).toBe("1,000");
+  expect(convert("1e6")).toBe("1,000,000");
+  expect(convert("1e9")).toBe("1,000,000,000");
   expect(convert("1e1000")).toBe("1e1000");
   expect(convert("1.23456789", { style: "decimal" })).toBe("1.23456789");
   expect(convert("1.23456789e-100")).toBe("1.23456789e-100");
