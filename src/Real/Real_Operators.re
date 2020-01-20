@@ -46,7 +46,7 @@ let abs = a =>
   };
 
 let _ofDecimalInt = f =>
-  switch (Decimal.toFloat(f)->FloatUtil.toInt) {
+  switch (Decimal.toFloat(f)->FloatUtil.intValue) {
   | Some(intVal) => rational(intVal, 1, Unit)
   | None => Decimal(f)
   };

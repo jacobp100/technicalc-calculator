@@ -20,7 +20,7 @@ let simplifySqrt = ac =>
     let sqrtArg = ref(ac);
     let multiplier = ref(1);
 
-    let limit = ac->float_of_int->sqrt->ceil->int_of_float;
+    let limit = float_of_int(ac)->sqrt->ceil->FloatUtil.intValueExn;
     for (currentSqrtValue in 2 to limit) {
       let factor = currentSqrtValue * currentSqrtValue;
 
