@@ -4,17 +4,17 @@ const ScilineTest = require("../ScilineTest.bs");
 const stringOfFloat = (x, format) =>
   ScilineTest.toString(SciLine.ofFloat(x), format);
 
-it("only adds commas for values greater than 1e5", () => {
+it("only adds commas for values greater than 999", () => {
   expect(stringOfFloat(100000000, { style: "decimal" })).toBe("100,000,000");
   expect(stringOfFloat(10000000, { style: "decimal" })).toBe("10,000,000");
   expect(stringOfFloat(1000000, { style: "decimal" })).toBe("1,000,000");
   expect(stringOfFloat(100000, { style: "decimal" })).toBe("100,000");
-  expect(stringOfFloat(10000, { style: "decimal" })).toBe("10000");
+  expect(stringOfFloat(10000, { style: "decimal" })).toBe("10,000");
+  expect(stringOfFloat(1000, { style: "decimal" })).toBe("1,000");
 });
 
 it("formats magnitude of reals", () => {
   expect(stringOfFloat(1000000000, { style: "decimal" })).toBe("1e9");
-  expect(stringOfFloat(1000, { style: "decimal" })).toBe("1000");
   expect(stringOfFloat(100, { style: "decimal" })).toBe("100");
   expect(stringOfFloat(10, { style: "decimal" })).toBe("10");
   expect(stringOfFloat(1, { style: "decimal" })).toBe("1");

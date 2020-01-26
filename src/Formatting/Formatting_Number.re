@@ -1,24 +1,3 @@
-type formatting = {
-  minDecimalPlaces: option(int),
-  maxDecimalPlaces: option(int),
-  digitSeparators: bool,
-};
-
-let createFormat =
-    (~minDecimalPlaces=?, ~maxDecimalPlaces=?, ~digitSeparators=false, ()) => {
-  minDecimalPlaces,
-  maxDecimalPlaces,
-  digitSeparators,
-};
-
-let _getDecimalBounds = f =>
-  switch (f.minDecimalPlaces, f.maxDecimalPlaces) {
-  | (Some(min), None) => (min, min)
-  | (None, Some(max)) => (0, max)
-  | (Some(min), Some(max)) => (min, max)
-  | (None, None) => (0, 3)
-  };
-
 let trimTraillingZeros = (~startIndex=0, ~endIndex=?, string) => {
   let endIndex =
     endIndex->Belt.Option.getWithDefault(String.length(string) - 1);
@@ -38,7 +17,7 @@ let trimTraillingZeros = (~startIndex=0, ~endIndex=?, string) => {
   ++ String.sub(string, endIndex + 1, String.length(string) - 1 - endIndex);
 };
 
-let addDigitSeparators = (~startIndex=0, ~endIndex=?, string) => {
+let adddigitGrouping = (~startIndex=0, ~endIndex=?, string) => {
   let endIndex = endIndex->Belt.Option.getWithDefault(String.length(string));
   let baseStr = ref(string);
   let index = ref(endIndex - 3);
@@ -62,26 +41,32 @@ let _decimalToString = (~base=10, num) =>
   | _ => failwith("Invalid base")
   };
 
-let formatInteger = (~base=10, formatting, num) => {
+let formatInteger = (~base=10, ~digitGrouping=true, num) => {
   let str = _decimalToString(~base, num);
   let str =
-    if (formatting.digitSeparators) {
-      addDigitSeparators(~startIndex=Decimal.(num < zero) ? 1 : 0, str);
+    if (digitGrouping) {
+      adddigitGrouping(~startIndex=Decimal.(num < zero) ? 1 : 0, str);
     } else {
       str;
     };
   String.uppercase_ascii(str);
 };
 
-let formatDecimal = (~base=10, formatting, num) => {
-  let (minDecimalPlaces, maxDecimalPlaces) = _getDecimalBounds(formatting);
+let formatDecimal =
+    (
+      ~base=10,
+      ~digitGrouping=true,
+      ~minDecimalPlaces=0,
+      ~maxDecimalPlaces,
+      num,
+    ) => {
   let absNum = Decimal.abs(num);
   let integerPart = Decimal.floor(absNum);
   let decimalPart = Decimal.sub(absNum, integerPart);
   let integer =
     formatInteger(
       ~base,
-      formatting,
+      ~digitGrouping,
       Decimal.(num >= zero ? integerPart : - integerPart),
     );
   let decimal =
@@ -108,7 +93,8 @@ let formatDecimal = (~base=10, formatting, num) => {
   };
 };
 
-let formatExponential = (~base=10, ~exponent=?, formatting, num) => {
+let formatExponential =
+    (~base=10, ~exponent=?, ~minDecimalPlaces=0, ~maxDecimalPlaces, num) => {
   let exponent =
     switch (exponent) {
     | Some(exponent) => exponent
@@ -117,7 +103,9 @@ let formatExponential = (~base=10, ~exponent=?, formatting, num) => {
   let decimalPart =
     formatDecimal(
       ~base,
-      formatting,
+      ~digitGrouping=false,
+      ~minDecimalPlaces,
+      ~maxDecimalPlaces,
       Decimal.(num / ofInt(10) ** ofInt(exponent)),
     );
   let exponentPart = string_of_int(exponent);

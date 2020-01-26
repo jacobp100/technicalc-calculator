@@ -25,9 +25,11 @@ type format = {
   [@bs.optional]
   style: string,
   [@bs.optional]
+  base: int,
+  [@bs.optional]
   precision: int,
   [@bs.optional]
-  base: int,
+  digitGrouping: bool,
   [@bs.optional]
   decimalMinMagnitude: int,
   [@bs.optional]
@@ -54,11 +56,14 @@ let toString = (x, maybeFormat) => {
       | Some("scientific") => Scientific
       | _ => Natural
       },
+    base:
+      baseGet(f)->Belt.Option.getWithDefault(Formatting_Types.default.base),
     precision:
       precisionGet(f)
       ->Belt.Option.getWithDefault(Formatting_Types.default.precision),
-    base:
-      baseGet(f)->Belt.Option.getWithDefault(Formatting_Types.default.base),
+    digitGrouping:
+      digitGroupingGet(f)
+      ->Belt.Option.getWithDefault(Formatting_Types.default.digitGrouping),
     decimalMinMagnitude:
       decimalMinMagnitudeGet(f)
       ->Belt.Option.getWithDefault(

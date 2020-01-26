@@ -7,6 +7,6 @@ it("Special cases square root of negative numbers", () => {
 });
 
 it("Handles large numbers", () => {
-  expect(toString(sqrt(ofFloat(1e6)))).toBe("1000");
+  expect(toString(sqrt(ofFloat(1e6)))).toBe("1,000");
   expect(toString(sqrt(ofFloat(1e12)))).toBe("1,000,000");
 });

@@ -26,19 +26,17 @@ let formatVariable = (var, format) =>
   format.mode == MathML ? "<mi>" ++ var ++ "</mi>" : var;
 
 let formatTuple = (re, format): string => {
-  let base = format.base;
+  let {base, digitGrouping, precision} = format;
 
   switch (re, format.style) {
   | (Real.Rational(n, d, c), Natural) =>
-    let formatting =
-      Formatting_Number.createFormat(~digitSeparators=true, ());
     let minus = n < 0 ? formatOperator("-", format) : "";
 
     let (top, needsWrap) =
       switch (
         Formatting_Number.formatInteger(
           ~base,
-          formatting,
+          ~digitGrouping,
           abs(n)->Decimal.ofInt,
         ),
         Formatting_Constant.toString(~format, c),
@@ -53,7 +51,11 @@ let formatTuple = (re, format): string => {
 
     switch (
       format.mode,
-      Formatting_Number.formatInteger(~base, formatting, Decimal.ofInt(d)),
+      Formatting_Number.formatInteger(
+        ~base,
+        ~digitGrouping,
+        Decimal.ofInt(d),
+      ),
     ) {
     | (_, "1") => minus ++ top
     | (String, bottom) => minus ++ top ++ "/" ++ bottom
@@ -73,11 +75,8 @@ let formatTuple = (re, format): string => {
     if (insideMagnitudeThreshold) {
       Formatting_Number.formatDecimal(
         ~base,
-        Formatting_Number.createFormat(
-          ~maxDecimalPlaces=format.precision,
-          ~digitSeparators=valueMagnitude >= 5,
-          (),
-        ),
+        ~maxDecimalPlaces=precision,
+        ~digitGrouping,
         f,
       )
       ->formatNumber(format);
@@ -85,10 +84,7 @@ let formatTuple = (re, format): string => {
       Formatting_Number.formatExponential(
         ~base,
         ~exponent=DecimalUtil.magnitude(f),
-        Formatting_Number.createFormat(
-          ~maxDecimalPlaces=format.precision,
-          (),
-        ),
+        ~maxDecimalPlaces=precision,
         f,
       )
       ->formatExponential(format);
@@ -97,13 +93,13 @@ let formatTuple = (re, format): string => {
     /* Round to multiple of 3 */
     let f = Real.toDecimal(re);
     let exponent = DecimalUtil.magnitude(f) * 3 / 3;
-    let formatting =
-      Formatting_Number.createFormat(
-        ~minDecimalPlaces=format.precision,
-        ~maxDecimalPlaces=format.precision,
-        (),
-      );
-    Formatting_Number.formatExponential(~base, ~exponent, formatting, f)
+    Formatting_Number.formatExponential(
+      ~base,
+      ~exponent,
+      ~minDecimalPlaces=precision,
+      ~maxDecimalPlaces=precision,
+      f,
+    )
     ->formatExponential(format);
   };
 };

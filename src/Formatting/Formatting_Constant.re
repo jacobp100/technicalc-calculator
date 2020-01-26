@@ -3,7 +3,7 @@ open Formatting_Types;
 let _f = (format, v) =>
   Formatting_Number.formatInteger(
     ~base=format.base,
-    Formatting_Number.createFormat(~digitSeparators=false, ()),
+    ~digitGrouping=format.digitGrouping,
     Decimal.ofInt(v),
   );
 
