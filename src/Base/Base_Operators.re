@@ -130,7 +130,7 @@ let mul = (a: value, b: value): value =>
     mulScalar(aV, bV)->valueOfScalar
   | (`Percent(p), (`Real(_) | `Imag(_) | `Complex(_)) as v)
   | ((`Real(_) | `Imag(_) | `Complex(_)) as v, `Percent(p)) =>
-    `Percent(mulScalar(p, v))
+    mulScalar(v, p)->divScalar(`Real(Real.ofInt(100)))->valueOfScalar
   | (`Vector(v), (`Zero | `Real(_) | `Imag(_) | `Complex(_)) as value)
   | ((`Zero | `Real(_) | `Imag(_) | `Complex(_)) as value, `Vector(v)) =>
     `Vector(v->Belt.Array.map(mulScalar(value)))
@@ -195,8 +195,10 @@ let div = (a: value, b: value): value =>
       (`Real(_) | `Imag(_) | `Complex(_)) as bV,
     ) =>
     divScalar(aV, bV)->valueOfScalar
-  | (`Percent(p), (`Real(_) | `Imag(_) | `Complex(_)) as v) =>
-    `Percent(divScalar(p, v))
+  | ((`Real(_) | `Imag(_) | `Complex(_)) as v, `Percent(p)) =>
+    let pScalar =
+      `Real(Real.one)->addScalar(p->divScalar(`Real(Real.ofInt(100))));
+    v->divScalar(pScalar)->valueOfScalar;
   | (`Vector(v), (`Real(_) | `Imag(_) | `Complex(_)) as value) =>
     `Vector(Belt.Array.map(v, divScalar(_, value)))
   | (`Matrix(m), (`Real(_) | `Imag(_) | `Complex(_)) as value) =>
