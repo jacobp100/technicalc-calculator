@@ -39,6 +39,7 @@ let rec pow = (a: value, b: value): value =>
     | _ => failwith("Invalid rational provided to pow")
     }
   | (`Real(Rational(1, 1, Exp(1))), _) => exp(b)
+  | (`Vector(_), `Real(Rational(2, 1, Unit))) => Base_Dot.dot(a, a)
   | (_, `Real(Rational(2, 1, Unit))) => a * a
   | (`Real(re), `Real(Rational(bInt, 1, Unit))) =>
     real(Real.powInt(re, bInt))
