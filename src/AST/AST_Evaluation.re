@@ -62,11 +62,23 @@ let rec eval = (~context, node: AST_Types.t): Types.value =>
   | Differential({x, body}) =>
     Calculus.derivative(createEvalCb(~context, body), eval(~context, x))
   | Integral({a, b, body}) =>
-    Calculus.integrate( createEvalCb(~context, body), eval(~context, a), eval(~context, b), )
+    Calculus.integrate(
+      createEvalCb(~context, body),
+      eval(~context, a),
+      eval(~context, b),
+    )
   | Sum({a, b, body}) =>
-    Series.sum( createEvalCb(~context, body), eval(~context, a), eval(~context, b), )
+    Series.sum(
+      createEvalCb(~context, body),
+      eval(~context, a),
+      eval(~context, b),
+    )
   | Product({a, b, body}) =>
-    Series.product( createEvalCb(~context, body), eval(~context, a), eval(~context, b), )
+    Series.product(
+      createEvalCb(~context, body),
+      eval(~context, a),
+      eval(~context, b),
+    )
   | Convert({a, fromUnits, toUnits}) =>
     Units.convert(eval(~context, a), ~fromUnits, ~toUnits)
   }

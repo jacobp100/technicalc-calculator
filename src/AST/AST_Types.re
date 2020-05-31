@@ -13,7 +13,11 @@ type t =
   | OfStringBase(int, string)
   | OfEncoded(Encoding.encoding)
   | Vector(array(t))
-  | Matrix(Matrix.t(t))
+  | Matrix({
+      numRows: int,
+      numColumns: int,
+      elements: array(t),
+    })
   | Percent(t)
   | Variable(string)
   | Add(t, t)
@@ -51,11 +55,30 @@ type t =
   | RandInt(t, t)
   | NPR(t, t)
   | NCR(t, t)
-  | Differential({ x: t, body: t, })
-  | Integral({ a: t, b: t, body: t, })
-  | Sum({ a: t, b: t, body: t, })
-  | Product({ a: t, b: t, body: t, })
-  | Convert({ a: t, toUnits: Unit_Types.units, fromUnits: Unit_Types.units, })
+  | Differential({
+      x: t,
+      body: t,
+    })
+  | Integral({
+      a: t,
+      b: t,
+      body: t,
+    })
+  | Sum({
+      a: t,
+      b: t,
+      body: t,
+    })
+  | Product({
+      a: t,
+      b: t,
+      body: t,
+    })
+  | Convert({
+      a: t,
+      toUnits: Unit_Types.units,
+      fromUnits: Unit_Types.units,
+    });
 
 let nan = NaN;
 let zero = Zero;
@@ -115,5 +138,4 @@ let differential = (x, body): t => Differential({x, body});
 let integral = (a, b, body): t => Integral({a, b, body});
 let sum = (a, b, body): t => Sum({a, b, body});
 let product = (a, b, body): t => Product({a, b, body});
-let convert = (a, fromUnits, toUnits): t =>
-  Convert({a, fromUnits, toUnits});
+let convert = (a, fromUnits, toUnits): t => Convert({a, fromUnits, toUnits});
