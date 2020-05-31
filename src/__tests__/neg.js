@@ -1,12 +1,12 @@
 const { toMatchJsValue } = require("../__test-util__");
-const SciLine = require("../Value.bs");
+const TechniCalc = require("../Value.bs");
 
 expect.extend({ toMatchJsValue });
 
 test("-1", () => {
-  expect(SciLine.neg(SciLine.one)).toMatchJsValue(-1);
+  expect(TechniCalc.neg(TechniCalc.one)).toMatchJsValue(-1);
 });
 
 test("-pi (float value)", () => {
-  expect(SciLine.neg(SciLine.ofFloat(Math.PI))).toMatchJsValue(-Math.PI);
+  expect(TechniCalc.neg(TechniCalc.ofFloat(Math.PI))).toMatchJsValue(-Math.PI);
 });

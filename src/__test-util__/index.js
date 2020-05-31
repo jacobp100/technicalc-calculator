@@ -1,24 +1,24 @@
 const cartesian = require("cartesian");
 const { range } = require("lodash");
 const mathjs = require("mathjs");
-const SciLine = require("../Value.bs");
-const ScilineTest = require("../ScilineTest.bs");
+const TechniCalc = require("../Value.bs");
+const TechniCalcTest = require("../TechniCalcTest.bs");
 
 module.exports.Value = class Value {
-  constructor(jsValue, sciLineValue, title = String(jsValue)) {
+  constructor(jsValue, techniCalcValue, title = String(jsValue)) {
     this.title = title;
-    this.sciLineValue = sciLineValue;
+    this.techniCalcValue = techniCalcValue;
     this.jsValue = jsValue;
   }
 
   static float(n, title = String(n)) {
-    return new Value(n, SciLine.ofFloat(n), title);
+    return new Value(n, TechniCalc.ofFloat(n), title);
   }
 
   static complex(re, im, title = `${re}+${im}i`) {
     return new Value(
       mathjs.complex(re, im),
-      ScilineTest.ofComplexFloats(re, im),
+      TechniCalcTest.ofComplexFloats(re, im),
       title
     );
   }
@@ -26,7 +26,7 @@ module.exports.Value = class Value {
   static e(n = 1, title = `${n}e`) {
     return new Value(
       n * Math.E,
-      SciLine.mul(SciLine.ofFloat(n), SciLine.e),
+      TechniCalc.mul(TechniCalc.ofFloat(n), TechniCalc.e),
       title
     );
   }
@@ -34,7 +34,7 @@ module.exports.Value = class Value {
   static pi(n = 1, title = `${n}pi`) {
     return new Value(
       n * Math.PI,
-      SciLine.mul(SciLine.ofFloat(n), SciLine.pi),
+      TechniCalc.mul(TechniCalc.ofFloat(n), TechniCalc.pi),
       title
     );
   }
@@ -73,7 +73,7 @@ const isCloseTo = (a, b) => {
   return Math.abs(a - b) / normalizer < 1e-8;
 };
 
-const asComplex = a => {
+const asComplex = (a) => {
   const comp = typeof a === "number" ? [a, 0] : [a.re, a.im];
   return !Number.isFinite(comp[0]) || !Number.isFinite(comp[1])
     ? [NaN, NaN]
@@ -81,7 +81,7 @@ const asComplex = a => {
 };
 
 module.exports.toMatchJsValue = (received, expected) => {
-  const [actualRe, actualIm] = ScilineTest.toComplexFloats(received);
+  const [actualRe, actualIm] = TechniCalcTest.toComplexFloats(received);
   const [expectedRe, expectedIm] = asComplex(expected);
 
   const pass =
@@ -89,19 +89,19 @@ module.exports.toMatchJsValue = (received, expected) => {
 
   return {
     message: () =>
-      `expected ${ScilineTest.toString(received)} ${
+      `expected ${TechniCalcTest.toString(received)} ${
         pass ? "not " : ""
       }to be close to ${expectedRe}+${expectedIm}i`,
-    pass
+    pass,
   };
 };
 
 module.exports.toMatchJsMatrix = (received, expected) => {
-  const sciLineElements = ScilineTest.toComplexFloatsMatrix(received);
+  const techniCalcElements = TechniCalcTest.toComplexFloatsMatrix(received);
 
   let allPass = true;
   expected.forEach((mathJsElement, [row, column]) => {
-    const [actualRe, actualIm] = sciLineElements[row][column];
+    const [actualRe, actualIm] = techniCalcElements[row][column];
     const [expectedRe, expectedIm] = asComplex(mathJsElement);
     const pass =
       isCloseTo(actualRe, expectedRe) && isCloseTo(actualIm, expectedIm);
@@ -110,9 +110,9 @@ module.exports.toMatchJsMatrix = (received, expected) => {
 
   return {
     message: () =>
-      `expected ${ScilineTest.toString(received)} ${
+      `expected ${TechniCalcTest.toString(received)} ${
         allPass ? "not " : ""
       }to be close to ${expected}`,
-    pass: allPass
+    pass: allPass,
   };
 };

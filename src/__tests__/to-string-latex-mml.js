@@ -1,5 +1,5 @@
 const { one, minusOne, ofString, add, mul, pi, i } = require("../Value.bs");
-const { toString } = require("../ScilineTest.bs");
+const { toString } = require("../TechniCalcTest.bs");
 
 const [three, minusThree, threeHalves, minusThreeHalves, half, minusHalf] = [
   "3",
@@ -7,7 +7,7 @@ const [three, minusThree, threeHalves, minusThreeHalves, half, minusHalf] = [
   "1.5",
   "-1.5",
   "0.5",
-  "-0.5"
+  "-0.5",
 ].map(ofString);
 
 const format = (value, mode) =>
@@ -56,7 +56,7 @@ it("Formats Tex", () => {
 });
 
 it("Formats mathml", () => {
-  const math = x =>
+  const math = (x) =>
     `<math xmlns="http://www.w3.org/1998/Math/MathML" display="block">${x}</math>`;
   expect(format(one, "mathml")).toBe(math("<mn>1</mn>"));
   expect(format(minusOne, "mathml")).toBe(math("<mo>-</mo><mn>1</mn>"));

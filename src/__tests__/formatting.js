@@ -1,8 +1,8 @@
-const SciLine = require("../Value.bs");
-const ScilineTest = require("../ScilineTest.bs");
+const TechniCalc = require("../Value.bs");
+const TechniCalcTest = require("../TechniCalcTest.bs");
 
 const stringOfFloat = (x, format) =>
-  ScilineTest.toString(SciLine.ofFloat(x), format);
+  TechniCalcTest.toString(TechniCalc.ofFloat(x), format);
 
 it("only adds commas for values greater than 999", () => {
   expect(stringOfFloat(100000000, { style: "decimal" })).toBe("100,000,000");

@@ -2,18 +2,21 @@ const cartesian = require("cartesian");
 const mathjs = require("mathjs");
 const { Value } = require(".");
 const Types = require("../Types.bs");
-const SciLine = require("../Value.bs");
+const TechniCalc = require("../Value.bs");
 
 const matrix2x2 = cartesian([
   [0, -1, 1, 5],
   [0, -1, 1],
   [0, 1, 5],
-  [0, -1, 1]
+  [0, -1, 1],
 ]).map(
   ([a, b, c, d]) =>
     new Value(
-      mathjs.matrix([[a, b], [c, d]]),
-      Types.matrix2(...[a, b, c, d].map(SciLine.ofFloat)),
+      mathjs.matrix([
+        [a, b],
+        [c, d],
+      ]),
+      Types.matrix2(...[a, b, c, d].map(TechniCalc.ofFloat)),
       `[[${a}, ${b}], [${c}, ${d}]]`
     )
 );
@@ -28,12 +31,16 @@ const matrix3x3 = cartesian([
   [0],
   [0, 5],
   [0, 1],
-  [0]
+  [0],
 ]).map(
   ([a, b, c, d, e, f, g, h, i]) =>
     new Value(
-      mathjs.matrix([[a, b, c], [d, e, f], [g, h, i]]),
-      Types.matrix3(...[a, b, c, d, e, f, g, h, i].map(SciLine.ofFloat)),
+      mathjs.matrix([
+        [a, b, c],
+        [d, e, f],
+        [g, h, i],
+      ]),
+      Types.matrix3(...[a, b, c, d, e, f, g, h, i].map(TechniCalc.ofFloat)),
       `[[${a}, ${b}, ${c}], [${d}, ${e}, ${f}], [${g}, ${h}, ${i}]]`
     )
 );

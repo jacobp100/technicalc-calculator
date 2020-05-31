@@ -2,7 +2,7 @@ const cartesian = require("cartesian");
 const { range } = require("lodash");
 const mathjs = require("mathjs");
 const { Value, toMatchJsValue } = require("../__test-util__");
-const SciLine = require("../Value.bs");
+const TechniCalc = require("../Value.bs");
 
 expect.extend({ toMatchJsValue });
 
@@ -26,7 +26,7 @@ const expValues = [].concat(
 const values = cartesian([expValues, expValues]);
 
 test.each(values)("(%s) ** (%s)", (a, b) => {
-  const actual = SciLine.pow(a.sciLineValue, b.sciLineValue);
+  const actual = TechniCalc.pow(a.techniCalcValue, b.techniCalcValue);
   const expected = mathematicallyAccuratePow(a.jsValue, b.jsValue);
   expect(actual).toMatchJsValue(expected);
 });

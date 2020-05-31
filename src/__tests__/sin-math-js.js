@@ -1,7 +1,7 @@
 const mathjs = require("mathjs");
 const { toMatchJsValue } = require("../__test-util__");
 const { trigValues } = require("../__test-util__/math-js");
-const SciLine = require("../Value.bs");
+const TechniCalc = require("../Value.bs");
 
 expect.extend({ toMatchJsValue });
 
@@ -42,7 +42,7 @@ const sinRealOnlyValues = new Set([
   "(11/2+9i/1)pi",
   "(11/2+10i/1)pi",
   "(11/2+11i/1)pi",
-  "(11/2+12i/1)pi"
+  "(11/2+12i/1)pi",
 ]);
 
 const sinImaginaryOnlyValues = new Set([
@@ -119,15 +119,15 @@ const sinImaginaryOnlyValues = new Set([
   "(12/1+9i/1)pi",
   "(12/1+10i/1)pi",
   "(12/1+11i/1)pi",
-  "(12/1+12i/1)pi"
+  "(12/1+12i/1)pi",
 ]);
 
-test.each(trigValues)("sin(%s)", v => {
+test.each(trigValues)("sin(%s)", (v) => {
   let mathJsValue = mathjs.sin(v.jsValue);
   if (sinRealOnlyValues.has(v.title)) {
     mathJsValue = { re: mathJsValue.re, im: 0 };
   } else if (sinImaginaryOnlyValues.has(v.title)) {
     mathJsValue = { re: 0, im: mathJsValue.im };
   }
-  expect(SciLine.sin(v.sciLineValue)).toMatchJsValue(mathJsValue);
+  expect(TechniCalc.sin(v.techniCalcValue)).toMatchJsValue(mathJsValue);
 });

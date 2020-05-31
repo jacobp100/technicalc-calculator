@@ -1,7 +1,7 @@
 const mathjs = require("mathjs");
 const { toMatchJsValue } = require("../__test-util__");
 const { imagValues } = require("../__test-util__/math-js");
-const SciLine = require("../Value.bs");
+const TechniCalc = require("../Value.bs");
 
 expect.extend({ toMatchJsValue });
 
@@ -15,11 +15,11 @@ const negateRealValues = new Set([
   "0+2i",
   "0+3i",
   "0+4i",
-  "0+5i"
+  "0+5i",
 ]);
 
-test.each(imagValues)("atan(%s)", v => {
-  const actual = SciLine.atan(v.sciLineValue);
+test.each(imagValues)("atan(%s)", (v) => {
+  const actual = TechniCalc.atan(v.techniCalcValue);
   const expected = mathjs.atan(v.jsValue);
   if (negateRealValues.has(v.title)) expected.re *= -1;
   expect(actual).toMatchJsValue(expected);

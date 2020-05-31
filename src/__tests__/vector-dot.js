@@ -2,17 +2,17 @@ const cartesian = require("cartesian");
 const mathjs = require("mathjs");
 const { toMatchJsValue } = require("../__test-util__");
 const { vector2, vector3 } = require("../__test-util__/math-js-vector");
-const SciLine = require("../Value.bs");
-const ScilineTest = require("../ScilineTest.bs");
+const TechniCalc = require("../Value.bs");
+const TechniCalcTest = require("../TechniCalcTest.bs");
 
 expect.extend({ toMatchJsValue });
 
 describe("2", () => {
   cartesian([vector2, vector2]).forEach(([a, b]) => {
     it(`${a.title} . ${b.title}`, () => {
-      expect(SciLine.dot(a.sciLineValue, b.sciLineValue)).toMatchJsValue(
-        mathjs.dot(a.jsValue, b.jsValue)
-      );
+      expect(
+        TechniCalc.dot(a.techniCalcValue, b.techniCalcValue)
+      ).toMatchJsValue(mathjs.dot(a.jsValue, b.jsValue));
     });
   });
 });
@@ -20,16 +20,19 @@ describe("2", () => {
 describe("3", () => {
   cartesian([vector3, vector3]).forEach(([a, b]) => {
     it(`${a.title} . ${b.title}`, () => {
-      expect(SciLine.dot(a.sciLineValue, b.sciLineValue)).toMatchJsValue(
-        mathjs.dot(a.jsValue, b.jsValue)
-      );
+      expect(
+        TechniCalc.dot(a.techniCalcValue, b.techniCalcValue)
+      ).toMatchJsValue(mathjs.dot(a.jsValue, b.jsValue));
     });
   });
 });
 
 describe("Type checking", () => {
   it("Cannot dot incompatible sizes", () => {
-    const value = SciLine.dot(vector3[0].sciLineValue, vector2[0].sciLineValue);
-    expect(ScilineTest.toString(value)).toBe("NaN");
+    const value = TechniCalc.dot(
+      vector3[0].techniCalcValue,
+      vector2[0].techniCalcValue
+    );
+    expect(TechniCalcTest.toString(value)).toBe("NaN");
   });
 });

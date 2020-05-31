@@ -1,17 +1,17 @@
 const cartesian = require("cartesian");
 const { Value, range12, fractionsTo12 } = require(".");
-const SciLine = require("../Value.bs");
+const TechniCalc = require("../Value.bs");
 
 const range12Values = range12.map(Value.float);
-const range12NegativeValues = range12.map(x => Value.float(-x));
+const range12NegativeValues = range12.map((x) => Value.float(-x));
 
 const trigPositiveValues = fractionsTo12.map(
   ([num, denom]) =>
     new Value(
       (Math.PI * num) / denom,
-      SciLine.mul(
-        SciLine.div(SciLine.ofFloat(num), SciLine.ofFloat(denom)),
-        SciLine.pi
+      TechniCalc.mul(
+        TechniCalc.div(TechniCalc.ofFloat(num), TechniCalc.ofFloat(denom)),
+        TechniCalc.pi
       ),
       `${num}pi/${denom}`
     )
@@ -21,9 +21,9 @@ const trigNegativeValues = fractionsTo12.map(
   ([num, denom]) =>
     new Value(
       -(Math.PI * num) / denom,
-      SciLine.mul(
-        SciLine.div(SciLine.ofFloat(-num), SciLine.ofFloat(denom)),
-        SciLine.pi
+      TechniCalc.mul(
+        TechniCalc.div(TechniCalc.ofFloat(-num), TechniCalc.ofFloat(denom)),
+        TechniCalc.pi
       ),
       `${-num}pi/${denom}`
     )

@@ -1,5 +1,5 @@
 {
-  "name": "sciline-calculator",
+  "name": "technicalc-calculator",
   "version": "0.1.0",
   "sources": {
     "dir": "src",
@@ -15,6 +15,6 @@
     "number": "-44",
     "error": "+10144"
   },
-  "namespace": true,
+  "namespace": "TechniCalcCalculator",
   "refmt": 3
 }

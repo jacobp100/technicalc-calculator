@@ -1,6 +1,6 @@
-# SciLine Calculator
+# TechniCalc Calculator
 
-A math library similar to math-js, built in ReasonML. It supports complex numbers and matrices. Designed for use in the [SciLine iOS app](https://itunes.apple.com/sg/app/sciline-scientific-engineering-calculator/id1219218410?mt=8).
+A math library similar to math-js, built in ReasonML. It supports complex numbers and matrices. Designed for use in the [TechniCalc iOS app](https://apps.apple.com/gb/app/technicalc-calculator/id1504965415).
 
 It uses rational numbers most of the time. When it is using rational numbers, it tracks some (Pi, sqrt() and exp()) values for more accurate results. For example, `sin(pi)` is exactly `1`, but this is not the output when using floating point arithmetic. In addition, special trig values can be output, like `sin(pi / 2)` giving `sqrt(2)/2`.
 

@@ -9,9 +9,9 @@ const {
   sqrt,
   log,
   exp,
-  sin
+  sin,
 } = require("../Value.bs");
-const { toString } = require("../ScilineTest.bs");
+const { toString } = require("../TechniCalcTest.bs");
 
 test("Converts via ofString", () => {
   const convert = (x, opt) => toString(ofString(x), opt);
@@ -87,7 +87,7 @@ test("Takes sin of pi + 1", () => {
 });
 
 test("Formats various numbers correctly", () => {
-  const convert = x => toString(ofString(x));
+  const convert = (x) => toString(ofString(x));
   expect(convert("46.47897327055571")).toBe("46.478973270555");
   expect(convert("-47.86759243619015")).toBe("-47.86759243619");
   expect(convert("7.712346515387281")).toBe("7.712346515387");

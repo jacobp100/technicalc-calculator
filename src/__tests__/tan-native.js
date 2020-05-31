@@ -1,7 +1,7 @@
 const { toMatchJsValue } = require("../__test-util__");
 const { trigValues } = require("../__test-util__/math-native");
-const SciLine = require("../Value.bs");
-const ScilineTest = require("../ScilineTest.bs");
+const TechniCalc = require("../Value.bs");
+const TechniCalcTest = require("../TechniCalcTest.bs");
 
 expect.extend({ toMatchJsValue });
 
@@ -17,13 +17,13 @@ const tanInfiniteValues = new Set([
   "-5pi/2",
   "-7pi/2",
   "-9pi/2",
-  "-11pi/2"
+  "-11pi/2",
 ]);
 
-test.each(trigValues)("tan(%s)", v => {
-  const actual = SciLine.tan(v.sciLineValue);
+test.each(trigValues)("tan(%s)", (v) => {
+  const actual = TechniCalc.tan(v.techniCalcValue);
   if (tanInfiniteValues.has(v.title)) {
-    expect(ScilineTest.toString(actual)).toBe("NaN");
+    expect(TechniCalcTest.toString(actual)).toBe("NaN");
   } else {
     const expected = Math.tan(v.jsValue);
     expect(actual).toMatchJsValue(expected);

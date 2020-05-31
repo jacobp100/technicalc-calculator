@@ -1,7 +1,7 @@
 const mathjs = require("mathjs");
 const { toMatchJsValue } = require("../__test-util__");
 const { trigValues } = require("../__test-util__/math-js");
-const SciLine = require("../Value.bs");
+const TechniCalc = require("../Value.bs");
 
 expect.extend({ toMatchJsValue });
 
@@ -79,7 +79,7 @@ const cosRealOnlyValues = new Set([
   "(12/1+9i/1)pi",
   "(12/1+10i/1)pi",
   "(12/1+11i/1)pi",
-  "(12/1+12i/1)pi"
+  "(12/1+12i/1)pi",
 ]);
 
 const cosImaginaryOnlyValues = new Set([
@@ -119,15 +119,15 @@ const cosImaginaryOnlyValues = new Set([
   "(11/2+9i/1)pi",
   "(11/2+10i/1)pi",
   "(11/2+11i/1)pi",
-  "(11/2+12i/1)pi"
+  "(11/2+12i/1)pi",
 ]);
 
-test.each(trigValues)("cos(%s)", v => {
+test.each(trigValues)("cos(%s)", (v) => {
   let mathJsValue = mathjs.cos(v.jsValue);
   if (cosRealOnlyValues.has(v.title)) {
     mathJsValue = { re: mathJsValue.re, im: 0 };
   } else if (cosImaginaryOnlyValues.has(v.title)) {
     mathJsValue = { re: 0, im: mathJsValue.im };
   }
-  expect(SciLine.cos(v.sciLineValue)).toMatchJsValue(mathJsValue);
+  expect(TechniCalc.cos(v.techniCalcValue)).toMatchJsValue(mathJsValue);
 });
