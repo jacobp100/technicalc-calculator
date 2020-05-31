@@ -1,4 +1,5 @@
 open Real_Types;
+open Real_Util;
 
 /* Disable ops that can overflow */
 // let (+) = None;
@@ -6,7 +7,7 @@ open Real_Types;
 // let ( * ) = None;
 // let (~-) = None;
 
-let _safeRat = (n, d, c) => {
+let%private safeRat = (n, d, c) => {
   switch (SafeInt.toInt(n), SafeInt.toInt(d)) {
   | (Some(n), Some(d)) => Some(rational(n, d, c))
   | _ => None
@@ -45,15 +46,15 @@ let abs = a =>
   | Decimal(f) => Decimal(Decimal.abs(f))
   };
 
-let _ofDecimalInt = f =>
+let%private ofDecimalInt = f =>
   switch (Decimal.toFloat(f)->FloatUtil.intValue) {
   | Some(intVal) => rational(intVal, 1, Unit)
   | None => Decimal(f)
   };
 
-let round = a => toDecimal(a)->Decimal.round->_ofDecimalInt;
-let floor = a => toDecimal(a)->Decimal.floor->_ofDecimalInt;
-let ceil = a => toDecimal(a)->Decimal.ceil->_ofDecimalInt;
+let round = a => toDecimal(a)->Decimal.round->ofDecimalInt;
+let floor = a => toDecimal(a)->Decimal.floor->ofDecimalInt;
+let ceil = a => toDecimal(a)->Decimal.ceil->ofDecimalInt;
 
 let add = (a, b) => {
   let rat =
@@ -64,7 +65,7 @@ let add = (a, b) => {
       let bd = ofInt(bd);
       let n = ofInt(an) * bd + ofInt(bn) * ad;
       let d = ad * bd;
-      _safeRat(n, d, c);
+      safeRat(n, d, c);
     | _ => None
     };
   switch (rat) {
@@ -82,7 +83,7 @@ let sub = (a, b) => {
       let bd = ofInt(bd);
       let n = ofInt(an) * bd - ofInt(bn) * ad;
       let d = ad * bd;
-      _safeRat(n, d, c);
+      safeRat(n, d, c);
     | _ => None
     };
   switch (rat) {
@@ -91,11 +92,11 @@ let sub = (a, b) => {
   };
 };
 
-let _mulRat = (an, ad, bn, bd, c) => {
+let%private mulRat = (an, ad, bn, bd, c) => {
   open SafeInt;
   let n = ofInt(an) * ofInt(bn);
   let d = ofInt(ad) * ofInt(bd);
-  _safeRat(n, d, c);
+  safeRat(n, d, c);
 };
 
 let mul = (a, b) => {
@@ -103,15 +104,15 @@ let mul = (a, b) => {
     switch (a, b) {
     | (Rational(an, ad, c), Rational(bn, bd, Unit))
     | (Rational(an, ad, Unit), Rational(bn, bd, c)) =>
-      _mulRat(an, ad, bn, bd, c)
+      mulRat(an, ad, bn, bd, c)
     | (Rational(an, ad, Exp(aExp)), Rational(bn, bd, Exp(bExp))) =>
       switch (SafeInt.addInt(aExp, bExp)) {
-      | Some(exp) => _mulRat(an, ad, bn, bd, Exp(exp))
+      | Some(exp) => mulRat(an, ad, bn, bd, Exp(exp))
       | _ => None
       }
     | (Rational(an, ad, Sqrt(aSqrt)), Rational(bn, bd, Sqrt(bSqrt))) =>
       switch (SafeInt.mulInt(aSqrt, bSqrt)) {
-      | Some(sqrt) => _mulRat(an, ad, bn, bd, Sqrt(sqrt))
+      | Some(sqrt) => mulRat(an, ad, bn, bd, Sqrt(sqrt))
       | _ => None
       }
     | _ => None
@@ -122,11 +123,11 @@ let mul = (a, b) => {
   };
 };
 
-let _divRat = (an, ad, bn, bd, c) => {
+let%private divRat = (an, ad, bn, bd, c) => {
   open SafeInt;
   let n = ofInt(an) * ofInt(bd);
   let d = ofInt(ad) * ofInt(bn);
-  _safeRat(n, d, c);
+  safeRat(n, d, c);
 };
 
 let div = (a, b) => {
@@ -134,18 +135,18 @@ let div = (a, b) => {
     switch (a, b) {
     | (_, Rational(0, _, _)) => Some(nan)
     | (Rational(an, ad, ac), Rational(bn, bd, bc)) when ac == bc =>
-      _divRat(an, ad, bn, bd, Unit)
+      divRat(an, ad, bn, bd, Unit)
     | (Rational(an, ad, c), Rational(bn, bd, Unit)) =>
-      _divRat(an, ad, bn, bd, c)
+      divRat(an, ad, bn, bd, c)
     | (Rational(an, ad, Exp(aExp)), Rational(bn, bd, Exp(bExp))) =>
       switch (SafeInt.subInt(aExp, bExp)) {
-      | Some(exp) => _divRat(an, ad, bn, bd, Exp(exp))
+      | Some(exp) => divRat(an, ad, bn, bd, Exp(exp))
       | _ => None
       }
     | (Rational(an, ad, Sqrt(aSqrt)), Rational(bn, bd, Sqrt(bSqrt)))
         when aSqrt > bSqrt && aSqrt mod bSqrt == 0 =>
       switch (SafeInt.divInt(aSqrt, bSqrt)) {
-      | Some(sqrt) => _divRat(an, ad, bn, bd, Sqrt(sqrt))
+      | Some(sqrt) => divRat(an, ad, bn, bd, Sqrt(sqrt))
       | _ => None
       }
     | _ => None

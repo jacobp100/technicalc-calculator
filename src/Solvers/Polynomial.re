@@ -28,7 +28,7 @@ let quadratic = (a, b, c) => {
   (x1, x2);
 };
 
-let _cubicRaphson = (a, b, c, d) => {
+let%private cubicRaphson = (a, b, c, d) => {
   /*
    Attempt to find an exact real root within an amount of decimal places
    Some roots may be complex, or be of square roots, which this method will not find
@@ -67,7 +67,7 @@ let _cubicRaphson = (a, b, c, d) => {
   );
 };
 
-let _cubicNumeric = (a, b, c, d) => {
+let%private cubicNumeric = (a, b, c, d) => {
   /* See https://math.stackexchange.com/questions/61725/is-there-a-systematic-way-of-solving-cubic-equations */
   let q =
     sqrt(
@@ -116,7 +116,7 @@ let _cubicNumeric = (a, b, c, d) => {
 };
 
 let cubic = (a, b, c, d) =>
-  switch (_cubicRaphson(a, b, c, d)) {
+  switch (cubicRaphson(a, b, c, d)) {
   | Some(v) => v
-  | None => _cubicNumeric(a, b, c, d)
+  | None => cubicNumeric(a, b, c, d)
   };

@@ -1,12 +1,12 @@
 open Types;
 
-let _mapReal = (x: value, f: Real.t => Real.t) =>
+let%private mapReal = (x: value, f: Real.t => Real.t) =>
   switch (x) {
   | `Real(re) => `Real(f(re))
   | _ => x
   };
 
-let _realBounds = (~lower=?, ~upper=?, x: value) =>
+let%private realBounds = (~lower=?, ~upper=?, x: value) =>
   switch (x) {
   | `Zero => DecimalUtil.bounds(~lower?, ~upper?, Decimal.zero)
   | `Real(re) => DecimalUtil.bounds(~lower?, ~upper?, Real.toDecimal(re))
@@ -15,7 +15,7 @@ let _realBounds = (~lower=?, ~upper=?, x: value) =>
   | _ => `NaN
   };
 
-let _mapRealDecimal = (x: value, f: Decimal.t => Decimal.t): value =>
+let%private mapRealDecimal = (x: value, f: Decimal.t => Decimal.t): value =>
   switch (x) {
   | `Zero => ofDecimal(f(Decimal.zero))
   | `Real(re) => Real.toDecimal(re)->f->ofDecimal
@@ -70,7 +70,7 @@ let cosh = (x: value): value =>
   };
 
 let tan = (x: value): value =>
-  switch (_mapReal(x, Real.mod2Pi)) {
+  switch (mapReal(x, Real.mod2Pi)) {
   | `Zero
   | `Real(Rational(1 | 2, 1, Pi)) => zero
   | `Real(Rational(1 | 5, 4, Pi)) => one
@@ -80,7 +80,7 @@ let tan = (x: value): value =>
   | `Real(Rational(1 | 7, 6, Pi)) => `Real(Real.rational(1, 3, Sqrt(3)))
   | `Real(Rational(5 | 11, 6, Pi)) => `Real(Real.rational(-1, 3, Sqrt(3)))
   | `Real(Rational(1 | 3, 2, Pi)) => `NaN
-  | `Real(_) => _mapRealDecimal(x, Decimal.tan)
+  | `Real(_) => mapRealDecimal(x, Decimal.tan)
   | `Imag(_)
   | `Complex(_) =>
     let iX = Base.(x * i);
@@ -106,7 +106,7 @@ let tanh = (x: value): value =>
   };
 
 let asin = (a: value): value =>
-  switch (_mapReal(a, Real.mod2Pi)) {
+  switch (mapReal(a, Real.mod2Pi)) {
   | `Real(Rational((-1), 1, Unit)) => `Real(Real.rational(-1, 2, Pi))
   | `Real(Rational((-1), 2, Sqrt(3))) => `Real(Real.rational(-1, 3, Pi))
   | `Real(Rational((-1), 2, Sqrt(2))) => `Real(Real.rational(-1, 4, Pi))
@@ -119,11 +119,11 @@ let asin = (a: value): value =>
   | `Real(_)
   | `Imag(_)
   | `Complex(_) =>
-    switch (_realBounds(~lower=Decimal.minusOne, ~upper=Decimal.one, a)) {
+    switch (realBounds(~lower=Decimal.minusOne, ~upper=Decimal.one, a)) {
     | `BothBound
     | `LowerBound
     | `UpperBound
-    | `Inside(_) => _mapRealDecimal(a, Decimal.asin)
+    | `Inside(_) => mapRealDecimal(a, Decimal.asin)
     | `Outside
     | `Imag(_)
     | `Complex(_) => Base.(- i * log(i * a + sqrt(one - a * a)))
@@ -145,7 +145,7 @@ let asinh = (x: value): value =>
   };
 
 let acos = (a: value): value =>
-  switch (_mapReal(a, Real.mod2Pi)) {
+  switch (mapReal(a, Real.mod2Pi)) {
   | `Real(Rational((-1), 1, Unit)) => `Real(Real.rational(1, 1, Pi))
   | `Real(Rational((-1), 2, Sqrt(3))) => `Real(Real.rational(5, 6, Pi))
   | `Real(Rational((-1), 2, Sqrt(2))) => `Real(Real.rational(3, 4, Pi))
@@ -158,11 +158,11 @@ let acos = (a: value): value =>
   | `Real(_)
   | `Imag(_)
   | `Complex(_) =>
-    switch (_realBounds(~lower=Decimal.minusOne, ~upper=Decimal.one, a)) {
+    switch (realBounds(~lower=Decimal.minusOne, ~upper=Decimal.one, a)) {
     | `BothBound
     | `LowerBound
     | `UpperBound
-    | `Inside(_) => _mapRealDecimal(a, Decimal.acos)
+    | `Inside(_) => mapRealDecimal(a, Decimal.acos)
     | `Outside
     | `Imag(_)
     | `Complex(_) => Base.(real(Real.rational(1, 2, Pi)) - asin(a))
@@ -175,7 +175,7 @@ let acos = (a: value): value =>
   };
 
 let acosh = (x: value): value =>
-  switch (_realBounds(~lower=Decimal.one, x)) {
+  switch (realBounds(~lower=Decimal.one, x)) {
   | `Inside(f) => Decimal.acosh(f)->ofDecimal
   | `LowerBound => zero
   | `BothBound
@@ -203,7 +203,7 @@ let acosh = (x: value): value =>
   };
 
 let atan = (a: value): value =>
-  switch (_mapReal(a, Real.mod2Pi)) {
+  switch (mapReal(a, Real.mod2Pi)) {
   | `Real(Rational((-1), 1, Sqrt(3))) => `Real(Real.rational(-1, 3, Pi))
   | `Real(Rational((-1), 1, Unit)) => `Real(Real.rational(-1, 4, Pi))
   | `Real(Rational((-1), 3, Sqrt(3))) => `Real(Real.rational(-1, 6, Pi))
@@ -211,7 +211,7 @@ let atan = (a: value): value =>
   | `Real(Rational(1, 3, Sqrt(3))) => `Real(Real.rational(1, 6, Pi))
   | `Real(Rational(1, 1, Unit)) => `Real(Real.rational(1, 4, Pi))
   | `Real(Rational(1, 1, Sqrt(3))) => `Real(Real.rational(1, 3, Pi))
-  | `Real(_) => _mapRealDecimal(a, Decimal.atan)
+  | `Real(_) => mapRealDecimal(a, Decimal.atan)
   | `Imag(Rational(1 | (-1), 1, Unit)) => `NaN
   | (`Imag(_) | `Complex(_)) as vV =>
     let (re, im) =
@@ -243,7 +243,7 @@ let atan = (a: value): value =>
   };
 
 let atanh = (x: value): value =>
-  switch (_realBounds(~lower=Decimal.minusOne, ~upper=Decimal.one, x)) {
+  switch (realBounds(~lower=Decimal.minusOne, ~upper=Decimal.one, x)) {
   | `Inside(f) => Decimal.atanh(f)->ofDecimal
   | `BothBound
   | `LowerBound

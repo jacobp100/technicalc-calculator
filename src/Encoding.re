@@ -1,101 +1,86 @@
 open Types;
 
-type constantEncoding = [
-  | `Unit
-  | `Pi
-  | `Exp(int)
-  | `Sqrt(int)
-  | `UnknownValue
-];
+type realEncoding;
 
-let encodeConstant = (a: Real_Constant.t): constantEncoding =>
+let%private encodeReal = (a: Real.t): realEncoding =>
   switch (a) {
-  | Unit => `Unit
-  | Pi => `Pi
-  | Exp(e) => `Exp(e)
-  | Sqrt(s) => `Sqrt(s)
+  | Rational(n, d, Unit) => Obj.magic([|n, d, 0|])
+  | Rational(n, d, Pi) => Obj.magic([|n, d, 1|])
+  | Rational(n, d, Exp(i)) => Obj.magic([|n, d, 2, i|])
+  | Rational(n, d, Sqrt(i)) => Obj.magic([|n, d, 3, i|])
+  | Decimal(f) => Obj.magic(Decimal.toString(f))
   };
 
-let decodeConstant = (a: constantEncoding): Real_Constant.t =>
-  switch (a) {
-  | `Pi => Pi
-  | `Exp(e) => Exp(e)
-  | `Sqrt(s) => Sqrt(s)
-  | _ => Unit
+let%private decodeReal = (a: realEncoding): Real.t =>
+  if (Js.typeof(a) == "string") {
+    Decimal(Decimal.ofString(Obj.magic(a)));
+  } else if (Js.Array.isArray(a)) {
+    switch (Obj.magic(a)) {
+    | [|n, d, 0|] => Rational(n, d, Unit)
+    | [|n, d, 1|] => Rational(n, d, Pi)
+    | [|n, d, 2, i|] => Rational(n, d, Exp(i))
+    | [|n, d, 3, i|] => Rational(n, d, Sqrt(i))
+    | _ => Real.nan
+    };
+  } else {
+    Real.nan;
   };
 
-type realEncoding = [
-  | `Rational(int, int, constantEncoding)
-  | `Decimal(string)
-];
+type scalarEncoding =
+  | Zero
+  | Real(realEncoding)
+  | Imag(realEncoding)
+  | Complex(realEncoding, realEncoding);
 
-let encodeReal = (a: Real.t): realEncoding =>
+let%private encodeScalar = (a: scalar): scalarEncoding =>
   switch (a) {
-  | Rational(n, d, c) => `Rational((n, d, encodeConstant(c)))
-  | Decimal(f) => `Decimal(Decimal.toString(f))
+  | `Zero => Zero
+  | `Real(re) => Real(encodeReal(re))
+  | `Imag(im) => Imag(encodeReal(im))
+  | `Complex(re, im) => Complex(encodeReal(re), encodeReal(im))
   };
 
-let decodeReal = (a: realEncoding): Real.t =>
+let%private decodeScalar = (a: scalarEncoding): scalar =>
   switch (a) {
-  | `Rational(n, d, c) => Rational(n, d, decodeConstant(c))
-  | `Decimal(f) => Decimal(Decimal.ofString(f))
+  | Zero => `Zero
+  | Real(re) => `Real(decodeReal(re))
+  | Imag(im) => `Imag(decodeReal(im))
+  | Complex(re, im) => `Complex((decodeReal(re), decodeReal(im)))
   };
 
-type scalarEncoding = [
-  | `Zero
-  | `Real(realEncoding)
-  | `Imag(realEncoding)
-  | `Complex(realEncoding, realEncoding)
-];
-
-let encodeScalar = (a: scalar): scalarEncoding =>
-  switch (a) {
-  | `Zero => `Zero
-  | `Real(re) => `Real(encodeReal(re))
-  | `Imag(im) => `Imag(encodeReal(im))
-  | `Complex(re, im) => `Complex((encodeReal(re), encodeReal(im)))
-  };
-
-let decodeScalar = (a: scalarEncoding): scalar =>
-  switch (a) {
-  | `Zero => `Zero
-  | `Real(re) => `Real(decodeReal(re))
-  | `Imag(im) => `Imag(decodeReal(im))
-  | `Complex(re, im) => `Complex((decodeReal(re), decodeReal(im)))
-  };
-
-type vectorEncoding = [ | `Vector(array(scalarEncoding))];
-type matrixEncoding = [ | `Matrix(Matrix.t(scalarEncoding))];
-type percentEncoding = [ | `Percent(scalarEncoding)];
-
-type encoding = [
-  scalarEncoding
-  | vectorEncoding
-  | matrixEncoding
-  | percentEncoding
-  | `NaN
-];
-
-external scalarEncodingToEncoding: scalarEncoding => encoding = "%identity";
-external matrixEncodingToEncoding: matrixEncoding => encoding = "%identity";
-external percentEncodingToEncoding: percentEncoding => encoding = "%identity";
+type encoding =
+  | Zero
+  | Real(realEncoding)
+  | Imag(realEncoding)
+  | Complex(realEncoding, realEncoding)
+  | Vector(array(scalarEncoding))
+  | Matrix(int, int, array(scalarEncoding))
+  | Percent(scalarEncoding)
+  | NaN;
 
 let encode = (a: value): encoding =>
   switch (a) {
-  | (`Zero | `Real(_) | `Imag(_) | `Complex(_)) as aV =>
-    encodeScalar(aV)->scalarEncodingToEncoding
-  | `Vector(elements) => `Vector(elements->Belt.Array.map(encodeScalar))
-  | `Matrix(mat) => `Matrix(mat->Matrix.map(encodeScalar))
-  | `Percent(p) => `Percent(encodeScalar(p))
-  | `NaN => `NaN
+  | `Zero => Zero
+  | `Real(re) => Real(encodeReal(re))
+  | `Imag(im) => Imag(encodeReal(im))
+  | `Complex(re, im) => Complex(encodeReal(re), encodeReal(im))
+  | `Vector(elements) => Vector(elements->Belt.Array.map(encodeScalar))
+  | `Matrix({numRows, numColumns, elements}) =>
+    Matrix(numRows, numColumns, elements->Belt.Array.map(encodeScalar))
+  | `Percent(p) => Percent(encodeScalar(p))
+  | `NaN => NaN
   };
 
 let decode = (a: encoding): value =>
   switch (a) {
-  | (`Zero | `Real(_) | `Imag(_) | `Complex(_)) as aV =>
-    decodeScalar(aV)->valueOfScalar
-  | `Vector(elements) => `Vector(elements->Belt.Array.map(decodeScalar))
-  | `Matrix(mat) => `Matrix(mat->Matrix.map(decodeScalar))
-  | `Percent(p) => `Percent(decodeScalar(p))
-  | `NaN => `NaN
+  | Zero => `Zero
+  | Real(re) => `Real(decodeReal(re))
+  | Imag(im) => `Imag(decodeReal(im))
+  | Complex(re, im) => `Complex((decodeReal(re), decodeReal(im)))
+  | Vector(elements) => `Vector(elements->Belt.Array.map(decodeScalar))
+  | Matrix(numRows, numColumns, elements) =>
+    let elements = elements->Belt.Array.map(decodeScalar);
+    `Matrix({numRows, numColumns, elements});
+  | Percent(p) => `Percent(decodeScalar(p))
+  | NaN => `NaN
   };

@@ -1,11 +1,8 @@
+open Real_Util;
+
 type t =
   | Rational(int, int, Real_Constant.t)
   | Decimal(Decimal.t);
-
-let ratDecimal = (n, d, c) =>
-  Decimal.(ofInt(n) / ofInt(d) * Real_Constant.toDecimal(c));
-
-let rec gcd = (a, b) => b == 0 ? a : gcd(b, a mod b);
 
 let one = Rational(1, 1, Unit);
 let minusOne = Rational(-1, 1, Unit);

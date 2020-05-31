@@ -32,7 +32,7 @@ let adddigitGrouping = (~startIndex=0, ~endIndex=?, string) => {
   baseStr^;
 };
 
-let _decimalToString = (~base=10, num) =>
+let%private decimalToString = (~base=10, num) =>
   switch (base) {
   | 2 => Decimal.toBinary(num)->Js.String.sliceToEnd(~from=2)
   | 8 => Decimal.toOctal(num)->Js.String.sliceToEnd(~from=2)
@@ -42,7 +42,7 @@ let _decimalToString = (~base=10, num) =>
   };
 
 let formatInteger = (~base=10, ~digitGrouping=true, num) => {
-  let str = _decimalToString(~base, num);
+  let str = decimalToString(~base, num);
   let str =
     if (digitGrouping) {
       adddigitGrouping(~startIndex=Decimal.(num < zero) ? 1 : 0, str);
@@ -79,7 +79,7 @@ let formatDecimal =
         Decimal.(
           floor(decimalPart * ofInt(base) ** ofInt(maxDecimalPlaces))
         );
-      let baseStr = _decimalToString(~base, decimalAsInteger);
+      let baseStr = decimalToString(~base, decimalAsInteger);
       let str =
         String.make(maxDecimalPlaces - String.length(baseStr), '0')
         ++ baseStr;

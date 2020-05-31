@@ -94,7 +94,7 @@ let toComplexFloats = (a): (float, float) =>
   | _ => Pervasives.(nan, nan)
   };
 
-let _mapMatrix = (fn: Types.value => 'a, a: Types.value): array(array('a)) => {
+let%private mapMatrix = (fn: Types.value => 'a, a: Types.value): array(array('a)) => {
   let fn = x => Types.valueOfScalar(x)->fn;
 
   switch (a) {
@@ -113,8 +113,8 @@ let _mapMatrix = (fn: Types.value => 'a, a: Types.value): array(array('a)) => {
   };
 };
 
-let toFloatsMatrix = _mapMatrix(Value.toFloat);
-let toComplexFloatsMatrix = _mapMatrix(toComplexFloats);
+let toFloatsMatrix = mapMatrix(Value.toFloat);
+let toComplexFloatsMatrix = mapMatrix(toComplexFloats);
 
 let testUnits = Js.Dict.empty();
 Js.Dict.set(testUnits, "second", Unit_Types.Second);

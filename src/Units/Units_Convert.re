@@ -124,7 +124,7 @@ let celsiusFromKelvin = value => Decimal.(value - ofFloat(273.15));
 let fahrenheitFromKelvin = value =>
   Decimal.((value - ofFloat(273.15)) * ofFloat(1.8) + ofFloat(32.));
 
-let _transformUnits =
+let%private transformUnits =
     (
       ~transformCelsius,
       ~transformFahrenheit,
@@ -153,7 +153,7 @@ let fromSi = (value: value, units) =>
   switch (value) {
   | `Real(re) =>
     let value =
-      _transformUnits(
+      transformUnits(
         ~transformCelsius=celsiusFromKelvin,
         ~transformFahrenheit=fahrenheitFromKelvin,
         ~unitPowerMultiplier=-1,
@@ -168,7 +168,7 @@ let toSi = (value: value, units) =>
   switch (value) {
   | `Real(re) =>
     let value =
-      _transformUnits(
+      transformUnits(
         ~transformCelsius=celsiusToKelvin,
         ~transformFahrenheit=fahrenheitToKelvin,
         ~unitPowerMultiplier=1,
