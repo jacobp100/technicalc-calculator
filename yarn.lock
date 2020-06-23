@@ -1307,10 +1307,10 @@ browserslist@^4.12.0, browserslist@^4.8.5:
     node-releases "^1.1.53"
     pkg-up "^2.0.0"
 
-bs-platform@^8.0.0-dev.1:
-  version "8.0.0-dev.1"
-  resolved "https://registry.yarnpkg.com/bs-platform/-/bs-platform-8.0.0-dev.1.tgz#8c4a6c1b3d62c8afa6b7675a3222162b1b88e409"
-  integrity sha512-AMwhxGf9VKSlzM9FeV++ex6kmrn48RHvKOd6lQbt2QD3He1xuxuYZ17VhJjzYDipGzeVLbT77Oku/EeFba0afg==
+bs-platform@^8.0.1:
+  version "8.0.1"
+  resolved "https://registry.yarnpkg.com/bs-platform/-/bs-platform-8.0.1.tgz#05d78492774c2f7e9b424a30eabe4f424fa951ae"
+  integrity sha512-zVIlJl1mkQ2DqhPyZmgbpTDyFHXtryUA6nJa6Q1DsLof0t5EbdNfH4UGT219YhiS7+m0xyEVVHPJIPHNZlssHQ==
 
 bser@2.1.1:
   version "2.1.1"
