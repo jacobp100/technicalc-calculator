@@ -13,8 +13,8 @@ let resolveWithContext = (jsContext, a) => {
   eval(~context, a);
 };
 
-let valueOfString = Types.ofString;
-let valueOfStringBase = Types.ofStringBase;
+let valueOfString = Value.ofString;
+let valueOfStringBase = Value.ofStringBase;
 let toFloat = Value.toFloat;
 let isNan = (a: Types.value) => a == `NaN;
 
@@ -80,7 +80,7 @@ let toString = (x, maybeFormat) => {
 };
 
 let ofComplexFloats = (re, im) =>
-  Value.add(Types.ofFloat(re), Value.mul(Types.ofFloat(im), Types.i));
+  Value.add(Value.ofFloat(re), Value.mul(Value.ofFloat(im), Value.i));
 
 let toComplexFloats = (a): (float, float) =>
   switch (a) {
@@ -94,7 +94,8 @@ let toComplexFloats = (a): (float, float) =>
   | _ => Pervasives.(nan, nan)
   };
 
-let%private mapMatrix = (fn: Types.value => 'a, a: Types.value): array(array('a)) => {
+let%private mapMatrix =
+            (fn: Types.value => 'a, a: Types.value): array(array('a)) => {
   let fn = x => Types.valueOfScalar(x)->fn;
 
   switch (a) {

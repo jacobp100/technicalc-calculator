@@ -72,15 +72,17 @@ let encode = (a: value): encoding =>
   };
 
 let decode = (a: encoding): value =>
-  switch (a) {
-  | Zero => `Zero
-  | Real(re) => `Real(decodeReal(re))
-  | Imag(im) => `Imag(decodeReal(im))
-  | Complex(re, im) => `Complex((decodeReal(re), decodeReal(im)))
-  | Vector(elements) => `Vector(elements->Belt.Array.map(decodeScalar))
-  | Matrix(numRows, numColumns, elements) =>
-    let elements = elements->Belt.Array.map(decodeScalar);
-    `Matrix({numRows, numColumns, elements});
-  | Percent(p) => `Percent(decodeScalar(p))
-  | NaN => `NaN
-  };
+  normalize(
+    switch (a) {
+    | Zero => `Zero
+    | Real(re) => `Real(decodeReal(re))
+    | Imag(im) => `Imag(decodeReal(im))
+    | Complex(re, im) => `Complex((decodeReal(re), decodeReal(im)))
+    | Vector(elements) => `Vector(elements->Belt.Array.map(decodeScalar))
+    | Matrix(numRows, numColumns, elements) =>
+      let elements = elements->Belt.Array.map(decodeScalar);
+      `Matrix({numRows, numColumns, elements});
+    | Percent(p) => `Percent(decodeScalar(p))
+    | NaN => `NaN
+    },
+  );

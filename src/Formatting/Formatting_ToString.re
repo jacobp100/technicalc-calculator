@@ -1,14 +1,14 @@
 open Types;
 open Formatting_Types;
 
-let formatNumber = (x, format) =>
+let%private formatNumber = (x, format) =>
   switch (format.mode) {
   | String
   | Tex => x
   | MathML => "<mn>" ++ x ++ "</mn>"
   };
 
-let formatExponential = ((base, exponent), format) =>
+let%private formatExponential = ((base, exponent), format) =>
   switch (format.mode) {
   | String => base ++ "e" ++ exponent
   | Tex => base ++ "*10^{" ++ exponent ++ "}"
@@ -19,13 +19,13 @@ let formatExponential = ((base, exponent), format) =>
     ++ "</msup>"
   };
 
-let formatOperator = (op, format) =>
+let%private formatOperator = (op, format) =>
   format.mode == MathML ? "<mo>" ++ op ++ "</mo>" : op;
 
-let formatVariable = (var, format) =>
+let%private formatVariable = (var, format) =>
   format.mode == MathML ? "<mi>" ++ var ++ "</mi>" : var;
 
-let formatTuple = (re, format): string => {
+let%private formatTuple = (re, format): string => {
   let {base, digitGrouping, precision} = format;
 
   switch (re, format.style) {
@@ -104,7 +104,7 @@ let formatTuple = (re, format): string => {
   };
 };
 
-let formatImagTuple = (re: Real.t, format): string => {
+let%private formatImagTuple = (re: Real.t, format): string => {
   let i = formatVariable("i", format);
   switch (format.style, re) {
   | (Natural | Decimal, Rational(1, 1, Unit)) => i
@@ -114,7 +114,7 @@ let formatImagTuple = (re: Real.t, format): string => {
   };
 };
 
-let formatScalar = (a: scalar, format): string =>
+let%private formatScalar = (a: scalar, format): string =>
   switch (a) {
   | `Zero => formatNumber("0", format)
   | `Real(re) => formatTuple(re, format)

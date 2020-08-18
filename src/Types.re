@@ -142,7 +142,6 @@ let ofStringBase = (base: int, v: string): value => {
 };
 
 let ofDecimal = (f): value => `Real(Decimal(f))->normalize;
-let ofString = ofStringBase(10);
 
 let vector2 = (a, b): value => `Vector([|a, b|])->normalize;
 let vector3 = (a, b, c): value => `Vector([|a, b, c|])->normalize;

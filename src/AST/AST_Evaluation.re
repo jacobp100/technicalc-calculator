@@ -10,8 +10,9 @@ let rec eval = (~context, node: AST_Types.t): Types.value =>
   | E => Value.e
   | OfInt(a) => Types.ofInt(a)
   | OfFloat(a) => Types.ofFloat(a)
-  | OfString(a) => Types.ofString(a)
-  | OfStringBase(base, a) => Types.ofStringBase(base, a)
+  | OfString(a) => Value.ofString(a)->Belt.Option.getWithDefault(`NaN)
+  | OfStringBase(base, a) =>
+    Value.ofStringBase(base, a)->Belt.Option.getWithDefault(`NaN)
   | Vector(elements) =>
     Types.vector(elements->Belt.Array.map(evalScalar(~context)))
   | Matrix({numRows, numColumns, elements}) =>

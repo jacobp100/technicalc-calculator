@@ -10,31 +10,41 @@ const [three, minusThree, threeHalves, minusThreeHalves, half, minusHalf] = [
   "-0.5",
 ].map(ofString);
 
+it.each([
+  [one, "1"],
+  [minusOne, "-1"],
+  [half, "1/2"],
+  [minusHalf, "-1/2"],
+  [i, "i"],
+  [mul(minusOne, i), "-i"],
+  [mul(half, i), "1/2i"],
+  [mul(minusHalf, i), "-1/2i"],
+  [add(one, i), "1+i"],
+  [add(minusOne, i), "-1+i"],
+  [add(one, mul(minusOne, i)), "1-i"],
+  [add(minusOne, mul(minusOne, i)), "-1-i"],
+  [mul(one, pi), "pi"],
+  [mul(minusOne, pi), "-pi"],
+  [mul(half, pi), "pi/2"],
+  [mul(minusHalf, pi), "-pi/2"],
+  [mul(three, pi), "3pi"],
+  [mul(minusThree, pi), "-3pi"],
+  [mul(threeHalves, pi), "3pi/2"],
+  [mul(minusThreeHalves, pi), "-3pi/2"],
+])("Formats %s to %s", (scilineValue, formatted) => {
+  expect(toString(scilineValue)).toBe(formatted);
+  expect(ofString(formatted)).toEqual(scilineValue);
+});
+
+it.each(["123", "456", "-123", "-456", "5sqrt(7)", "8exp(8)", "8e14"])(
+  "Formats back and forth between %s",
+  (value) => {
+    expect(toString(ofString(value))).toBe(value);
+  }
+);
+
 const format = (value, mode) =>
   toString(value, mode != null ? { mode } : undefined);
-
-it("Formats strings", () => {
-  expect(format(one)).toBe("1");
-  expect(format(minusOne)).toBe("-1");
-  expect(format(half)).toBe("1/2");
-  expect(format(minusHalf)).toBe("-1/2");
-  expect(format(i)).toBe("i");
-  expect(format(mul(minusOne, i))).toBe("-i");
-  expect(format(mul(half, i))).toBe("1/2i");
-  expect(format(mul(minusHalf, i))).toBe("-1/2i");
-  expect(format(add(one, i))).toBe("1+i");
-  expect(format(add(minusOne, i))).toBe("-1+i");
-  expect(format(add(one, mul(minusOne, i)))).toBe("1-i");
-  expect(format(add(minusOne, mul(minusOne, i)))).toBe("-1-i");
-  expect(format(mul(one, pi))).toBe("pi");
-  expect(format(mul(minusOne, pi))).toBe("-pi");
-  expect(format(mul(half, pi))).toBe("pi/2");
-  expect(format(mul(minusHalf, pi))).toBe("-pi/2");
-  expect(format(mul(three, pi))).toBe("3pi");
-  expect(format(mul(minusThree, pi))).toBe("-3pi");
-  expect(format(mul(threeHalves, pi))).toBe("3pi/2");
-  expect(format(mul(minusThreeHalves, pi))).toBe("-3pi/2");
-});
 
 it("Formats Tex", () => {
   expect(format(one, "tex")).toBe("1");

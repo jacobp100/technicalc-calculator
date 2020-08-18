@@ -1,8 +1,8 @@
 include Base;
 
+let ofString = Formatting.ofString;
+let ofStringBase = Formatting.ofStringBase;
 let ofFloat = Types.ofFloat;
-let ofString = Types.ofString;
-let ofStringBase = Types.ofStringBase;
 let toFloat = x => Types.toDecimal(x)->Decimal.toFloat;
 let zero = Types.zero;
 let one = Types.one;
