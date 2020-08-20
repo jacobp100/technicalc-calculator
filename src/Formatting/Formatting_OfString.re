@@ -1,5 +1,6 @@
 type token =
   | Integer(string)
+  | NaN
   | Base2
   | Base8
   | Base16
@@ -13,10 +14,15 @@ type token =
   | Minus
   | Slash
   | OpenBracket
-  | CloseBracket;
+  | CloseBracket
+  | OpenBrace
+  | CloseBrace
+  | Comma;
 
 let%private rec iter = (~tokensRev, charList) =>
   switch (charList) {
+  | ['N', 'a', 'N', ...rest]
+  | ['n', 'a', 'n', ...rest] => append(~tokensRev, rest, NaN)
   | ['0', 'b', ...rest] => append(~tokensRev, rest, Base2)
   | ['0', 'o', ...rest] => append(~tokensRev, rest, Base8)
   | ['0', 'x', ...rest] => append(~tokensRev, rest, Base16)
@@ -31,6 +37,9 @@ let%private rec iter = (~tokensRev, charList) =>
   | ['/', ...rest] => append(~tokensRev, rest, Slash)
   | ['(', ...rest] => append(~tokensRev, rest, OpenBracket)
   | [')', ...rest] => append(~tokensRev, rest, CloseBracket)
+  | ['{', ...rest] => append(~tokensRev, rest, OpenBrace)
+  | ['}', ...rest] => append(~tokensRev, rest, CloseBrace)
+  | [',', ...rest] => append(~tokensRev, rest, Comma)
   | [('0'..'9' | 'a'..'f' | 'A'..'F') as char, ...rest] =>
     let char = String.make(1, char);
     let tokensRev =
@@ -42,6 +51,7 @@ let%private rec iter = (~tokensRev, charList) =>
       | _ => [Integer(char), ...tokensRev]
       };
     iter(~tokensRev, rest);
+  | [' ', ...rest] => iter(~tokensRev, rest)
   | [] => Some(Belt.List.reverse(tokensRev))
   | _ => None
   }
@@ -51,10 +61,12 @@ and append = (~tokensRev, charList, token) => {
 let%private tokenize = string =>
   iter(
     ~tokensRev=[],
-    Belt.List.makeBy(String.length(string), i => string.[i]),
+    Belt.List.makeBy(String.length(string), i =>
+      StringUtil.charAtUnsafe(string, i)
+    ),
   );
 
-let%private parseConstant = (~base, tokens) =>
+let%private partialParseConstant = (~base, tokens) =>
   switch (tokens) {
   | _ when base != None => None
   | [Sqrt, OpenBracket, Integer(sqrt), CloseBracket, ...rest] =>
@@ -70,17 +82,17 @@ let%private parseConstant = (~base, tokens) =>
   | [Pi, ...rest] => Some((Pi, rest))
   | rest => Some((Unit, rest))
   };
-let%private parseFraction = (~base, tokens) => {
+let%private partialParseFraction = (~base, tokens) => {
   let (num, constant, tokens) =
     switch (tokens) {
     | [Integer(num), ...rest] =>
       let num = Decimal.ofString(num);
-      switch (parseConstant(~base, rest)) {
+      switch (partialParseConstant(~base, rest)) {
       | Some((constant, rest)) => (num, Some(constant), Some(rest))
       | None => (num, None, Some(rest))
       };
     | rest =>
-      switch (parseConstant(~base, rest)) {
+      switch (partialParseConstant(~base, rest)) {
       | Some((constant, rest)) => (Decimal.one, Some(constant), Some(rest))
       | None => (Decimal.nan, None, None)
       }
@@ -92,7 +104,7 @@ let%private parseFraction = (~base, tokens) => {
       switch (constant) {
       | Some(constant) => (den, Some(constant), Some(rest))
       | None =>
-        switch (parseConstant(~base, rest)) {
+        switch (partialParseConstant(~base, rest)) {
         | Some((constant, rest)) => (num, Some(constant), Some(rest))
         | None => (num, None, Some(rest))
         }
@@ -123,6 +135,7 @@ let%private parseDecimal = (~base, tokens) => {
       )
     | [Integer(int), Dot, ...rest] => (int, None, Some(rest))
     | [Integer(int), ...rest] => (int, None, Some(rest))
+    | [Dot, Integer(dec), ...rest] => ("0", Some(dec), Some(rest))
     | _ => ("", None, None)
     };
   let (exp10MagnitudeString, tokens) =
@@ -170,18 +183,18 @@ let%private parseDecimal = (~base, tokens) => {
     };
   switch (tokens) {
   | Some(rest) =>
-    switch (parseConstant(~base, rest)) {
+    switch (partialParseConstant(~base, rest)) {
     | Some((constant, rest)) => Some((num, den, constant, rest))
     | None => Some((num, den, Unit, rest))
     }
   | None => None
   };
 };
-let%private parseReal = (~base, tokens) => {
-  let state = parseFraction(~base, tokens);
+let%private partialparseReal = (~base, tokens) => {
+  let state = partialParseFraction(~base, tokens);
   let state = state == None ? parseDecimal(~base, tokens) : state;
   let state =
-    switch (state == None ? parseConstant(~base, tokens) : None) {
+    switch (state == None ? partialParseConstant(~base, tokens) : None) {
     | Some((constant, rest)) =>
       Some((Decimal.one, Decimal.one, constant, rest))
     | None => state
@@ -202,36 +215,136 @@ let%private parseReal = (~base, tokens) => {
   };
 };
 
-let%private baseOfString = (~base=?, string) => {
-  let tokens = tokenize(string);
+let%private parseScalar = (~base, tokens): option(Types.scalar) => {
   let (positive, tokens) =
     switch (tokens) {
-    | Some([Plus, ...rest]) => (true, Some(rest))
-    | Some([Minus, ...rest]) => (false, Some(rest))
+    | [Minus, ...rest] => (false, rest)
+    | [Plus, ...rest] => (true, rest)
     | tokens => (true, tokens)
     };
   let (real, tokens) =
-    switch (
-      positive,
-      Belt.Option.flatMap(tokens, tokens => parseReal(~base, tokens)),
-    ) {
+    switch (positive, partialparseReal(~base, tokens)) {
     | (true, Some((value, tokens))) => (value, Some(tokens))
     | (false, Some((value, tokens))) => (Real.neg(value), Some(tokens))
     | (_, None) => (Real.nan, None)
     };
   switch (tokens) {
-  | Some([]) => Some(Types.real(real))
-  | Some([I]) => Some(Types.imag(real))
   | Some([(Plus | Minus) as sign, ...rest]) =>
-    switch (parseReal(~base, rest)) {
+    switch (partialparseReal(~base, rest)) {
     | Some((imag, [I])) =>
       let imag = sign == Plus ? imag : Real.neg(imag);
-      Some(Types.complex(real, imag));
+      Some(`Complex((real, imag))->Types.normalizeScalar);
     | _ => None
     }
+  | Some([I]) => Some(`Imag(real)->Types.normalizeScalar)
+  | Some([]) => Some(`Real(real)->Types.normalizeScalar)
   | _ => None
   };
 };
 
-let ofStringBase = (base, string) => baseOfString(~base, string);
-let ofString = string => baseOfString(string);
+// TODO: Test
+let%private parseTokens = (~base, tokens) => {
+  let rec iter = tokens =>
+    switch (tokens) {
+    | [OpenBrace, ...rest] => parseUntilCloseBrace(rest)
+    | rest =>
+      switch (parseScalar(~base, rest)) {
+      | Some(scalar) => Some((`Scalar(scalar), []))
+      | None => None
+      }
+    }
+  and parseUntilCloseBrace =
+      (~tokensAccumRev=[], ~elementsRev=[], ~level=0, tokens) => {
+    switch (tokens) {
+    | [CloseBrace, ...rest] when level == 0 =>
+      let elementsRev =
+        switch (iter(Belt.List.reverse(tokensAccumRev))) {
+        | Some((closedElement, [])) => Some([closedElement, ...elementsRev])
+        | _ => None
+        };
+      switch (elementsRev) {
+      | Some([scalar]) => Some((scalar, rest))
+      | Some(elementsRev) =>
+        Some((`Row(Belt.List.reverse(elementsRev)), rest))
+      | None => None
+      };
+    | [Comma, ...rest] when level == 0 =>
+      switch (iter(Belt.List.reverse(tokensAccumRev))) {
+      | Some((element, [])) =>
+        parseUntilCloseBrace(
+          ~tokensAccumRev=[],
+          ~elementsRev=[element, ...elementsRev],
+          ~level,
+          rest,
+        )
+      | _ => None
+      }
+    | [] => None
+    | [CloseBrace as e, ...rest] =>
+      parseUntilCloseBrace(
+        ~tokensAccumRev=[e, ...tokensAccumRev],
+        ~elementsRev,
+        ~level=level - 1,
+        rest,
+      )
+    | [OpenBrace, ..._] as e => iter(e)
+    | [e, ...rest] =>
+      parseUntilCloseBrace(
+        ~tokensAccumRev=[e, ...tokensAccumRev],
+        ~elementsRev,
+        ~level,
+        rest,
+      )
+    };
+  };
+
+  let ast =
+    switch (iter(tokens)) {
+    | Some((ast, [])) => Some(ast)
+    | _ => None
+    };
+
+  switch (ast) {
+  | Some(`Scalar(scalar)) => Some(Types.valueOfScalar(scalar))
+  | Some(`Row([`Scalar(a), `Scalar(b)]))
+  | Some(`Row([`Row([`Scalar(a)]), `Row([`Scalar(b)])])) =>
+    Some(Types.vector2(a, b))
+  | Some(`Row([`Scalar(a), `Scalar(b), `Scalar(c)]))
+  | Some(
+      `Row([`Row([`Scalar(a)]), `Row([`Scalar(b)]), `Row([`Scalar(c)])]),
+    ) =>
+    Some(Types.vector3(a, b, c))
+  | Some(
+      `Row([
+        `Row([`Scalar(a), `Scalar(b)]),
+        `Row([`Scalar(c), `Scalar(d)]),
+      ]),
+    ) =>
+    Some(Types.matrix2(a, b, c, d))
+  | Some(
+      `Row([
+        `Row([`Scalar(a), `Scalar(b), `Scalar(c)]),
+        `Row([`Scalar(d), `Scalar(e), `Scalar(f)]),
+        `Row([`Scalar(g), `Scalar(h), `Scalar(i)]),
+      ]),
+    ) =>
+    Some(Types.matrix3(a, b, c, d, e, f, g, h, i))
+  | _ => None
+  };
+};
+
+let tempOfStringBase = (~base, string) => {
+  let scalar =
+    switch (tokenize(string)) {
+    | Some(tokens) => parseScalar(~base, tokens)
+    | None => None
+    };
+  switch (scalar) {
+  | Some(scalar) => Some(Types.valueOfScalar(scalar))
+  | None => None
+  };
+};
+
+let ofStringBase = (base, string) =>
+  tempOfStringBase(~base=Some(base), string);
+let ofString = string => tempOfStringBase(~base=None, string);

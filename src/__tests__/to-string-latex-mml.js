@@ -10,6 +10,13 @@ const [three, minusThree, threeHalves, minusThreeHalves, half, minusHalf] = [
   "-0.5",
 ].map(ofString);
 
+it("parses decimal strings", () => {
+  expect(ofString("0.5")).toEqual(half);
+  expect(ofString("-0.5")).toEqual(minusHalf);
+  expect(ofString(".5")).toEqual(half);
+  expect(ofString("-.5")).toEqual(minusHalf);
+});
+
 it.each([
   [one, "1"],
   [minusOne, "-1"],

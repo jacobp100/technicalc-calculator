@@ -58,12 +58,12 @@ external atan2: (t, t) => t = "atan2";
 [@bs.module "./Decimal"] [@bs.scope "default"] external log2: t => t = "log2";
 [@bs.module "./Decimal"] [@bs.scope "default"]
 external log10: t => t = "log10";
-[@bs.module "./Decimal"] [@bs.scope "default"] [@bs.variadic]
-external hypot: array(t) => t = "hypot";
-[@bs.module "./Decimal"] [@bs.scope "default"] [@bs.variadic]
-external max: array(t) => t = "max";
-[@bs.module "./Decimal"] [@bs.scope "default"] [@bs.variadic]
-external min: array(t) => t = "min";
+// [@bs.module "./Decimal"] [@bs.scope "default"] [@bs.variadic]
+// external hypot: array(t) => t = "hypot";
+// [@bs.module "./Decimal"] [@bs.scope "default"] [@bs.variadic]
+// external max: array(t) => t = "max";
+// [@bs.module "./Decimal"] [@bs.scope "default"] [@bs.variadic]
+// external min: array(t) => t = "min";
 
 [@bs.send] external (==): (t, t) => bool = "eq";
 let (!=) = (a, b) => !(a == b);

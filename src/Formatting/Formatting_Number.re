@@ -4,9 +4,9 @@ let trimTraillingZeros = (~startIndex=0, ~endIndex=?, string) => {
   let sliceIndex = ref(endIndex);
   let break = ref(false);
   while (sliceIndex^ >= startIndex && ! break^) {
-    switch (string.[sliceIndex^]) {
-    | '0' => sliceIndex := sliceIndex^ - 1
-    | '.' =>
+    switch (Js.String.get(string, sliceIndex^)) {
+    | "0" => sliceIndex := sliceIndex^ - 1
+    | "." =>
       sliceIndex := sliceIndex^ - 1;
       break := true;
     | _ => break := true

@@ -2,6 +2,7 @@ include Base;
 
 let ofString = Formatting.ofString;
 let ofStringBase = Formatting.ofStringBase;
+let ofInt = Types.ofInt;
 let ofFloat = Types.ofFloat;
 let toFloat = x => Types.toDecimal(x)->Decimal.toFloat;
 let zero = Types.zero;

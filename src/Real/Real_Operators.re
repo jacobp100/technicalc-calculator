@@ -59,7 +59,8 @@ let ceil = a => toDecimal(a)->Decimal.ceil->ofDecimalInt;
 let add = (a, b) => {
   let rat =
     switch (a, b) {
-    | (Rational(an, ad, c), Rational(bn, bd, bc)) when c == bc =>
+    | (Rational(an, ad, c), Rational(bn, bd, bc))
+        when Real_Constant.(c == bc) =>
       open SafeInt;
       let ad = ofInt(ad);
       let bd = ofInt(bd);
@@ -77,7 +78,8 @@ let add = (a, b) => {
 let sub = (a, b) => {
   let rat =
     switch (a, b) {
-    | (Rational(an, ad, c), Rational(bn, bd, bc)) when c == bc =>
+    | (Rational(an, ad, c), Rational(bn, bd, bc))
+        when Real_Constant.(c == bc) =>
       open SafeInt;
       let ad = ofInt(ad);
       let bd = ofInt(bd);
@@ -134,7 +136,8 @@ let div = (a, b) => {
   let rat =
     switch (a, b) {
     | (_, Rational(0, _, _)) => Some(nan)
-    | (Rational(an, ad, ac), Rational(bn, bd, bc)) when ac == bc =>
+    | (Rational(an, ad, ac), Rational(bn, bd, bc))
+        when Real_Constant.(ac == bc) =>
       divRat(an, ad, bn, bd, Unit)
     | (Rational(an, ad, c), Rational(bn, bd, Unit)) =>
       divRat(an, ad, bn, bd, c)
@@ -188,7 +191,7 @@ let (/) = div;
 let (==) = (a, b) =>
   switch (a, b) {
   | (Rational(an, ad, ac), Rational(bn, bd, bc)) =>
-    an == bn && ad == bd && ac == bc
+    an == bn && ad == bd && Real_Constant.(ac == bc)
   | (Decimal(af), Decimal(bf)) => Decimal.eq(af, bf)
   | _ => false
   };

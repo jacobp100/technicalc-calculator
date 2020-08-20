@@ -46,3 +46,14 @@ let simplify = a =>
   | Exp(0) => `Factor((1, Unit))
   | _ => `None
   };
+
+let equal = (a, b) =>
+  switch (a, b) {
+  | (Unit, Unit)
+  | (Pi, Pi) => true
+  | (Sqrt(a), Sqrt(b))
+  | (Exp(a), Exp(b)) => a == b
+  | _ => false
+  };
+
+let (==) = equal;

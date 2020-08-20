@@ -92,7 +92,7 @@ let ofStringBase = (base: int, v: string): value => {
   let (valuePart, exp10Magnitude) =
     switch (base) {
     | 10 =>
-      switch (StringUtil.splitOnChar('e', String.lowercase_ascii(v))) {
+      switch (StringUtil.splitOnChar(String.lowercase_ascii(v), 'e')) {
       | [b, m] => (Some(b), Some(Decimal.ofString(m)))
       | [b] => (Some(b), Some(Decimal.zero))
       | _ => (None, None)
@@ -100,7 +100,7 @@ let ofStringBase = (base: int, v: string): value => {
     | _ => (Some(v), Some(Decimal.zero))
     };
   let (integerPart, decimalPart) =
-    switch (valuePart->Belt.Option.map(StringUtil.splitOnChar('.'))) {
+    switch (valuePart->Belt.Option.map(StringUtil.splitOnChar(_, '.'))) {
     | Some([i, d]) => (Some(i), Some(d))
     | Some([i]) => (Some(i), Some(""))
     | _ => (None, None)

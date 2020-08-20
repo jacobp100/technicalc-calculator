@@ -10,7 +10,7 @@ type dimension =
 module Comparable =
   Belt.Id.MakeComparable({
     type t = dimension;
-    let cmp = (a, b) => Pervasives.compare(a, b);
+    let cmp = (a: dimension, b: dimension) => Pervasives.compare(a, b);
   });
 type dimensionMap('value) =
   Belt.Map.t(Comparable.t, 'value, Comparable.identity);
