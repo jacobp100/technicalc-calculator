@@ -24,11 +24,11 @@ let abs = a =>
   | `Vector([|a, b|]) =>
     let (+) = Base_Operators.addScalar;
     let ( * ) = Base_Operators.mulScalar;
-    (a * a + b * b)->valueOfScalar;
+    valueOfScalar(a * a + b * b)->Base_Powers.sqrt;
   | `Vector([|a, b, c|]) =>
     let (+) = Base_Operators.addScalar;
     let ( * ) = Base_Operators.mulScalar;
-    (a * a + b * b + c * c)->valueOfScalar;
+    valueOfScalar(a * a + b * b + c * c)->Base_Powers.sqrt;
   | `Vector(_)
   | `Matrix(_)
   | `NaN => `NaN
