@@ -37,7 +37,10 @@ let%private decimalToString = (~base=10, num) =>
   | 2 => Decimal.toBinary(num)->Js.String.sliceToEnd(~from=2)
   | 8 => Decimal.toOctal(num)->Js.String.sliceToEnd(~from=2)
   | 10 => Decimal.toString(num)
-  | 16 => Decimal.toHexadecimal(num)->Js.String.sliceToEnd(~from=2)
+  | 16 =>
+    Decimal.toHexadecimal(num)
+    ->Js.String.sliceToEnd(~from=2)
+    ->Js.String.toUpperCase
   | _ => failwith("Invalid base")
   };
 
