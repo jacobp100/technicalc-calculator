@@ -83,19 +83,21 @@ let%private partialParseConstant = (~base, tokens) =>
   | rest => Some((Unit, rest))
   };
 let%private partialParseFraction = (~base, tokens) => {
+  let tokens = base != None ? None : Some(tokens);
   let (num, constant, tokens) =
     switch (tokens) {
-    | [Integer(num), ...rest] =>
+    | Some([Integer(num), ...rest]) =>
       let num = Decimal.ofString(num);
       switch (partialParseConstant(~base, rest)) {
       | Some((constant, rest)) => (num, Some(constant), Some(rest))
       | None => (num, None, Some(rest))
       };
-    | rest =>
+    | Some(rest) =>
       switch (partialParseConstant(~base, rest)) {
       | Some((constant, rest)) => (Decimal.one, Some(constant), Some(rest))
       | None => (Decimal.nan, None, None)
       }
+    | None => (Decimal.nan, None, None)
     };
   let (den, constant, tokens) =
     switch (tokens) {
@@ -165,7 +167,7 @@ let%private parseDecimal = (~base, tokens) => {
             Decimal.(ofString(basePrefix ++ integerStr ++ decimalString)),
             Decimal.(ofInt(base) ** ofInt(String.length(decimalString))),
           )
-        | None => (Decimal.ofString(integerStr), Decimal.one)
+        | None => (Decimal.ofString(basePrefix ++ integerStr), Decimal.one)
         };
       let exp10Magnitude =
         Belt.Option.mapWithDefault(
