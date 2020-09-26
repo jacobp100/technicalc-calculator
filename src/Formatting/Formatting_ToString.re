@@ -92,7 +92,7 @@ let%private formatTuple = (re, format): string => {
   | (_, Scientific) =>
     /* Round to multiple of 3 */
     let f = Real.toDecimal(re);
-    let exponent = DecimalUtil.magnitude(f) * 3 / 3;
+    let exponent = DecimalUtil.magnitude(f) / 3 * 3;
     Formatting_Number.formatExponential(
       ~base,
       ~exponent,

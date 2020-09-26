@@ -39,3 +39,22 @@ it("trims trailling zeros", () => {
   );
   expect(stringOfFloat(1.0000000000001, { style: "decimal" })).toBe("1");
 });
+
+it("formats scientific notation", () => {
+  expect(stringOfFloat(1, { style: "scientific" })).toBe("1.000000000000e0");
+  expect(stringOfFloat(10, { style: "scientific" })).toBe("10.000000000000e0");
+  expect(stringOfFloat(100, { style: "scientific" })).toBe(
+    "100.000000000000e0"
+  );
+  expect(stringOfFloat(1000, { style: "scientific" })).toBe("1.000000000000e3");
+  expect(stringOfFloat(-1, { style: "scientific" })).toBe("-1.000000000000e0");
+  expect(stringOfFloat(-10, { style: "scientific" })).toBe(
+    "-10.000000000000e0"
+  );
+  expect(stringOfFloat(-100, { style: "scientific" })).toBe(
+    "-100.000000000000e0"
+  );
+  expect(stringOfFloat(-1000, { style: "scientific" })).toBe(
+    "-1.000000000000e3"
+  );
+});
