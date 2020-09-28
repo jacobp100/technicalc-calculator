@@ -3,7 +3,7 @@ const mathjs = require("mathjs");
 const { toMatchJsValue } = require("../__test-util__");
 const { vector2, vector3 } = require("../__test-util__/math-js-vector");
 const TechniCalc = require("../Value.bs");
-const TechniCalcTest = require("../TechniCalcTest.bs");
+const TechniCalcTest = require("../ValueTestUtil.bs");
 
 expect.extend({ toMatchJsValue });
 

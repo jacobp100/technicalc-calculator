@@ -1,4 +1,3 @@
-
 let ratDecimal = (n, d, c) =>
   Decimal.(ofInt(n) / ofInt(d) * Real_Constant.toDecimal(c));
 

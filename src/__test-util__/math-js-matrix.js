@@ -1,8 +1,7 @@
 const cartesian = require("cartesian");
 const mathjs = require("mathjs");
 const { Value } = require(".");
-const Types = require("../Types.bs");
-const TechniCalc = require("../Value.bs");
+const { matrixOfFloats } = require("../ValueTest.bs");
 
 const matrix2x2 = cartesian([
   [0, -1, 1, 5],
@@ -16,7 +15,7 @@ const matrix2x2 = cartesian([
         [a, b],
         [c, d],
       ]),
-      Types.matrix2(...[a, b, c, d].map(TechniCalc.ofFloat)),
+      matrixOfFloats(2, 2, [a, b, c, d]),
       `[[${a}, ${b}], [${c}, ${d}]]`
     )
 );
@@ -40,7 +39,7 @@ const matrix3x3 = cartesian([
         [d, e, f],
         [g, h, i],
       ]),
-      Types.matrix3(...[a, b, c, d, e, f, g, h, i].map(TechniCalc.ofFloat)),
+      matrixOfFloats(3, 3, [a, b, c, d, e, f, g, h, i]),
       `[[${a}, ${b}, ${c}], [${d}, ${e}, ${f}], [${g}, ${h}, ${i}]]`
     )
 );

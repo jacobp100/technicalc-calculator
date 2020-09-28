@@ -1,4 +1,6 @@
-let rec eval = (~context, node: AST_Types.t): Types.value =>
+open AST_Types;
+
+let rec eval = (~context, node: t): Value.t =>
   switch (node) {
   | NaN => `NaN
   | Zero => Value.zero
@@ -8,23 +10,24 @@ let rec eval = (~context, node: AST_Types.t): Types.value =>
   | MinusI => Value.minusI
   | Pi => Value.pi
   | E => Value.e
-  | OfInt(a) => Types.ofInt(a)
-  | OfFloat(a) => Types.ofFloat(a)
+  | OfInt(a) => Value.ofInt(a)
+  | OfFloat(a) => Value.ofFloat(a)
   | OfString(a) => Value.ofString(a)->Belt.Option.getWithDefault(`NaN)
   | OfStringBase(base, a) =>
     Value.ofStringBase(base, a)->Belt.Option.getWithDefault(`NaN)
+  | Percent(percent) => evalScalar(~context, percent)->Value.ofPercent
   | Vector(elements) =>
-    Types.vector(elements->Belt.Array.map(evalScalar(~context)))
+    Value.ofVector(Belt.Array.map(elements, evalScalar(~context)))
   | Matrix({numRows, numColumns, elements}) =>
-    Types.matrix(
+    Matrix.{
       numRows,
       numColumns,
-      elements->Belt.Array.map(evalScalar(~context)),
-    )
-  | Percent(a) => Types.percent(evalScalar(~context, a))
-  | OfEncoded(a) => Encoding.decode(a)
+      elements: Belt.Array.map(elements, evalScalar(~context)),
+    }
+    ->Value.ofMatrix
+  | OfEncoded(a) => Value_Encoding.decode(a)
   | Variable(ident) =>
-    Belt.Map.String.getWithDefault(context, ident, Types.nan)
+    Belt.Map.String.getWithDefault(context, ident, Value.nan)
   | Add(a, b) => Value.add(eval(~context, a), eval(~context, b))
   | Sub(a, b) => Value.sub(eval(~context, a), eval(~context, b))
   | Mul(a, b) => Value.mul(eval(~context, a), eval(~context, b))
@@ -61,21 +64,21 @@ let rec eval = (~context, node: AST_Types.t): Types.value =>
   | NPR(a, b) => Value.nPr(eval(~context, a), eval(~context, b))
   | NCR(a, b) => Value.nCr(eval(~context, a), eval(~context, b))
   | Differential({x, body}) =>
-    Calculus.derivative(createEvalCb(~context, body), eval(~context, x))
+    Value.derivative(createEvalCb(~context, body), eval(~context, x))
   | Integral({a, b, body}) =>
-    Calculus.integrate(
+    Value.integrate(
       createEvalCb(~context, body),
       eval(~context, a),
       eval(~context, b),
     )
   | Sum({a, b, body}) =>
-    Series.sum(
+    Value.sum(
       createEvalCb(~context, body),
       eval(~context, a),
       eval(~context, b),
     )
   | Product({a, b, body}) =>
-    Series.product(
+    Value.product(
       createEvalCb(~context, body),
       eval(~context, a),
       eval(~context, b),
@@ -85,10 +88,10 @@ let rec eval = (~context, node: AST_Types.t): Types.value =>
   }
 and createEvalCb = (~context, body, x) =>
   eval(~context=Belt.Map.String.set(context, "x", x), body)
-and evalScalar = (~context, x): Types.scalar =>
+and evalScalar = (~context, x): Scalar.t =>
   switch (eval(~context, x)) {
-  | (`Zero | `Real(_) | `Imag(_) | `Complex(_)) as aX => aX
-  | _ => `Real(Real.nan)
+  | #Scalar.t as s => s
+  | _ => Scalar.nan
   };
 
 let eval = (~context=Belt.Map.String.empty, v) => eval(~context, v);

@@ -2,7 +2,7 @@ const cartesian = require("cartesian");
 const { range } = require("lodash");
 const mathjs = require("mathjs");
 const TechniCalc = require("../Value.bs");
-const TechniCalcTest = require("../TechniCalcTest.bs");
+const TechniCalcTest = require("../ValueTest.bs");
 
 module.exports.Value = class Value {
   constructor(jsValue, techniCalcValue, title = String(jsValue)) {

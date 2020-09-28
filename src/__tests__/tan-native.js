@@ -1,7 +1,7 @@
 const { toMatchJsValue } = require("../__test-util__");
 const { trigValues } = require("../__test-util__/math-native");
 const TechniCalc = require("../Value.bs");
-const TechniCalcTest = require("../TechniCalcTest.bs");
+const TechniCalcTest = require("../ValueTestUtil.bs");
 
 expect.extend({ toMatchJsValue });
 

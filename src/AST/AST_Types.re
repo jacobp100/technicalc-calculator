@@ -11,7 +11,7 @@ type t =
   | OfFloat(float)
   | OfString(string)
   | OfStringBase(int, string)
-  | OfEncoded(Encoding.encoding)
+  | OfEncoded(Value_Encoding.encoding)
   | Vector(array(t))
   | Matrix({
       numRows: int,
@@ -93,7 +93,7 @@ let ofFloat = (a): t => OfFloat(a);
 let ofString = (a): t => OfString(a);
 let ofStringBase = (base, a): t => OfStringBase(base, a);
 let ofEncoded = (a): t => OfEncoded(a);
-let ofValue = (a): t => OfEncoded(Encoding.encode(a));
+let ofValue = (a): t => OfEncoded(Value_Encoding.encode(a));
 let vector = (elements): t => Vector(elements);
 let matrix = (numRows, numColumns, elements): t =>
   Matrix({numRows, numColumns, elements});

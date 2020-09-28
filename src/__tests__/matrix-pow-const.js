@@ -3,9 +3,8 @@ const cartesian = require("cartesian");
 const mathjs = require("mathjs");
 const { Value, toMatchJsMatrix } = require("../__test-util__");
 const { matrix3x3 } = require("../__test-util__/math-js-matrix");
-const Types = require("../Types.bs");
 const TechniCalc = require("../Value.bs");
-const TechniCalcTest = require("../TechniCalcTest.bs");
+const { matrixOfFloats, toString } = require("../ValueTestUtil.bs");
 
 expect.extend({ toMatchJsMatrix });
 
@@ -23,19 +22,16 @@ describe("3x3", () => {
 describe("Pow -1", () => {
   // Checked on Wolfram Alpha
   it("2x2 ** -1", () => {
-    const out = TechniCalcTest.toString(
-      TechniCalc.pow(
-        Types.matrix2(...[3, 7, 8, 9].map(TechniCalc.ofFloat)),
-        TechniCalc.ofFloat(-1)
-      )
+    const out = toString(
+      TechniCalc.pow(matrixOfFloats(2, 2, [3, 7, 8, 9]), TechniCalc.ofFloat(-1))
     );
     expect(out).toBe("{{-9/29, 7/29}, {8/29, -3/29}}");
   });
 
   it("3x3 ** -1", () => {
-    const out = TechniCalcTest.toString(
+    const out = toString(
       TechniCalc.pow(
-        Types.matrix3(...[3, 7, 8, 9, 1, 3, 9, 5, 8].map(TechniCalc.ofFloat)),
+        matrixOfFloats(3, 3, [3, 7, 8, 9, 1, 3, 9, 5, 8]),
         TechniCalc.ofFloat(-1)
       )
     );

@@ -1,4 +1,5 @@
 open Real_Types;
+open Real_Base;
 open Real_Util;
 
 /* Disable ops that can overflow */

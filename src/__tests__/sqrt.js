@@ -1,6 +1,5 @@
-const { ofFloat, ofInt } = require("../Types.bs");
-const { sqrt } = require("../Value.bs");
-const { toString } = require("../TechniCalcTest.bs");
+const { ofFloat, ofInt, sqrt } = require("../Value.bs");
+const { toString } = require("../ValueTestUtil.bs");
 
 it("Special cases square root of negative numbers", () => {
   expect(toString(sqrt(ofInt(-2)))).toBe("sqrt(2)i");

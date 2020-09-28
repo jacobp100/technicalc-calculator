@@ -1,5 +1,5 @@
 const TechniCalc = require("../Value.bs");
-const { testUnits } = require("../TechniCalcTest.bs");
+const { testUnits } = require("../ValueTestUtil.bs");
 const { convert } = require("../Units/Units.bs");
 
 const c = (value, fromUnits, toUnits) =>

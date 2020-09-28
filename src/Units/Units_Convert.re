@@ -1,4 +1,3 @@
-open Types;
 open Unit_Types;
 
 let linearValue = (unit: unitType) =>
@@ -125,13 +124,13 @@ let fahrenheitFromKelvin = value =>
   Decimal.((value - ofFloat(273.15)) * ofFloat(1.8) + ofFloat(32.));
 
 let%private transformUnits =
-    (
-      ~transformCelsius,
-      ~transformFahrenheit,
-      ~unitPowerMultiplier,
-      value: Decimal.t,
-      units: units,
-    ) => {
+            (
+              ~transformCelsius,
+              ~transformFahrenheit,
+              ~unitPowerMultiplier,
+              value: Decimal.t,
+              units: units,
+            ) => {
   let handleLinearUnit = (value, unit) =>
     switch (unit) {
     | (Celsius | Fahrenheit, _) => Decimal.nan
@@ -149,7 +148,7 @@ let%private transformUnits =
   };
 };
 
-let fromSi = (value: value, units) =>
+let fromSi = (value: Value.t, units) =>
   switch (value) {
   | `Real(re) =>
     let value =
@@ -160,11 +159,11 @@ let fromSi = (value: value, units) =>
         Real.toDecimal(re),
         units,
       );
-    real(Decimal(value));
+    Value_Base.ofReal(Decimal(value));
   | _ => `NaN
   };
 
-let toSi = (value: value, units) =>
+let toSi = (value: Value.t, units) =>
   switch (value) {
   | `Real(re) =>
     let value =
@@ -175,11 +174,11 @@ let toSi = (value: value, units) =>
         Real.toDecimal(re),
         units,
       );
-    real(Decimal(value));
+    Value_Base.ofReal(Decimal(value));
   | _ => `NaN
   };
 
-let convert = (value: value, ~fromUnits, ~toUnits) =>
+let convert = (value: Value.t, ~fromUnits, ~toUnits) =>
   if (Unit_Dimensions.unitsCompatible(toUnits, fromUnits)) {
     value->toSi(fromUnits)->fromSi(toUnits);
   } else {

@@ -1,5 +1,5 @@
 const TechniCalc = require("../Value.bs");
-const TechniCalcTest = require("../TechniCalcTest.bs");
+const TechniCalcTest = require("../ValueTestUtil.bs");
 
 const stringOfFloat = (x, format) =>
   TechniCalcTest.toString(TechniCalc.ofFloat(x), format);

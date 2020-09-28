@@ -11,7 +11,7 @@ const {
   exp,
   sin,
 } = require("../Value.bs");
-const { toString } = require("../TechniCalcTest.bs");
+const { toString } = require("../ValueTestUtil.bs");
 
 test("Converts via ofString", () => {
   const convert = (x, opt) => toString(ofString(x), opt);
