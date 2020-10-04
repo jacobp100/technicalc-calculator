@@ -317,22 +317,22 @@ let%private parseTokens = (~base, tokens) => {
     };
 
   switch (ast) {
-  | Some(`Scalar(scalar)) => Some(Value_Core.ofScalar(scalar))
+  | Some(`Scalar(scalar)) => Some(Value_Base.ofScalar(scalar))
   | Some(`Row([`Scalar(a), `Scalar(b)]))
   | Some(`Row([`Row([`Scalar(a)]), `Row([`Scalar(b)])])) =>
-    Some(Value_Core.ofVector([|a, b|]))
+    Some(Value_Base.ofVector([|a, b|]))
   | Some(`Row([`Scalar(a), `Scalar(b), `Scalar(c)]))
   | Some(
       `Row([`Row([`Scalar(a)]), `Row([`Scalar(b)]), `Row([`Scalar(c)])]),
     ) =>
-    Some(Value_Core.ofVector([|a, b, c|]))
+    Some(Value_Base.ofVector([|a, b, c|]))
   | Some(
       `Row([
         `Row([`Scalar(a), `Scalar(b)]),
         `Row([`Scalar(c), `Scalar(d)]),
       ]),
     ) =>
-    Matrix.make(2, 2, [|a, b, c, d|])->Value_Core.ofMatrix->Some
+    Matrix.make(2, 2, [|a, b, c, d|])->Value_Base.ofMatrix->Some
   | Some(
       `Row([
         `Row([`Scalar(a), `Scalar(b), `Scalar(c)]),
@@ -341,7 +341,7 @@ let%private parseTokens = (~base, tokens) => {
       ]),
     ) =>
     Matrix.make(3, 3, [|a, b, c, d, e, f, g, h, i|])
-    ->Value_Core.ofMatrix
+    ->Value_Base.ofMatrix
     ->Some
   | _ => None
   };
@@ -354,7 +354,7 @@ let tempOfStringBase = (~base, string) => {
     | None => None
     };
   switch (scalar) {
-  | Some(scalar) => Some(Value_Core.ofScalar(scalar))
+  | Some(scalar) => Some(Value_Base.ofScalar(scalar))
   | None => None
   };
 };
