@@ -36,8 +36,8 @@ let ofFloat = (v): t =>
     switch (FloatUtil.intValue(numeratorF), FloatUtil.intValue(magnitude)) {
     | (Some(numerator), Some(denominator))
         when abs_float(numeratorF) < intMaxF =>
-      `Real(Real.rational(numerator, denominator, Unit))->normalize
-    | _ => `Real(Real.decimal(Decimal.ofFloat(v)))->normalize
+      `Real(Real.ofRational(numerator, denominator, Unit))->normalize
+    | _ => `Real(Real.ofDecimal(Decimal.ofFloat(v)))->normalize
     };
   | FP_zero => `Zero
   | FP_infinite
@@ -54,7 +54,7 @@ let toDecimal = (a: t): Decimal.t =>
 let toInt = (a: t): option(int) =>
   switch (a) {
   | `Zero => Some(0)
-  | `Real(re) => Real.toDecimal(re)->Decimal.toFloat->FloatUtil.intValue
+  | `Real(re) => Real.toInt(re)
   | _ => None
   };
 

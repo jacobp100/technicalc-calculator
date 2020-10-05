@@ -28,3 +28,14 @@ let%private mapScalar = (a: t, fn: Scalar.t => Scalar.t): t =>
 let round = a => mapScalar(a, Scalar.round);
 let floor = a => mapScalar(a, Scalar.floor);
 let ceil = a => mapScalar(a, Scalar.ceil);
+
+let%private map2Scalar = (a: t, b: t, fn: (Scalar.t, Scalar.t) => Scalar.t): t =>
+  switch (a, b) {
+  | (#Scalar.t as a, #Scalar.t as b) => fn(a, b)->ofScalar
+  | _ => `NaN
+  };
+
+let max = (a, b) => map2Scalar(a, b, Scalar.max);
+let min = (a, b) => map2Scalar(a, b, Scalar.min);
+let gcd = (a, b) => map2Scalar(a, b, Scalar.gcd);
+let lcm = (a, b) => map2Scalar(a, b, Scalar.lcm);

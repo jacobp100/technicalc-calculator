@@ -74,10 +74,12 @@ let tan = (x: t): t =>
   | `Real(Rational(1 | 2, 1, Pi)) => zero
   | `Real(Rational(1 | 5, 4, Pi)) => one
   | `Real(Rational(3 | 7, 4, Pi)) => minusOne
-  | `Real(Rational(1 | 4, 3, Pi)) => `Real(Real.rational(1, 1, Sqrt(3)))
-  | `Real(Rational(2 | 5, 3, Pi)) => `Real(Real.rational(-1, 1, Sqrt(3)))
-  | `Real(Rational(1 | 7, 6, Pi)) => `Real(Real.rational(1, 3, Sqrt(3)))
-  | `Real(Rational(5 | 11, 6, Pi)) => `Real(Real.rational(-1, 3, Sqrt(3)))
+  | `Real(Rational(1 | 4, 3, Pi)) => `Real(Real.ofRational(1, 1, Sqrt(3)))
+  | `Real(Rational(2 | 5, 3, Pi)) =>
+    `Real(Real.ofRational(-1, 1, Sqrt(3)))
+  | `Real(Rational(1 | 7, 6, Pi)) => `Real(Real.ofRational(1, 3, Sqrt(3)))
+  | `Real(Rational(5 | 11, 6, Pi)) =>
+    `Real(Real.ofRational(-1, 3, Sqrt(3)))
   | `Real(Rational(1 | 3, 2, Pi)) => `NaN
   | `Real(_) => mapRealDecimal(x, Decimal.tan)
   | `Imag(_)
@@ -106,15 +108,15 @@ let tanh = (x: t): t =>
 
 let asin = (a: t): t =>
   switch (mapReal(a, Real.mod2Pi)) {
-  | `Real(Rational((-1), 1, Unit)) => `Real(Real.rational(-1, 2, Pi))
-  | `Real(Rational((-1), 2, Sqrt(3))) => `Real(Real.rational(-1, 3, Pi))
-  | `Real(Rational((-1), 2, Sqrt(2))) => `Real(Real.rational(-1, 4, Pi))
-  | `Real(Rational((-1), 2, Unit)) => `Real(Real.rational(-1, 6, Pi))
+  | `Real(Rational((-1), 1, Unit)) => `Real(Real.ofRational(-1, 2, Pi))
+  | `Real(Rational((-1), 2, Sqrt(3))) => `Real(Real.ofRational(-1, 3, Pi))
+  | `Real(Rational((-1), 2, Sqrt(2))) => `Real(Real.ofRational(-1, 4, Pi))
+  | `Real(Rational((-1), 2, Unit)) => `Real(Real.ofRational(-1, 6, Pi))
   | `Zero => zero
-  | `Real(Rational(1, 2, Unit)) => `Real(Real.rational(1, 6, Pi))
-  | `Real(Rational(1, 2, Sqrt(2))) => `Real(Real.rational(1, 4, Pi))
-  | `Real(Rational(1, 2, Sqrt(3))) => `Real(Real.rational(1, 3, Pi))
-  | `Real(Rational(1, 1, Unit)) => `Real(Real.rational(1, 2, Pi))
+  | `Real(Rational(1, 2, Unit)) => `Real(Real.ofRational(1, 6, Pi))
+  | `Real(Rational(1, 2, Sqrt(2))) => `Real(Real.ofRational(1, 4, Pi))
+  | `Real(Rational(1, 2, Sqrt(3))) => `Real(Real.ofRational(1, 3, Pi))
+  | `Real(Rational(1, 1, Unit)) => `Real(Real.ofRational(1, 2, Pi))
   | `Real(_)
   | `Imag(_)
   | `Complex(_) =>
@@ -145,14 +147,14 @@ let asinh = (x: t): t =>
 
 let acos = (a: t): t =>
   switch (mapReal(a, Real.mod2Pi)) {
-  | `Real(Rational((-1), 1, Unit)) => `Real(Real.rational(1, 1, Pi))
-  | `Real(Rational((-1), 2, Sqrt(3))) => `Real(Real.rational(5, 6, Pi))
-  | `Real(Rational((-1), 2, Sqrt(2))) => `Real(Real.rational(3, 4, Pi))
-  | `Real(Rational((-1), 2, Unit)) => `Real(Real.rational(2, 3, Pi))
-  | `Zero => `Real(Real.rational(1, 2, Pi))
-  | `Real(Rational(1, 2, Unit)) => `Real(Real.rational(1, 3, Pi))
-  | `Real(Rational(1, 2, Sqrt(2))) => `Real(Real.rational(1, 4, Pi))
-  | `Real(Rational(1, 2, Sqrt(3))) => `Real(Real.rational(1, 6, Pi))
+  | `Real(Rational((-1), 1, Unit)) => `Real(Real.ofRational(1, 1, Pi))
+  | `Real(Rational((-1), 2, Sqrt(3))) => `Real(Real.ofRational(5, 6, Pi))
+  | `Real(Rational((-1), 2, Sqrt(2))) => `Real(Real.ofRational(3, 4, Pi))
+  | `Real(Rational((-1), 2, Unit)) => `Real(Real.ofRational(2, 3, Pi))
+  | `Zero => `Real(Real.ofRational(1, 2, Pi))
+  | `Real(Rational(1, 2, Unit)) => `Real(Real.ofRational(1, 3, Pi))
+  | `Real(Rational(1, 2, Sqrt(2))) => `Real(Real.ofRational(1, 4, Pi))
+  | `Real(Rational(1, 2, Sqrt(3))) => `Real(Real.ofRational(1, 6, Pi))
   | `Real(Rational(1, 1, Unit)) => zero
   | `Real(_)
   | `Imag(_)
@@ -164,7 +166,7 @@ let acos = (a: t): t =>
     | `Inside(_) => mapRealDecimal(a, Decimal.acos)
     | `Outside
     | `Imag(_)
-    | `Complex(_) => ofReal(Real.rational(1, 2, Pi)) - asin(a)
+    | `Complex(_) => ofReal(Real.ofRational(1, 2, Pi)) - asin(a)
     | `NaN => `NaN
     }
   | `Matrix(_)
@@ -203,13 +205,13 @@ let acosh = (x: t): t =>
 
 let atan = (a: t): t =>
   switch (mapReal(a, Real.mod2Pi)) {
-  | `Real(Rational((-1), 1, Sqrt(3))) => `Real(Real.rational(-1, 3, Pi))
-  | `Real(Rational((-1), 1, Unit)) => `Real(Real.rational(-1, 4, Pi))
-  | `Real(Rational((-1), 3, Sqrt(3))) => `Real(Real.rational(-1, 6, Pi))
+  | `Real(Rational((-1), 1, Sqrt(3))) => `Real(Real.ofRational(-1, 3, Pi))
+  | `Real(Rational((-1), 1, Unit)) => `Real(Real.ofRational(-1, 4, Pi))
+  | `Real(Rational((-1), 3, Sqrt(3))) => `Real(Real.ofRational(-1, 6, Pi))
   | `Zero => zero
-  | `Real(Rational(1, 3, Sqrt(3))) => `Real(Real.rational(1, 6, Pi))
-  | `Real(Rational(1, 1, Unit)) => `Real(Real.rational(1, 4, Pi))
-  | `Real(Rational(1, 1, Sqrt(3))) => `Real(Real.rational(1, 3, Pi))
+  | `Real(Rational(1, 3, Sqrt(3))) => `Real(Real.ofRational(1, 6, Pi))
+  | `Real(Rational(1, 1, Unit)) => `Real(Real.ofRational(1, 4, Pi))
+  | `Real(Rational(1, 1, Sqrt(3))) => `Real(Real.ofRational(1, 3, Pi))
   | `Real(_) => mapRealDecimal(a, Decimal.atan)
   | `Imag(Rational(1 | (-1), 1, Unit)) => `NaN
   | (`Imag(_) | `Complex(_)) as vV =>

@@ -83,7 +83,7 @@ let%private cubicNumeric = (a, b, c, d) => {
   } else {
     let c0 =
       ((q + _2 * b ** _3 - _9 * a * b * c + _27 * a ** _2 * d) / _2)
-      ** ofReal(Real.rational(1, 3, Unit));
+      ** ofReal(Real.ofRational(1, 3, Unit));
     let x1 =
       - b / (_3 * a) - c0 / (_3 * a) - (b ** _2 - _3 * a * c) / (_3 * a * c0);
     let x2 =

@@ -113,7 +113,7 @@ let linearValue = (unit: unitType) =>
   /* Temperature */
   | Kelvin => 1.
   | Celsius
-  | Fahrenheit => failwith("non-linear unit")
+  | Fahrenheit => assert(false)
   };
 
 let celsiusToKelvin = value => Decimal.(value + ofFloat(273.15));

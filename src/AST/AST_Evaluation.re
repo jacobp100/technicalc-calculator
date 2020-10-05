@@ -63,6 +63,10 @@ let rec eval = (~context, node: t): Value.t =>
   | RandInt(a, b) => Value.randInt(eval(~context, a), eval(~context, b))
   | NPR(a, b) => Value.nPr(eval(~context, a), eval(~context, b))
   | NCR(a, b) => Value.nCr(eval(~context, a), eval(~context, b))
+  | Min(a, b) => Value.min(eval(~context, a), eval(~context, b))
+  | Max(a, b) => Value.max(eval(~context, a), eval(~context, b))
+  | Gcd(a, b) => Value.gcd(eval(~context, a), eval(~context, b))
+  | Lcm(a, b) => Value.lcm(eval(~context, a), eval(~context, b))
   | Differential({x, body}) =>
     Value.derivative(createEvalCb(~context, body), eval(~context, x))
   | Integral({a, b, body}) =>

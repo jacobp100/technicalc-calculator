@@ -6,12 +6,10 @@ let isInt = f => f->int_of_float->float_of_int == f;
 let intValue = f =>
   f->int_of_float->float_of_int == f ? Some(f->int_of_float) : None;
 
-let intValueExn = f =>
-  if (f->int_of_float->float_of_int == f) {
-    int_of_float(f);
-  } else {
-    failwith("Not an int");
-  };
+let intValueExn = f => {
+  assert(f->int_of_float->float_of_int == f);
+  int_of_float(f);
+};
 
 // Only used in one place, don't bother inlining stuff for perf here
 let toInt = f => floor(f)->intValue;

@@ -41,7 +41,7 @@ let%private decimalToString = (~base=10, num) =>
     Decimal.toHexadecimal(num)
     ->Js.String.sliceToEnd(~from=2)
     ->Js.String.toUpperCase
-  | _ => failwith("Invalid base")
+  | _ => assert(false)
   };
 
 let formatInteger = (~base=10, ~digitGrouping=true, num) => {

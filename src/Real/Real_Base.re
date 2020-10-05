@@ -12,16 +12,22 @@ let isNaN = a =>
   | _ => false
   };
 
-let ofInt = n =>
-  if (n->float_of_int->int_of_float == n) {
-    Rational(n, 1, Unit);
-  } else {
-    failwith("Not an integer");
+let equal = (a, b) =>
+  switch (a, b) {
+  | (Rational(an, ad, ac), Rational(bn, bd, bc)) =>
+    an == bn && ad == bd && Real_Constant.(ac == bc)
+  | (Decimal(af), Decimal(bf)) => Decimal.eq(af, bf)
+  | _ => false
   };
 
-let decimal = f => Decimal(f);
+let ofDecimal = f => Decimal(f);
 
-let rational = (n, d, c) =>
+let ofInt = n => {
+  assert(n->float_of_int->int_of_float == n);
+  Rational(n, 1, Unit);
+};
+
+let ofRational = (n, d, c) =>
   if (d == 0) {
     nan;
   } else {
@@ -47,3 +53,15 @@ let toDecimal = a =>
   | Rational(n, d, c) => ratDecimal(n, d, c)
   | Decimal(d) => d
   };
+
+let toInt = a =>
+  switch (a) {
+  | Rational(n, 1, Unit) => Some(n)
+  | Rational(_) => None
+  | Decimal(d) => Decimal.toFloat(d)->FloatUtil.toInt
+  };
+
+let gt = (a, b) => Decimal.gt(toDecimal(a), toDecimal(b));
+let gte = (a, b) => Decimal.gte(toDecimal(a), toDecimal(b));
+let lt = (a, b) => Decimal.lt(toDecimal(a), toDecimal(b));
+let lte = (a, b) => Decimal.lte(toDecimal(a), toDecimal(b));

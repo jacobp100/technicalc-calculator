@@ -169,7 +169,7 @@ let%private parseDecimal = (~base, tokens) => {
         | 2 => ("0b", 2)
         | 8 => ("0o", 8)
         | 16 => ("0x", 16)
-        | _ => failwith("invalid base")
+        | _ => assert(false)
         };
       let (num, den) =
         switch (decimalString) {
@@ -218,9 +218,11 @@ let%private partialparseReal = (~base, tokens) => {
         Decimal.toFloat(num)->FloatUtil.intValue,
         Decimal.toFloat(den)->FloatUtil.intValue,
       ) {
-      | (Some(num), Some(den)) => Real.rational(num, den, constant)
+      | (Some(num), Some(den)) => Real.ofRational(num, den, constant)
       | _ =>
-        Real.decimal(Decimal.(num / den * Real_Constant.toDecimal(constant)))
+        Real.ofDecimal(
+          Decimal.(num / den * Real_Constant.toDecimal(constant)),
+        )
       };
     Some((value, rest));
   | None => None

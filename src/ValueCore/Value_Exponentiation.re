@@ -7,9 +7,9 @@ let arg = (re, im) =>
     let imF = Real.toDecimal(im);
     Real.Decimal(Decimal.atan2(imF, reF));
   } else if (Real.(im > zero)) {
-    Real.rational(1, 2, Pi);
+    Real.ofRational(1, 2, Pi);
   } else if (Real.(im < zero)) {
-    Real.rational(-1, 2, Pi);
+    Real.ofRational(-1, 2, Pi);
   } else {
     Real.nan;
   };
@@ -17,7 +17,7 @@ let arg = (re, im) =>
 let expReal = re =>
   switch (re) {
   | Real.Rational(0, 1, Unit) => Real.one
-  | Rational(i, 1, Unit) => Real.rational(1, 1, Exp(i))
+  | Rational(i, 1, Unit) => Real.ofRational(1, 1, Exp(i))
   | _ => Decimal(Real.toDecimal(re)->Decimal.exp)
   };
 
@@ -42,7 +42,7 @@ let rec exp = (a: t): t =>
 
 let logReal = q =>
   switch (q) {
-  | Real.Rational(1, 1, Exp(reExp)) => Real.rational(reExp, 1, Unit)
+  | Real.Rational(1, 1, Exp(reExp)) => Real.ofRational(reExp, 1, Unit)
   | _ =>
     let f = Real.toDecimal(q);
     if (Decimal.(f > zero)) {
@@ -64,7 +64,7 @@ let rec log = (a: t): t =>
       | `Imag(im) => Real.mul(im, im)
       | `Complex(re, im) => Real.add(Real.mul(re, re), Real.mul(im, im))
       };
-    let re = logReal(re)->Real.(div(rational(2, 1, Unit)));
+    let re = Real.(div(logReal(re), ofRational(2, 1, Unit)));
     let im =
       switch (vV) {
       | `Real(re) => arg(re, Real.zero)
