@@ -16,7 +16,11 @@ let lcm = (a: t, b: t): t => {
   | (Some(0), Some(_))
   | (Some(_), Some(0)) => zero
   | (Some(a), Some(b)) =>
-    ofInt(abs(a) * abs(b) / Real_Util.gcd(abs(a), abs(b)))
+    let gcd = Real_Util.gcd(abs(a), abs(b));
+    switch (SafeInt.(toInt(ofInt(a) * ofInt(b) / ofInt(gcd)))) {
+    | Some(ans) => ofInt(ans)
+    | None => nan
+    };
   | _ => nan
   };
 };
