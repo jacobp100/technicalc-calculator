@@ -1,7 +1,7 @@
-const cartesian = require("cartesian");
 const { range } = require("lodash");
 const mathjs = require("mathjs");
 const { Value, toMatchJsValue } = require("../__test-util__");
+const cartesian = require("../__test-util__/cartesian");
 const TechniCalc = require("../Value.bs");
 
 expect.extend({ toMatchJsValue });

@@ -1,6 +1,6 @@
-const cartesian = require("cartesian");
-const { Value } = require(".");
 const TechniCalc = require("../Value.bs");
+const cartesian = require("./cartesian");
+const { Value } = require(".");
 
 const elements = [0, 1, -1, 5];
 

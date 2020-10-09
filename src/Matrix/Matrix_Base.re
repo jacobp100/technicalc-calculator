@@ -38,7 +38,7 @@ let ofVector = elements => {
 
 let some = (x, fn) => Belt.Array.some(x.elements, fn);
 
-let getExn = (x, row, column) =>
+let getExn = (x, ~row, ~column) =>
   if (row >= 0 && row <= x.numRows && column >= 0 && column <= x.numColumns) {
     Belt.Array.getUnsafe(x.elements, column + row * x.numColumns);
   } else {

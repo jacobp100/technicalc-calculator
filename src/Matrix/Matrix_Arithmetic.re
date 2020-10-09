@@ -23,7 +23,10 @@ let mul = (a: t, b: t): t =>
         let element = ref(`Zero);
         for (i in 0 to shape - 1) {
           let elementProduct =
-            Scalar.mul(getExn(a, row, i), getExn(b, i, column));
+            Scalar.mul(
+              getExn(a, ~row, ~column=i),
+              getExn(b, ~row=i, ~column),
+            );
           element := Scalar.add(element^, elementProduct);
         };
         element^;

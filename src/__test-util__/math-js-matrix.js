@@ -1,7 +1,7 @@
-const cartesian = require("cartesian");
 const mathjs = require("mathjs");
+const { matrixOfFloats } = require("../ValueTestUtil.bs");
+const cartesian = require("./cartesian");
 const { Value } = require(".");
-const { matrixOfFloats } = require("../ValueTest.bs");
 
 const matrix2x2 = cartesian([
   [0, -1, 1, 5],

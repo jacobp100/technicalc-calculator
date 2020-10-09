@@ -9,9 +9,9 @@ let mulVector = (m: t, v: Vector.t): Vector.t => {
       size,
       (. row) => {
         let element: ref(Scalar.t) = ref(`Zero);
-        for (column in 0 to size) {
+        for (column in 0 to size - 1) {
           let elementProduct =
-            Scalar.mul(getExn(m, row, column), Vector.getExn(v, column));
+            Scalar.mul(getExn(m, ~row, ~column), Vector.getExn(v, column));
           element := Scalar.add(element^, elementProduct);
         };
         element^;

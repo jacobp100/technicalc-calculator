@@ -1,9 +1,9 @@
-const cartesian = require("cartesian");
 const mathjs = require("mathjs");
-const { toMatchJsMatrix } = require("../__test-util__");
-const { matrix2x2, matrix3x3 } = require("../__test-util__/math-js-matrix");
 const TechniCalc = require("../Value.bs");
 const TechniCalcTest = require("../ValueTestUtil.bs");
+const { toMatchJsMatrix } = require("../__test-util__");
+const { matrix2x2, matrix3x3 } = require("../__test-util__/math-js-matrix");
+const cartesian = require("../__test-util__/cartesian");
 
 expect.extend({ toMatchJsMatrix });
 

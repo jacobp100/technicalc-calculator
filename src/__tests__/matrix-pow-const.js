@@ -1,10 +1,10 @@
 const { range } = require("lodash");
-const cartesian = require("cartesian");
 const mathjs = require("mathjs");
-const { Value, toMatchJsMatrix } = require("../__test-util__");
-const { matrix3x3 } = require("../__test-util__/math-js-matrix");
 const TechniCalc = require("../Value.bs");
 const { matrixOfFloats, toString } = require("../ValueTestUtil.bs");
+const { Value, toMatchJsMatrix } = require("../__test-util__");
+const { matrix3x3 } = require("../__test-util__/math-js-matrix");
+const cartesian = require("../__test-util__/cartesian");
 
 expect.extend({ toMatchJsMatrix });
 

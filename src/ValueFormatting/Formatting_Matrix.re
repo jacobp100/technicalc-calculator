@@ -50,7 +50,7 @@ let toString = (matrix: Matrix.t, format, tableFormat) => {
       };
 
       let element =
-        Matrix.getExn(matrix, row, column)
+        Matrix.getExn(matrix, ~row, ~column)
         ->Formatting_Scalar.toString(_, format);
       out := out^ ++ element;
     };

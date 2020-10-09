@@ -1,8 +1,8 @@
-const cartesian = require("cartesian");
 const mathjs = require("mathjs");
+const TechniCalc = require("../Value.bs");
 const { toMatchJsValue } = require("../__test-util__");
 const { imagValues } = require("../__test-util__/math-js");
-const TechniCalc = require("../Value.bs");
+const cartesian = require("../__test-util__/cartesian");
 
 expect.extend({ toMatchJsValue });
 
