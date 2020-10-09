@@ -1,5 +1,8 @@
 const baseCartesian = require("cartesian");
 const { sampleSize } = require("lodash");
 
-
-module.exports = (a, b) => sampleSize(baseCartesian(a, b), 20)
+const sample = 20;
+module.exports = (values) => {
+  const fullResult = baseCartesian(values);
+  return sample != null ? sampleSize(fullResult, sample) : fullResult;
+};

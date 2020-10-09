@@ -21,9 +21,9 @@ let%private inv = a => {
   | Rational(n, d, Exp(exp) as c) =>
     switch (SafeInt.negInt(exp)) {
     | Some(exp) => ofRational(d, n, Exp(exp))
-    | _ => Decimal(ratDecimal(n, d, c)->Decimal.inv)
+    | _ => ofDecimal(ratDecimal(n, d, c)->Decimal.inv)
     }
-  | _ => Decimal(toDecimal(a)->Decimal.inv)
+  | _ => ofDecimal(toDecimal(a)->Decimal.inv)
   };
 };
 
@@ -32,9 +32,9 @@ let neg = a =>
   | Rational(n, d, c) =>
     switch (SafeInt.negInt(n)) {
     | Some(n) => ofRational(n, d, c)
-    | _ => Decimal(ratDecimal(n, d, c)->Decimal.neg)
+    | _ => ofDecimal(ratDecimal(n, d, c)->Decimal.neg)
     }
-  | Decimal(f) => Decimal(Decimal.neg(f))
+  | Decimal(f) => ofDecimal(Decimal.neg(f))
   };
 
 let abs = a =>
@@ -42,15 +42,15 @@ let abs = a =>
   | Rational(n, d, c) =>
     switch (SafeInt.absInt(n)) {
     | Some(n) => ofRational(n, d, c)
-    | _ => Decimal(Decimal.abs(ratDecimal(n, d, c)))
+    | _ => ofDecimal(Decimal.abs(ratDecimal(n, d, c)))
     }
-  | Decimal(f) => Decimal(Decimal.abs(f))
+  | Decimal(f) => ofDecimal(Decimal.abs(f))
   };
 
 let%private ofDecimalInt = f =>
   switch (Decimal.toFloat(f)->FloatUtil.intValue) {
   | Some(intVal) => ofRational(intVal, 1, Unit)
-  | None => Decimal(f)
+  | None => ofDecimal(f)
   };
 
 let round = a => toDecimal(a)->Decimal.round->ofDecimalInt;
@@ -72,7 +72,7 @@ let add = (a, b) => {
     };
   switch (rat) {
   | Some(rat) => rat
-  | None => Decimal(Decimal.add(toDecimal(a), toDecimal(b)))
+  | None => ofDecimal(Decimal.add(toDecimal(a), toDecimal(b)))
   };
 };
 
@@ -91,7 +91,7 @@ let sub = (a, b) => {
     };
   switch (rat) {
   | Some(rat) => rat
-  | None => Decimal(Decimal.sub(toDecimal(a), toDecimal(b)))
+  | None => ofDecimal(Decimal.sub(toDecimal(a), toDecimal(b)))
   };
 };
 
@@ -122,7 +122,7 @@ let mul = (a, b) => {
     };
   switch (rat) {
   | Some(rat) => rat
-  | None => Decimal(Decimal.mul(toDecimal(a), toDecimal(b)))
+  | None => ofDecimal(Decimal.mul(toDecimal(a), toDecimal(b)))
   };
 };
 
@@ -157,7 +157,7 @@ let div = (a, b) => {
     };
   switch (rat) {
   | Some(rat) => rat
-  | None => Decimal(Decimal.div(toDecimal(a), toDecimal(b)))
+  | None => ofDecimal(Decimal.div(toDecimal(a), toDecimal(b)))
   };
 };
 
@@ -180,6 +180,6 @@ let powInt = (a, b) => {
     };
   switch (powAbsB) {
   | Some(value) => b >= 0 ? value : inv(value)
-  | None => Decimal(Decimal.(toDecimal(a) ** ofInt(b)))
+  | None => ofDecimal(Decimal.(toDecimal(a) ** ofInt(b)))
   };
 };

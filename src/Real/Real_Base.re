@@ -20,7 +20,13 @@ let equal = (a, b) =>
   | _ => false
   };
 
-let ofDecimal = f => Decimal(f);
+let normalize = a =>
+  switch (a) {
+  | Decimal(f) when Decimal.eq(f, Decimal.zero) => zero
+  | _ => a
+  };
+
+let ofDecimal = f => Decimal(f)->normalize;
 
 let ofInt = n => {
   assert(n->float_of_int->int_of_float == n);

@@ -1,6 +1,7 @@
 const { range } = require("lodash");
 const mathjs = require("mathjs");
-const cartesian = require("./cartesian");
+const baseCartesian = require("cartesian");
+const sample = require("./sample");
 const TechniCalc = require("../Value.bs");
 const TechniCalcTest = require("../ValueTestUtil.bs");
 
@@ -46,14 +47,16 @@ module.exports.Value = class Value {
 
 const range12 = range(1, 12 + 1);
 const existingFractions = new Set();
-const fractionsTo12 = cartesian([[0, ...range12], range12]).filter(([a, b]) => {
-  const key = (a / b).toFixed(8);
-  if (!existingFractions.has(key)) {
-    existingFractions.add(key);
-    return true;
-  }
-  return false;
-});
+const fractionsTo12 = sample(
+  baseCartesian([[0, ...range12], range12]).filter(([a, b]) => {
+    const key = (a / b).toFixed(8);
+    if (!existingFractions.has(key)) {
+      existingFractions.add(key);
+      return true;
+    }
+    return false;
+  })
+);
 
 module.exports.range12 = range12;
 module.exports.fractionsTo12 = fractionsTo12;

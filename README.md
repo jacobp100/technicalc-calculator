@@ -18,4 +18,6 @@ To compile, `yarn build`, or `yarn start` to enter watch mode.
 
 To test, build in watch mode (`yarn start`), and in another terminal tab, `yarn test`. Testing is mostly fuzz testing against math-js and the native math library, and the tests can take minutes to complete.
 
+If you want to run a quicker test suite, run `SAMPLE=20 yarn test`.
+
 Collecting coverage is very useful to check which branches are called - especially the HTML outputs. However, as the JS files are compiled, an actual metric is not too useful. To get coverage, run `yarn test --coverage`, and check the `/coverage` folder.
