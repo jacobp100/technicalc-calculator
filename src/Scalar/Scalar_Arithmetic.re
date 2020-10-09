@@ -42,9 +42,9 @@ let mul = (a: t, b: t): t =>
     let imIm = Real.mul(aIm, bIm);
     let reIm = Real.mul(aRe, bIm);
     let imRe = Real.mul(aIm, bRe);
-    let reQ = Real.sub(reRe, imIm);
-    let imQ = Real.add(reIm, imRe);
-    `Complex((reQ, imQ));
+    let re = Real.sub(reRe, imIm);
+    let im = Real.add(reIm, imRe);
+    `Complex((re, im));
   };
 
 let%private magnitudeSquared = (re, im) => {
