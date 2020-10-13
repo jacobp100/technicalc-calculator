@@ -4,13 +4,13 @@ open Formatting_Util;
 let toString = (~format=default, ~inline=false, a: Value_Types.t): string => {
   let body =
     switch (a) {
-    | (`Zero | `Real(_) | `Imag(_) | `Complex(_)) as aV =>
+    | (`Z | `R(_) | `I(_) | `C(_)) as aV =>
       Formatting_Scalar.toString(aV, format)
-    | (`Matrix(_) | `Vector(_)) as aV =>
+    | (`M(_) | `V(_)) as aV =>
       let matrix =
         switch (aV) {
-        | `Matrix(m) => m
-        | `Vector(v) => Matrix.ofVector(v)
+        | `M(m) => m
+        | `V(v) => Matrix.ofVector(v)
         };
       let tableFormat =
         switch (format.mode) {
@@ -19,9 +19,9 @@ let toString = (~format=default, ~inline=false, a: Value_Types.t): string => {
         | MathML => Formatting_Matrix.formatMathML
         };
       Formatting_Matrix.toString(matrix, format, tableFormat);
-    | `Percent(p) =>
+    | `P(p) =>
       Formatting_Scalar.toString(p, format) ++ formatOperator("%", format)
-    | `NaN => formatVariable("NaN", format)
+    | `N => formatVariable("NaN", format)
     };
 
   switch (format.mode) {

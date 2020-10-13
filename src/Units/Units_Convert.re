@@ -150,7 +150,7 @@ let%private transformUnits =
 
 let fromSi = (value: Value.t, units) =>
   switch (value) {
-  | `Real(re) =>
+  | `R(re) =>
     let value =
       transformUnits(
         ~transformCelsius=celsiusFromKelvin,
@@ -160,12 +160,12 @@ let fromSi = (value: Value.t, units) =>
         units,
       );
     Value_Base.ofReal(Decimal(value));
-  | _ => `NaN
+  | _ => `N
   };
 
 let toSi = (value: Value.t, units) =>
   switch (value) {
-  | `Real(re) =>
+  | `R(re) =>
     let value =
       transformUnits(
         ~transformCelsius=celsiusToKelvin,
@@ -175,12 +175,12 @@ let toSi = (value: Value.t, units) =>
         units,
       );
     Value_Base.ofReal(Decimal(value));
-  | _ => `NaN
+  | _ => `N
   };
 
 let convert = (value: Value.t, ~fromUnits, ~toUnits) =>
   if (Unit_Dimensions.unitsCompatible(toUnits, fromUnits)) {
     value->toSi(fromUnits)->fromSi(toUnits);
   } else {
-    `NaN;
+    `N;
   };

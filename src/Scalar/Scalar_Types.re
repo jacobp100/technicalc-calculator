@@ -1,6 +1,1 @@
-type t = [
-  | `Zero
-  | `Real(Real.t)
-  | `Imag(Real.t)
-  | `Complex(Real.t, Real.t)
-];
+type t = [ | `Z | `R(Real.t) | `I(Real.t) | `C(Real.t, Real.t)];

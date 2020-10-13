@@ -10,17 +10,16 @@ let (/) = Value_Arithmetic.div;
 let (exp, log) = Value_Exponentiation.(exp, log);
 let percentToNumerical = Value_Util.percentToNumerical;
 
-let halfS = `Real(Real.Rational(1, 2, Unit));
+let halfS = `R(Real.Rational(1, 2, Unit));
 
 let isSquare = x => float_of_int(x)->sqrt->FloatUtil.isInt;
 
 let rec pow = (a: t, b: t): t =>
   switch (a, b) {
-  | (`Zero, `Real(_) | `Imag(_) | `Complex(_)) => `Zero
-  | (`Real(_) | `Imag(_) | `Complex(_), `Zero) => one
-  | (`Zero, `Zero) => `NaN
-  | (`Real(Rational(n, d, Unit)), `Real(Rational(1, 2, Unit)))
-      when isSquare(d) =>
+  | (`Z, `R(_) | `I(_) | `C(_)) => `Z
+  | (`R(_) | `I(_) | `C(_), `Z) => one
+  | (`Z, `Z) => `N
+  | (`R(Rational(n, d, Unit)), `R(Rational(1, 2, Unit))) when isSquare(d) =>
     let denSqrt = float_of_int(d)->sqrt->FloatUtil.intValueExn;
     let r = Real.ofRational(1, denSqrt, Sqrt(abs(n)));
     if (n >= 0) {
@@ -28,13 +27,12 @@ let rec pow = (a: t, b: t): t =>
     } else {
       ofImag(r);
     };
-  | (`Real(Rational(1, 1, Exp(1))), _) => exp(b)
-  | (`Vector(v), `Real(Rational(2, 1, Unit))) =>
+  | (`R(Rational(1, 1, Exp(1))), _) => exp(b)
+  | (`V(v), `R(Rational(2, 1, Unit))) =>
     Vector.magnitudeSquared(v)->ofScalar
-  // | (_, `Real(Rational(2, 1, Unit))) => a * a
-  | (`Real(re), `Real(Rational(bInt, 1, Unit))) =>
-    ofReal(Real.powInt(re, bInt))
-  | (`Imag(im), `Real(Rational(bInt, 1, Unit))) =>
+  // | (_, `R(Rational(2, 1, Unit))) => a * a
+  | (`R(re), `R(Rational(bInt, 1, Unit))) => ofReal(Real.powInt(re, bInt))
+  | (`I(im), `R(Rational(bInt, 1, Unit))) =>
     let aPowB = Real.powInt(im, bInt);
     switch (IntUtil.safeMod(bInt, 4)) {
     | 0 => ofReal(aPowB)
@@ -43,20 +41,17 @@ let rec pow = (a: t, b: t): t =>
     | 3 => ofImag(Real.(- aPowB))
     | _ => raise(Not_found)
     };
-  | (`Real(_) | `Imag(_) | `Complex(_), `Real(_) | `Imag(_) | `Complex(_)) =>
-    exp(log(a) * b)
-  | (`Percent(aP), `Percent(bP)) =>
-    pow(percentToNumerical(aP), percentToNumerical(bP))
-  | (`Percent(p), _) => pow(percentToNumerical(p), b)
-  | (_, `Percent(p)) => pow(a, percentToNumerical(p))
-  | (`Matrix(m), `Real(Rational((-1), 1, Unit))) =>
-    Matrix.inverse(m)->ofMatrix
-  | (`Matrix(m), `Zero) when Pervasives.(m.numColumns == m.numRows) =>
+  | (`R(_) | `I(_) | `C(_), `R(_) | `I(_) | `C(_)) => exp(log(a) * b)
+  | (`P(aP), `P(bP)) => pow(percentToNumerical(aP), percentToNumerical(bP))
+  | (`P(p), _) => pow(percentToNumerical(p), b)
+  | (_, `P(p)) => pow(a, percentToNumerical(p))
+  | (`M(m), `R(Rational((-1), 1, Unit))) => Matrix.inverse(m)->ofMatrix
+  | (`M(m), `Z) when Pervasives.(m.numColumns == m.numRows) =>
     Matrix.identity(m.numRows)->ofMatrix
-  | (`Matrix(m), `Real(Rational(gtZero, 1, Unit))) when gtZero >= 0 =>
+  | (`M(m), `R(Rational(gtZero, 1, Unit))) when gtZero >= 0 =>
     Matrix.pow(m, gtZero)->ofMatrix
-  | (`NaN | `Vector(_) | `Matrix(_), _)
-  | (_, `NaN | `Vector(_) | `Matrix(_)) => `NaN
+  | (`N | `V(_) | `M(_), _)
+  | (_, `N | `V(_) | `M(_)) => `N
   };
 
 let sqrt = (x: t): t => pow(x, halfS);

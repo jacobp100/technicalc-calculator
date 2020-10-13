@@ -35,18 +35,18 @@ type scalarEncoding =
 
 let%private encodeScalar = (a: Scalar.t): scalarEncoding =>
   switch (a) {
-  | `Zero => Zero
-  | `Real(re) => Real(encodeReal(re))
-  | `Imag(im) => Imag(encodeReal(im))
-  | `Complex(re, im) => Complex(encodeReal(re), encodeReal(im))
+  | `Z => Zero
+  | `R(re) => Real(encodeReal(re))
+  | `I(im) => Imag(encodeReal(im))
+  | `C(re, im) => Complex(encodeReal(re), encodeReal(im))
   };
 
 let%private decodeScalar = (a: scalarEncoding): Scalar.t =>
   switch (a) {
-  | Zero => `Zero
-  | Real(re) => `Real(decodeReal(re))
-  | Imag(im) => `Imag(decodeReal(im))
-  | Complex(re, im) => `Complex((decodeReal(re), decodeReal(im)))
+  | Zero => `Z
+  | Real(re) => `R(decodeReal(re))
+  | Imag(im) => `I(decodeReal(im))
+  | Complex(re, im) => `C((decodeReal(re), decodeReal(im)))
   };
 
 type encoding =
@@ -61,20 +61,20 @@ type encoding =
 
 let encode = (a: t): encoding =>
   switch (a) {
-  | `Zero => Zero
-  | `Real(re) => Real(encodeReal(re))
-  | `Imag(im) => Imag(encodeReal(im))
-  | `Complex(re, im) => Complex(encodeReal(re), encodeReal(im))
-  | `Vector(elements) => Vector(elements->Belt.Array.map(encodeScalar))
-  | `Matrix({numRows, numColumns, elements}) =>
+  | `Z => Zero
+  | `R(re) => Real(encodeReal(re))
+  | `I(im) => Imag(encodeReal(im))
+  | `C(re, im) => Complex(encodeReal(re), encodeReal(im))
+  | `V(elements) => Vector(elements->Belt.Array.map(encodeScalar))
+  | `M({numRows, numColumns, elements}) =>
     Matrix(numRows, numColumns, elements->Belt.Array.map(encodeScalar))
-  | `Percent(p) => Percent(encodeScalar(p))
-  | `NaN => NaN
+  | `P(p) => Percent(encodeScalar(p))
+  | `N => NaN
   };
 
 let decode = (a: encoding): t =>
   switch (a) {
-  | Zero => `Zero
+  | Zero => `Z
   | Real(re) => ofReal(decodeReal(re))
   | Imag(im) => ofImag(decodeReal(im))
   | Complex(re, im) => ofComplex(decodeReal(re), decodeReal(im))
@@ -82,6 +82,6 @@ let decode = (a: encoding): t =>
   | Matrix(numRows, numColumns, elements) =>
     let elements = elements->Belt.Array.map(decodeScalar);
     ofMatrix(Matrix.{numRows, numColumns, elements});
-  | Percent(p) => `Percent(decodeScalar(p))
-  | NaN => `NaN
+  | Percent(p) => `P(decodeScalar(p))
+  | NaN => `N
   };

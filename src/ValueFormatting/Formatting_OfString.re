@@ -247,11 +247,11 @@ let%private parseScalar = (~base, tokens): option(Scalar.t) => {
     switch (partialparseReal(~base, rest)) {
     | Some((imag, [I])) =>
       let imag = sign == Plus ? imag : Real.neg(imag);
-      Some(`Complex((real, imag)));
+      Some(`C((real, imag)));
     | _ => None
     }
-  | Some([I]) => Some(`Imag(real))
-  | Some([]) => Some(`Real(real))
+  | Some([I]) => Some(`I(real))
+  | Some([]) => Some(`R(real))
   | _ => None
   };
 };

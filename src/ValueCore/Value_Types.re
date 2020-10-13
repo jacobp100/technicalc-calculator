@@ -1,4 +1,4 @@
-type percent = [ | `Percent(Scalar.t)];
-type matrix = [ | `Matrix(Matrix.t)];
-type vector = [ | `Vector(Vector.t)];
-type t = [ Scalar.t | percent | matrix | vector | `NaN];
+type percent = [ | `P(Scalar.t)];
+type matrix = [ | `M(Matrix.t)];
+type vector = [ | `V(Vector.t)];
+type t = [ Scalar.t | percent | matrix | vector | `N];

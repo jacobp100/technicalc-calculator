@@ -2,7 +2,7 @@ open AST_Types;
 
 let rec eval = (~context, node: t): Value.t =>
   switch (node) {
-  | NaN => `NaN
+  | NaN => `N
   | Zero => Value.zero
   | One => Value.one
   | MinusOne => Value.minusOne
@@ -12,9 +12,9 @@ let rec eval = (~context, node: t): Value.t =>
   | E => Value.e
   | OfInt(a) => Value.ofInt(a)
   | OfFloat(a) => Value.ofFloat(a)
-  | OfString(a) => Value.ofString(a)->Belt.Option.getWithDefault(`NaN)
+  | OfString(a) => Value.ofString(a)->Belt.Option.getWithDefault(`N)
   | OfStringBase(base, a) =>
-    Value.ofStringBase(base, a)->Belt.Option.getWithDefault(`NaN)
+    Value.ofStringBase(base, a)->Belt.Option.getWithDefault(`N)
   | Percent(percent) => evalScalar(~context, percent)->Value.ofPercent
   | Vector(elements) =>
     Value.ofVector(Belt.Array.map(elements, evalScalar(~context)))
@@ -107,44 +107,44 @@ let solveRoot = (body, initial) => {
   };
 
   let initial = eval(initial);
-  initial != `NaN ? Value.solveRoot(fn, initial) : `NaN;
+  initial != `N ? Value.solveRoot(fn, initial) : `N;
 };
 let solveQuadratic = (a, b, c) => {
   let a = eval(a);
-  let b = a != `NaN ? eval(b) : `NaN;
-  let c = b != `NaN ? eval(c) : `NaN;
-  c != `NaN ? Value.quadratic(a, b, c) : (`NaN, `NaN);
+  let b = a != `N ? eval(b) : `N;
+  let c = b != `N ? eval(c) : `N;
+  c != `N ? Value.quadratic(a, b, c) : (`N, `N);
 };
 let solveCubic = (a, b, c, d) => {
   let a = eval(a);
-  let b = a != `NaN ? eval(b) : `NaN;
-  let c = b != `NaN ? eval(c) : `NaN;
-  let d = c != `NaN ? eval(d) : `NaN;
-  d != `NaN ? Value.cubic(a, b, c, d) : (`NaN, `NaN, `NaN);
+  let b = a != `N ? eval(b) : `N;
+  let c = b != `N ? eval(c) : `N;
+  let d = c != `N ? eval(d) : `N;
+  d != `N ? Value.cubic(a, b, c, d) : (`N, `N, `N);
 };
 let solveVar2 = (x0, y0, c0, x1, y1, c1) => {
   let x0 = eval(x0);
-  let y0 = x0 != `NaN ? eval(y0) : `NaN;
-  let c0 = y0 != `NaN ? eval(c0) : `NaN;
-  let x1 = c0 != `NaN ? eval(x1) : `NaN;
-  let y1 = x1 != `NaN ? eval(y1) : `NaN;
-  let c1 = y1 != `NaN ? eval(c1) : `NaN;
-  c1 != `NaN ? Value.var2(x0, y0, c0, x1, y1, c1) : (`NaN, `NaN);
+  let y0 = x0 != `N ? eval(y0) : `N;
+  let c0 = y0 != `N ? eval(c0) : `N;
+  let x1 = c0 != `N ? eval(x1) : `N;
+  let y1 = x1 != `N ? eval(y1) : `N;
+  let c1 = y1 != `N ? eval(c1) : `N;
+  c1 != `N ? Value.var2(x0, y0, c0, x1, y1, c1) : (`N, `N);
 };
 let solveVar3 = (x0, y0, z0, c0, x1, y1, z1, c1, x2, y2, z2, c2) => {
   let x0 = eval(x0);
-  let y0 = x0 != `NaN ? eval(y0) : `NaN;
-  let c0 = y0 != `NaN ? eval(c0) : `NaN;
-  let z0 = c0 != `NaN ? eval(z0) : `NaN;
-  let x1 = z0 != `NaN ? eval(x1) : `NaN;
-  let y1 = x1 != `NaN ? eval(y1) : `NaN;
-  let z1 = y1 != `NaN ? eval(z1) : `NaN;
-  let c1 = z1 != `NaN ? eval(c1) : `NaN;
-  let x2 = c1 != `NaN ? eval(x2) : `NaN;
-  let y2 = x2 != `NaN ? eval(y2) : `NaN;
-  let z2 = y2 != `NaN ? eval(z2) : `NaN;
-  let c2 = z2 != `NaN ? eval(c2) : `NaN;
-  c2 != `NaN
+  let y0 = x0 != `N ? eval(y0) : `N;
+  let c0 = y0 != `N ? eval(c0) : `N;
+  let z0 = c0 != `N ? eval(z0) : `N;
+  let x1 = z0 != `N ? eval(x1) : `N;
+  let y1 = x1 != `N ? eval(y1) : `N;
+  let z1 = y1 != `N ? eval(z1) : `N;
+  let c1 = z1 != `N ? eval(c1) : `N;
+  let x2 = c1 != `N ? eval(x2) : `N;
+  let y2 = x2 != `N ? eval(y2) : `N;
+  let z2 = y2 != `N ? eval(z2) : `N;
+  let c2 = z2 != `N ? eval(c2) : `N;
+  c2 != `N
     ? Value.var3(x0, y0, z0, c0, x1, y1, z1, c1, x2, y2, z2, c2)
-    : (`NaN, `NaN, `NaN);
+    : (`N, `N, `N);
 };

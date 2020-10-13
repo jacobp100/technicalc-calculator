@@ -110,10 +110,10 @@ let%private formatImagTuple = (re: Real.t, format): string => {
 
 let toString = (a: Scalar.t, format): string =>
   switch (a) {
-  | `Zero => formatNumber("0", format)
-  | `Real(re) => formatTuple(re, format)
-  | `Imag(im) => formatImagTuple(im, format)
-  | `Complex(re, im) =>
+  | `Z => formatNumber("0", format)
+  | `R(re) => formatTuple(re, format)
+  | `I(im) => formatImagTuple(im, format)
+  | `C(re, im) =>
     formatTuple(re, format)
     ++ formatOperator(
          Decimal.(Real.toDecimal(im) < zero) ? "-" : "+",

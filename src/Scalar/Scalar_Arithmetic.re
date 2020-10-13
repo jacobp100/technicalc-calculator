@@ -2,49 +2,49 @@ open Scalar_Types;
 
 let add = (a: t, b: t): t =>
   switch (a, b) {
-  | (`Zero, _) => b
-  | (_, `Zero) => a
-  | (`Real(a), `Real(b)) => `Real(Real.add(a, b))
-  | (`Imag(a), `Imag(b)) => `Imag(Real.add(a, b))
-  | (`Real(re), `Imag(im))
-  | (`Imag(im), `Real(re)) => `Complex((re, im))
-  | (`Real(aRe), `Complex(bRe, im))
-  | (`Complex(bRe, im), `Real(aRe)) => `Complex((Real.add(aRe, bRe), im))
-  | (`Imag(aIm), `Complex(re, bIm))
-  | (`Complex(re, bIm), `Imag(aIm)) => `Complex((re, Real.add(aIm, bIm)))
-  | (`Complex(aRe, aIm), `Complex(bRe, bIm)) =>
-    `Complex((Real.add(aRe, bRe), Real.add(aIm, bIm)))
+  | (`Z, _) => b
+  | (_, `Z) => a
+  | (`R(a), `R(b)) => `R(Real.add(a, b))
+  | (`I(a), `I(b)) => `I(Real.add(a, b))
+  | (`R(re), `I(im))
+  | (`I(im), `R(re)) => `C((re, im))
+  | (`R(aRe), `C(bRe, im))
+  | (`C(bRe, im), `R(aRe)) => `C((Real.add(aRe, bRe), im))
+  | (`I(aIm), `C(re, bIm))
+  | (`C(re, bIm), `I(aIm)) => `C((re, Real.add(aIm, bIm)))
+  | (`C(aRe, aIm), `C(bRe, bIm)) =>
+    `C((Real.add(aRe, bRe), Real.add(aIm, bIm)))
   };
 
 let sub = (a: t, b: t): t => add(a, Scalar_Functions.neg(b));
 
 let mul = (a: t, b: t): t =>
   switch (a, b) {
-  | (`Zero, `Zero)
-  | (`Zero, `Real(_) | `Imag(_) | `Complex(_))
-  | (`Real(_) | `Imag(_) | `Complex(_), `Zero) => `Zero
-  | (`Real(a), `Real(b)) => `Real(Real.mul(a, b))
-  | (`Imag(a), `Imag(b)) => `Real(Real.mul(a, b)->Real.neg)
-  | (`Real(re), `Imag(im))
-  | (`Imag(im), `Real(re)) => `Imag(Real.mul(re, im))
-  | (`Real(aRe), `Complex(bRe, bIm))
-  | (`Complex(bRe, bIm), `Real(aRe)) =>
+  | (`Z, `Z)
+  | (`Z, `R(_) | `I(_) | `C(_))
+  | (`R(_) | `I(_) | `C(_), `Z) => `Z
+  | (`R(a), `R(b)) => `R(Real.mul(a, b))
+  | (`I(a), `I(b)) => `R(Real.mul(a, b)->Real.neg)
+  | (`R(re), `I(im))
+  | (`I(im), `R(re)) => `I(Real.mul(re, im))
+  | (`R(aRe), `C(bRe, bIm))
+  | (`C(bRe, bIm), `R(aRe)) =>
     let re = Real.mul(aRe, bRe);
     let im = Real.mul(aRe, bIm);
-    `Complex((re, im));
-  | (`Imag(aIm), `Complex(bRe, bIm))
-  | (`Complex(bRe, bIm), `Imag(aIm)) =>
+    `C((re, im));
+  | (`I(aIm), `C(bRe, bIm))
+  | (`C(bRe, bIm), `I(aIm)) =>
     let re = Real.mul(aIm, bIm);
     let im = Real.mul(aIm, bRe);
-    `Complex((Real.neg(re), im));
-  | (`Complex(aRe, aIm), `Complex(bRe, bIm)) =>
+    `C((Real.neg(re), im));
+  | (`C(aRe, aIm), `C(bRe, bIm)) =>
     let reRe = Real.mul(aRe, bRe);
     let imIm = Real.mul(aIm, bIm);
     let reIm = Real.mul(aRe, bIm);
     let imRe = Real.mul(aIm, bRe);
     let re = Real.sub(reRe, imIm);
     let im = Real.add(reIm, imRe);
-    `Complex((re, im));
+    `C((re, im));
   };
 
 let%private magnitudeSquared = (re, im) => {
@@ -55,34 +55,34 @@ let%private magnitudeSquared = (re, im) => {
 
 let div = (a: t, b: t): t =>
   switch (a, b) {
-  | (_, `Zero) => `Real(Real.nan)
-  | (`Zero, _) => `Zero
-  | (`Real(a), `Real(b)) => `Real(Real.div(a, b))
-  | (`Imag(im), `Real(re)) => `Imag(Real.div(im, re))
-  | (`Real(re), `Imag(im)) => `Imag(Real.div(Real.neg(re), im))
-  | (`Imag(a), `Imag(b)) => `Real(Real.div(a, b))
-  | (`Complex(aRe, aIm), `Real(bRe)) =>
+  | (_, `Z) => `R(Real.nan)
+  | (`Z, _) => `Z
+  | (`R(a), `R(b)) => `R(Real.div(a, b))
+  | (`I(im), `R(re)) => `I(Real.div(im, re))
+  | (`R(re), `I(im)) => `I(Real.div(Real.neg(re), im))
+  | (`I(a), `I(b)) => `R(Real.div(a, b))
+  | (`C(aRe, aIm), `R(bRe)) =>
     let re = Real.div(aRe, bRe);
     let im = Real.div(aIm, bRe);
-    `Complex((re, im));
-  | (`Complex(aRe, aIm), `Imag(bIm)) =>
+    `C((re, im));
+  | (`C(aRe, aIm), `I(bIm)) =>
     let re = Real.div(aIm, bIm);
     let im = Real.div(Real.neg(aRe), bIm);
-    `Complex((re, im));
-  | (`Real(aRe), `Complex(bRe, bIm)) =>
+    `C((re, im));
+  | (`R(aRe), `C(bRe, bIm)) =>
     let s = magnitudeSquared(bRe, bIm);
     let re = Real.mul(aRe, bRe)->Real.div(s);
     let im = Real.mul(Real.neg(aRe), bIm)->Real.div(s);
-    `Complex((re, im));
-  | (`Imag(aIm), `Complex(bRe, bIm)) =>
+    `C((re, im));
+  | (`I(aIm), `C(bRe, bIm)) =>
     let s = magnitudeSquared(bRe, bIm);
     let re = Real.mul(aIm, bIm)->Real.div(s);
     let im = Real.mul(aIm, bRe)->Real.div(s);
-    `Complex((re, im));
-  | (`Complex(_), `Complex(bRe, bIm)) =>
+    `C((re, im));
+  | (`C(_), `C(bRe, bIm)) =>
     let s = magnitudeSquared(bRe, bIm);
     let bRecipRe = Real.div(bRe, s);
     let bRecipIm = Real.div(Real.neg(bIm), s);
-    let bRecip = `Complex((bRecipRe, bRecipIm));
+    let bRecip = `C((bRecipRe, bRecipIm));
     mul(a, bRecip);
   };

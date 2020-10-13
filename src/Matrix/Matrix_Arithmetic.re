@@ -20,7 +20,7 @@ let mul = (a: t, b: t): t =>
       shape,
       shape,
       (. row, column) => {
-        let element = ref(`Zero);
+        let element = ref(`Z);
         for (i in 0 to shape - 1) {
           let elementProduct =
             Scalar.mul(

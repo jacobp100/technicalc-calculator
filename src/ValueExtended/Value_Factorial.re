@@ -29,19 +29,19 @@ let sqrt2Pi = Decimal.ofFloat(2.506628274631000502415765284811);
 
 let gamma = (x: t): t =>
   switch (x) {
-  | `Zero => `NaN
-  | `Real(Rational(1 | 2, 1, Unit)) => ofReal(Real.ofInt(1))
-  | `Real(Rational(3, 1, Unit)) => ofReal(Real.ofInt(2))
-  | `Real(Rational(4, 1, Unit)) => ofReal(Real.ofInt(6))
-  | `Real(Rational(5, 1, Unit)) => ofReal(Real.ofInt(24))
-  | `Real(Rational(6, 1, Unit)) => ofReal(Real.ofInt(120))
-  | `Real(Rational(7, 1, Unit)) => ofReal(Real.ofInt(720))
-  | `Real(Rational(8, 1, Unit)) => ofReal(Real.ofInt(5040))
-  | `Real(Rational(9, 1, Unit)) => ofReal(Real.ofInt(40320))
-  | `Real(Rational(10, 1, Unit)) => ofReal(Real.ofInt(362880))
-  | `Real(Rational(11, 1, Unit)) => ofReal(Real.ofInt(3628800))
-  | `Real(Rational(12, 1, Unit)) => ofReal(Real.ofInt(479001600))
-  | `Real(re) when Real.(re > zero) =>
+  | `Z => `N
+  | `R(Rational(1 | 2, 1, Unit)) => ofReal(Real.ofInt(1))
+  | `R(Rational(3, 1, Unit)) => ofReal(Real.ofInt(2))
+  | `R(Rational(4, 1, Unit)) => ofReal(Real.ofInt(6))
+  | `R(Rational(5, 1, Unit)) => ofReal(Real.ofInt(24))
+  | `R(Rational(6, 1, Unit)) => ofReal(Real.ofInt(120))
+  | `R(Rational(7, 1, Unit)) => ofReal(Real.ofInt(720))
+  | `R(Rational(8, 1, Unit)) => ofReal(Real.ofInt(5040))
+  | `R(Rational(9, 1, Unit)) => ofReal(Real.ofInt(40320))
+  | `R(Rational(10, 1, Unit)) => ofReal(Real.ofInt(362880))
+  | `R(Rational(11, 1, Unit)) => ofReal(Real.ofInt(3628800))
+  | `R(Rational(12, 1, Unit)) => ofReal(Real.ofInt(479001600))
+  | `R(re) when Real.(re > zero) =>
     open Decimal;
     /* See https://github.com/josdejong/mathjs/blob/c5971b371a5610caf37de0d6507a1c7150280f09/src/function/probability/gamma.js */
     let n = Real.toDecimal(re) - half;
@@ -51,12 +51,12 @@ let gamma = (x: t): t =>
       );
     let t = n + g;
     ofDecimal(sqrt2Pi * t ** n * exp(- t) * x);
-  | (`Imag(_) | `Complex(_)) as xV =>
+  | (`I(_) | `C(_)) as xV =>
     open Decimal;
     let (nRe, nIm) =
       switch (xV) {
-      | `Imag(im) => (zero, Real.toDecimal(im))
-      | `Complex(re, im) => (Real.toDecimal(re), Real.toDecimal(im))
+      | `I(im) => (zero, Real.toDecimal(im))
+      | `C(re, im) => (Real.toDecimal(re), Real.toDecimal(im))
       };
     let nRe = nRe - half;
     let n = ofComplex(Real.Decimal(nRe), Real.Decimal(nIm));
@@ -76,7 +76,7 @@ let gamma = (x: t): t =>
     let x = ofComplex(Real.Decimal(xRe), Real.Decimal(xIm));
     let t = Value_Core.(n + ofDecimal(g));
     Value_Core.(ofDecimal(sqrt2Pi) * t ** n * exp(- t) * x);
-  | _ => `NaN
+  | _ => `N
   };
 
 let factorial = x => (x + one)->gamma;

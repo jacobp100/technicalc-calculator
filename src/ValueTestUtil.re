@@ -80,10 +80,10 @@ let ofComplexFloats = (re, im) =>
 
 let toComplexFloats = (a): (float, float) =>
   switch (a) {
-  | `Zero => (0., 0.)
-  | `Real(re) => (Real.toDecimal(re)->Decimal.toFloat, 0.)
-  | `Imag(re) => (0., Real.toDecimal(re)->Decimal.toFloat)
-  | `Complex(re, im) => (
+  | `Z => (0., 0.)
+  | `R(re) => (Real.toDecimal(re)->Decimal.toFloat, 0.)
+  | `I(re) => (0., Real.toDecimal(re)->Decimal.toFloat)
+  | `C(re, im) => (
       Real.toDecimal(re)->Decimal.toFloat,
       Real.toDecimal(im)->Decimal.toFloat,
     )
@@ -92,13 +92,13 @@ let toComplexFloats = (a): (float, float) =>
 
 let%private mapMatrix = (a: Value.t, fn: Scalar.t => 'a): array(array('a)) => {
   switch (a) {
-  | `Vector([|a, b|]) => [|[|fn(a)|], [|fn(b)|]|]
-  | `Vector([|a, b, c|]) => [|[|fn(a)|], [|fn(b)|], [|fn(c)|]|]
-  | `Matrix({elements: [|a, b, c, d|]}) => [|
+  | `V([|a, b|]) => [|[|fn(a)|], [|fn(b)|]|]
+  | `V([|a, b, c|]) => [|[|fn(a)|], [|fn(b)|], [|fn(c)|]|]
+  | `M({elements: [|a, b, c, d|]}) => [|
       [|fn(a), fn(b)|],
       [|fn(c), fn(d)|],
     |]
-  | `Matrix({elements: [|a, b, c, d, e, f, g, h, i|]}) => [|
+  | `M({elements: [|a, b, c, d, e, f, g, h, i|]}) => [|
       [|fn(a), fn(b), fn(c)|],
       [|fn(d), fn(e), fn(f)|],
       [|fn(g), fn(h), fn(i)|],

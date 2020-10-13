@@ -1,29 +1,29 @@
 open Scalar_Types;
 
-let one: t = `Real(Real.one);
-let minusOne: t = `Real(Real.minusOne);
-let zero: t = `Real(Real.zero);
-let nan: t = `Real(Real.nan);
+let one: t = `R(Real.one);
+let minusOne: t = `R(Real.minusOne);
+let zero: t = `R(Real.zero);
+let nan: t = `R(Real.nan);
 
 let normalize = (v: t): t =>
   switch (v) {
-  | `Zero
-  | `Real(Rational(0, _, _))
-  | `Imag(Rational(0, _, _))
-  | `Complex(Rational(0, _, _), Rational(0, _, _)) => `Zero
-  | `Complex(Rational(0, _, _), v) => `Imag(v)
-  | `Complex(v, Rational(0, _, _)) => `Real(v)
-  | `Real(_)
-  | `Imag(_)
-  | `Complex(_) => v
+  | `Z
+  | `R(Rational(0, _, _))
+  | `I(Rational(0, _, _))
+  | `C(Rational(0, _, _), Rational(0, _, _)) => `Z
+  | `C(Rational(0, _, _), v) => `I(v)
+  | `C(v, Rational(0, _, _)) => `R(v)
+  | `R(_)
+  | `I(_)
+  | `C(_) => v
   };
 
 let isNaN = (a: t) =>
   switch (a) {
-  | `Zero => false
-  | `Real(v)
-  | `Imag(v) => Real.isNaN(v)
-  | `Complex(re, im) => Real.isNaN(re) || Real.isNaN(im)
+  | `Z => false
+  | `R(v)
+  | `I(v) => Real.isNaN(v)
+  | `C(re, im) => Real.isNaN(re) || Real.isNaN(im)
   };
 
 let ofFloat = (v): t =>
@@ -36,49 +36,48 @@ let ofFloat = (v): t =>
     switch (FloatUtil.intValue(numeratorF), FloatUtil.intValue(magnitude)) {
     | (Some(numerator), Some(denominator))
         when abs_float(numeratorF) < intMaxF =>
-      `Real(Real.ofRational(numerator, denominator, Unit))->normalize
-    | _ => `Real(Real.ofDecimal(Decimal.ofFloat(v)))->normalize
+      `R(Real.ofRational(numerator, denominator, Unit))->normalize
+    | _ => `R(Real.ofDecimal(Decimal.ofFloat(v)))->normalize
     };
-  | FP_zero => `Zero
+  | FP_zero => `Z
   | FP_infinite
   | FP_nan => nan
   };
 
 let toDecimal = (a: t): Decimal.t =>
   switch (a) {
-  | `Zero => Decimal.zero
-  | `Real(re) => Real.toDecimal(re)
+  | `Z => Decimal.zero
+  | `R(re) => Real.toDecimal(re)
   | _ => Decimal.nan
   };
 
 let toInt = (a: t): option(int) =>
   switch (a) {
-  | `Zero => Some(0)
-  | `Real(re) => Real.toInt(re)
+  | `Z => Some(0)
+  | `R(re) => Real.toInt(re)
   | _ => None
   };
 
 let toFloat = (a: t): float =>
   switch (a) {
-  | `Zero => 0.
-  | `Real(re) => Real.toDecimal(re)->Decimal.toFloat
+  | `Z => 0.
+  | `R(re) => Real.toDecimal(re)->Decimal.toFloat
   | _ => Pervasives.nan
   };
 
 let equal = (a: t, b: t): bool =>
   switch (a, b) {
-  | (`Zero, `Zero) => true
-  | (`Real(a), `Real(b))
-  | (`Imag(a), `Imag(b)) => Real.(a == b)
-  | (`Complex(aRe, aIm), `Complex(bRe, bIm)) =>
-    Real.(aRe == bRe && aIm == bIm)
+  | (`Z, `Z) => true
+  | (`R(a), `R(b))
+  | (`I(a), `I(b)) => Real.(a == b)
+  | (`C(aRe, aIm), `C(bRe, bIm)) => Real.(aRe == bRe && aIm == bIm)
   | _ => false
   };
 
 let map = (a: t, f: Real.t => Real.t): t =>
   switch (a) {
-  | `Zero => `Zero
-  | `Real(re) => `Real(f(re))
-  | `Imag(im) => `Imag(f(im))
-  | `Complex(re, im) => `Complex((f(re), f(im)))
+  | `Z => `Z
+  | `R(re) => `R(f(re))
+  | `I(im) => `I(f(im))
+  | `C(re, im) => `C((f(re), f(im)))
   };

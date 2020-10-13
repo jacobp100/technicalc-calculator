@@ -8,7 +8,23 @@ When a number cannot be expressed as a rational, we represent it as a decimal us
 
 The final output can either be a fraction with up to one tracked value, or float.
 
-The aim is to not be a symbolic calculator, but to take some concepts from symbolic calculation to improve the accuracy.
+The aim is to not be a symbolic calculator or cas, but to take some concepts from symbolic calculation to improve the accuracy.
+
+## Type Scructure
+
+- `Real.t` -> rational number (with optional constant) or decimal.js number (when rational numbers are not possible)
+- `Vector.t` -> `array(Real.t)`
+- `Matrix.t` -> `{ numRows: int, numColumns: int, elements: array(Real.t) }`
+- `Scalar.t` -> `` [ `Zero | `Real(Real.t) | `Imag(Real.t) | `Complex(Real.t, Real.t) ] ``
+- `Value.t` -> `` [ Scalar.t | `Percent(Real.t) | `Matrix(`Matrix.t) | `Vector(Vector.t) | `NaN ] ``
+
+Note that all polymorphic variants are represented only using the first character. I.e. `` `Zero `` becomes `` `Z ``. This is because ReScript now represents these as strings, and using a single character improved performance by around 10%. Should the representation change such that the performance gain can be maintained, it should be pretty easy do to a find and replace to revert back.
+
+The scalar type will always simplify to the most compact representation. `Scalar.ofReal(Real.zero)` gives `` `Zero ``. This is relied upon during pattern matching.
+
+The same is true for the value type.
+
+---
 
 ### Compiling
 

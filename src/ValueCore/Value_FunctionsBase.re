@@ -4,8 +4,8 @@ open Value_Base;
 let neg = (a: t) =>
   switch (a) {
   | #Scalar.t as s => Scalar.neg(s)->ofScalar
-  | `Percent(p) => Scalar.neg(p)->ofPercent
-  | `Vector(v) => Vector.neg(v)->ofVector
-  | `Matrix(m) => Matrix.neg(m)->ofMatrix
-  | `NaN => `NaN
+  | `P(p) => Scalar.neg(p)->ofPercent
+  | `V(v) => Vector.neg(v)->ofVector
+  | `M(m) => Matrix.neg(m)->ofMatrix
+  | `N => `N
   };

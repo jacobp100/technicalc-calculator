@@ -14,7 +14,7 @@ let toDecimal = a =>
 
 let simplifySqrt = ac =>
   switch (ac) {
-  | 0 => `Zero
+  | 0 => `Z
   | 1 => `Factor((1, Unit))
   | _ =>
     let sqrtArg = ref(ac);

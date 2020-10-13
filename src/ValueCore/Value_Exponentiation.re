@@ -23,21 +23,21 @@ let expReal = re =>
 
 let rec exp = (a: t): t =>
   switch (a) {
-  | `Zero => one
-  | `Real(re) => ofReal(expReal(re))
-  | `Imag(im) =>
+  | `Z => one
+  | `R(re) => ofReal(expReal(re))
+  | `I(im) =>
     let re = Real_Trig.cos(im);
     let im = Real_Trig.sin(im);
     ofComplex(re, im);
-  | `Complex(re, im) =>
+  | `C(re, im) =>
     let exp = expReal(re);
     let re = Real_Trig.cos(im)->Real.mul(exp);
     let im = Real_Trig.sin(im)->Real.mul(exp);
     ofComplex(re, im);
-  | `Percent(p) => exp(Value_Util.percentToNumerical(p))
-  | `Vector(_)
-  | `Matrix(_)
-  | `NaN => `NaN
+  | `P(p) => exp(Value_Util.percentToNumerical(p))
+  | `V(_)
+  | `M(_)
+  | `N => `N
   };
 
 let logReal = q =>
@@ -54,26 +54,26 @@ let logReal = q =>
 
 let rec log = (a: t): t =>
   switch (a) {
-  | `Zero => `NaN
-  | `Real(gtZero) when Real.(gtZero > zero) => ofReal(logReal(gtZero))
-  | `Real(Rational((-1), 1, Unit)) => Value_Arithmetic.mul(pi, i)
-  | (`Real(_) | `Imag(_) | `Complex(_)) as vV =>
+  | `Z => `N
+  | `R(gtZero) when Real.(gtZero > zero) => ofReal(logReal(gtZero))
+  | `R(Rational((-1), 1, Unit)) => Value_Arithmetic.mul(pi, i)
+  | (`R(_) | `I(_) | `C(_)) as vV =>
     let re =
       switch (vV) {
-      | `Real(re) => Real.mul(re, re)
-      | `Imag(im) => Real.mul(im, im)
-      | `Complex(re, im) => Real.add(Real.mul(re, re), Real.mul(im, im))
+      | `R(re) => Real.mul(re, re)
+      | `I(im) => Real.mul(im, im)
+      | `C(re, im) => Real.add(Real.mul(re, re), Real.mul(im, im))
       };
     let re = Real.(div(logReal(re), ofRational(2, 1, Unit)));
     let im =
       switch (vV) {
-      | `Real(re) => arg(re, Real.zero)
-      | `Imag(im) => arg(Real.zero, im)
-      | `Complex(re, im) => arg(re, im)
+      | `R(re) => arg(re, Real.zero)
+      | `I(im) => arg(Real.zero, im)
+      | `C(re, im) => arg(re, im)
       };
     ofComplex(re, im);
-  | `Percent(p) => log(Value_Util.percentToNumerical(p))
-  | `Vector(_)
-  | `Matrix(_)
-  | `NaN => `NaN
+  | `P(p) => log(Value_Util.percentToNumerical(p))
+  | `V(_)
+  | `M(_)
+  | `N => `N
   };

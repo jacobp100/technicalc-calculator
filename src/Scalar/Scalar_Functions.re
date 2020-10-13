@@ -9,15 +9,15 @@ let ceil = map(_, Real.ceil);
 
 let conj = (a: t): t =>
   switch (a) {
-  | `Zero
-  | `Real(_) => a
-  | `Imag(im) => `Imag(Real.neg(im))
-  | `Complex(re, im) => `Complex((re, Real.neg(im)))
+  | `Z
+  | `R(_) => a
+  | `I(im) => `I(Real.neg(im))
+  | `C(re, im) => `C((re, Real.neg(im)))
   };
 
 let%private map2Real = (a: t, b: t, fn: (Real.t, Real.t) => Real.t): t =>
   switch (a, b) {
-  | (`Real(aRe), `Real(bRe)) => `Real(fn(aRe, bRe))
+  | (`R(aRe), `R(bRe)) => `R(fn(aRe, bRe))
   | _ => nan
   };
 

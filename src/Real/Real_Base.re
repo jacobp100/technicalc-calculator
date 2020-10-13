@@ -44,7 +44,7 @@ let ofRational = (n, d, c) =>
     let d = d / gcd;
 
     switch (Real_Constant.simplify(c)) {
-    | `Zero => Rational(0, 1, Unit)
+    | `Z => Rational(0, 1, Unit)
     | `None => Rational(n, d, c)
     | `Factor(n', c) =>
       switch (SafeInt.((ofInt(n) * ofInt(n'))->toInt)) {

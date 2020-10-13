@@ -5,62 +5,61 @@ external ofScalarUnsafe: Scalar.t => t = "%identity";
 external ofMatrixUnsafe: matrix => t = "%identity";
 external ofVectorUnsafe: vector => t = "%identity";
 
-let zero: t = `Zero;
-let one: t = `Real(Rational(1, 1, Unit));
-let minusOne: t = `Real(Rational(-1, 1, Unit));
-let i: t = `Imag(Rational(1, 1, Unit));
-let minusI: t = `Imag(Rational(-1, 1, Unit));
-let pi: t = `Real(Rational(1, 1, Pi));
-let e: t = `Real(Rational(1, 1, Exp(1)));
-let nan: t = `NaN;
+let zero: t = `Z;
+let one: t = `R(Rational(1, 1, Unit));
+let minusOne: t = `R(Rational(-1, 1, Unit));
+let i: t = `I(Rational(1, 1, Unit));
+let minusI: t = `I(Rational(-1, 1, Unit));
+let pi: t = `R(Rational(1, 1, Pi));
+let e: t = `R(Rational(1, 1, Exp(1)));
+let nan: t = `N;
 
 let equal = (a: t, b: t): bool =>
   switch (a, b) {
   | (#Scalar.t as aS, #Scalar.t as bS) => Scalar.equal(aS, bS)
-  | (`Percent(aP), `Percent(bP)) => Scalar.equal(aP, bP)
-  | (`Vector(aV), `Vector(bV)) => Vector.equal(aV, bV)
-  | (`Matrix(aM), `Matrix(bM)) => Matrix.equal(aM, bM)
+  | (`P(aP), `P(bP)) => Scalar.equal(aP, bP)
+  | (`V(aV), `V(bV)) => Vector.equal(aV, bV)
+  | (`M(aM), `M(bM)) => Matrix.equal(aM, bM)
   | _ => false
   };
 
 let normalize = (a: t): t =>
   switch (a) {
-  | `Zero => `Zero
-  | (`Real(v) | `Imag(v)) as scalar =>
-    Real.isNaN(v) ? `NaN : Scalar.normalize(scalar)->ofScalarUnsafe
-  | `Complex(re, im) as scalar =>
+  | `Z => `Z
+  | (`R(v) | `I(v)) as scalar =>
+    Real.isNaN(v) ? `N : Scalar.normalize(scalar)->ofScalarUnsafe
+  | `C(re, im) as scalar =>
     Real.isNaN(re) || Real.isNaN(im)
-      ? `NaN : Scalar.normalize(scalar)->ofScalarUnsafe
-  | `Percent(p) =>
+      ? `N : Scalar.normalize(scalar)->ofScalarUnsafe
+  | `P(p) =>
     if (Scalar.isNaN(p)) {
-      `NaN;
+      `N;
     } else {
       let normalized = Scalar.normalize(p);
-      normalized === p ? a : `Percent(Scalar.normalize(p));
+      normalized === p ? a : `P(Scalar.normalize(p));
     }
-  | `Vector(vector) =>
+  | `V(vector) =>
     Vector.isEmpty(vector) || Vector.some(vector, Scalar.isNaN)
-      ? `NaN : `Vector(Vector.map(vector, Scalar.normalize))
-  | `Matrix(matrix) =>
+      ? `N : `V(Vector.map(vector, Scalar.normalize))
+  | `M(matrix) =>
     Matrix.isEmpty(matrix) || Matrix.some(matrix, Scalar.isNaN)
-      ? `NaN : `Matrix(Matrix.map(matrix, Scalar.normalize))
-  | `NaN => `NaN
+      ? `N : `M(Matrix.map(matrix, Scalar.normalize))
+  | `N => `N
   };
 
 let ofScalar = (a: Scalar.t): t => ofScalarUnsafe(a)->normalize;
-let ofReal = (a: Real.t): t => normalize(`Real(a));
-let ofImag = (a: Real.t): t => normalize(`Imag(a));
-let ofComplex = (re: Real.t, im: Real.t): t =>
-  normalize(`Complex((re, im)));
-let ofPercent = (a: Scalar.t): t => normalize(`Percent(a));
-let ofVector = (a: Vector.t): t => normalize(`Vector(a));
-let ofMatrix = (a: Matrix.t): t => normalize(`Matrix(a));
+let ofReal = (a: Real.t): t => normalize(`R(a));
+let ofImag = (a: Real.t): t => normalize(`I(a));
+let ofComplex = (re: Real.t, im: Real.t): t => normalize(`C((re, im)));
+let ofPercent = (a: Scalar.t): t => normalize(`P(a));
+let ofVector = (a: Vector.t): t => normalize(`V(a));
+let ofMatrix = (a: Matrix.t): t => normalize(`M(a));
 
-let ofDecimal = (a): t => `Real(Decimal(a))->normalize;
-let ofInt = (a): t => `Real(Real.ofInt(a))->normalize;
+let ofDecimal = (a): t => `R(Decimal(a))->normalize;
+let ofInt = (a): t => `R(Real.ofInt(a))->normalize;
 let ofFloat = (a): t => {
   let scalar = Scalar.ofFloat(a);
-  Scalar.isNaN(scalar) ? `NaN : ofScalarUnsafe(scalar);
+  Scalar.isNaN(scalar) ? `N : ofScalarUnsafe(scalar);
 };
 
 let toDecimal = (a: t): Decimal.t =>
