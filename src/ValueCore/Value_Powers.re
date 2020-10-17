@@ -12,7 +12,7 @@ let percentToNumerical = Value_Util.percentToNumerical;
 
 let halfS = `R(Real.Rational(1, 2, Unit));
 
-let isSquare = x => float_of_int(x)->sqrt->FloatUtil.isInt;
+let%private isSquare = x => float_of_int(x)->sqrt->FloatUtil.isInt;
 
 let rec pow = (a: t, b: t): t =>
   switch (a, b) {

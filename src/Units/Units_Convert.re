@@ -149,34 +149,24 @@ let%private transformUnits =
 };
 
 let fromSi = (value: Value.t, units) =>
-  switch (value) {
-  | `R(re) =>
-    let value =
-      transformUnits(
-        ~transformCelsius=celsiusFromKelvin,
-        ~transformFahrenheit=fahrenheitFromKelvin,
-        ~unitPowerMultiplier=-1,
-        Real.toDecimal(re),
-        units,
-      );
-    Value_Base.ofReal(Decimal(value));
-  | _ => `N
-  };
+  transformUnits(
+    ~transformCelsius=celsiusFromKelvin,
+    ~transformFahrenheit=fahrenheitFromKelvin,
+    ~unitPowerMultiplier=-1,
+    Value.toDecimal(value),
+    units,
+  )
+  ->Value.ofDecimal;
 
 let toSi = (value: Value.t, units) =>
-  switch (value) {
-  | `R(re) =>
-    let value =
-      transformUnits(
-        ~transformCelsius=celsiusToKelvin,
-        ~transformFahrenheit=fahrenheitToKelvin,
-        ~unitPowerMultiplier=1,
-        Real.toDecimal(re),
-        units,
-      );
-    Value_Base.ofReal(Decimal(value));
-  | _ => `N
-  };
+  transformUnits(
+    ~transformCelsius=celsiusToKelvin,
+    ~transformFahrenheit=fahrenheitToKelvin,
+    ~unitPowerMultiplier=1,
+    Value.toDecimal(value),
+    units,
+  )
+  ->Value.ofDecimal;
 
 let convert = (value: Value.t, ~fromUnits, ~toUnits) =>
   if (Unit_Dimensions.unitsCompatible(toUnits, fromUnits)) {

@@ -14,6 +14,8 @@ let pi: t = `R(Rational(1, 1, Pi));
 let e: t = `R(Rational(1, 1, Exp(1)));
 let nan: t = `N;
 
+let isNaN = (x: t) => x == `N;
+
 let equal = (a: t, b: t): bool =>
   switch (a, b) {
   | (#Scalar.t as aS, #Scalar.t as bS) => Scalar.equal(aS, bS)
