@@ -13,6 +13,7 @@ type token =
   | Plus
   | Minus
   | Slash
+  | Percent
   | OpenBracket
   | CloseBracket
   | OpenBrace
@@ -37,6 +38,7 @@ let%private rec iter = (~tokensRev, ~parseExponent, charList) =>
   | ['+', ...rest] => append(~tokensRev, ~parseExponent, rest, Plus)
   | ['-', ...rest] => append(~tokensRev, ~parseExponent, rest, Minus)
   | ['/', ...rest] => append(~tokensRev, ~parseExponent, rest, Slash)
+  | ['%', ...rest] => append(~tokensRev, ~parseExponent, rest, Percent)
   | ['(', ...rest] => append(~tokensRev, ~parseExponent, rest, OpenBracket)
   | [')', ...rest] => append(~tokensRev, ~parseExponent, rest, CloseBracket)
   | ['{', ...rest] => append(~tokensRev, ~parseExponent, rest, OpenBrace)
@@ -202,7 +204,7 @@ let%private parseDecimal = (~base, tokens) => {
   | None => None
   };
 };
-let%private partialparseReal = (~base, tokens) => {
+let%private partialParseReal = (~base, tokens) => {
   let state = partialParseFraction(~base, tokens);
   let state = state == None ? parseDecimal(~base, tokens) : state;
   let state =
@@ -229,7 +231,7 @@ let%private partialparseReal = (~base, tokens) => {
   };
 };
 
-let%private parseScalar = (~base, tokens): option(Scalar.t) => {
+let%private partialParseScalar = (~base, tokens) => {
   let (positive, tokens) =
     switch (tokens) {
     | [Minus, ...rest] => (false, rest)
@@ -237,34 +239,34 @@ let%private parseScalar = (~base, tokens): option(Scalar.t) => {
     | tokens => (true, tokens)
     };
   let (real, tokens) =
-    switch (positive, partialparseReal(~base, tokens)) {
+    switch (positive, partialParseReal(~base, tokens)) {
     | (true, Some((value, tokens))) => (value, Some(tokens))
     | (false, Some((value, tokens))) => (Real.neg(value), Some(tokens))
     | (_, None) => (Real.nan, None)
     };
   switch (tokens) {
   | Some([(Plus | Minus) as sign, ...rest]) =>
-    switch (partialparseReal(~base, rest)) {
-    | Some((imag, [I])) =>
+    switch (partialParseReal(~base, rest)) {
+    | Some((imag, [I, ...rest])) =>
       let imag = sign == Plus ? imag : Real.neg(imag);
-      Some(`C((real, imag)));
+      Some((`C((real, imag)), rest));
     | _ => None
     }
-  | Some([I]) => Some(`I(real))
-  | Some([]) => Some(`R(real))
-  | _ => None
+  | Some([I, ...rest]) => Some((`I(real), rest))
+  | Some(rest) => Some((`R(real), rest))
+  | None => None
   };
 };
 
-// TODO: Test
-let%private parseTokens = (~base, tokens) => {
+let%private parseValue = (~base, tokens) => {
   let rec iter = tokens =>
     switch (tokens) {
     | [OpenBrace, ...rest] => parseUntilCloseBrace(rest)
     | rest =>
-      switch (parseScalar(~base, rest)) {
-      | Some(scalar) => Some((`Scalar(scalar), []))
-      | None => None
+      switch (partialParseScalar(~base, rest)) {
+      | Some((scalar, [])) => Some((`Scalar(scalar), []))
+      | Some((scalar, [Percent])) => Some((`Percent(scalar), []))
+      | _ => None
       }
     }
   and parseUntilCloseBrace =
@@ -293,22 +295,20 @@ let%private parseTokens = (~base, tokens) => {
         )
       | _ => None
       }
-    | [] => None
-    | [CloseBrace as e, ...rest] =>
-      parseUntilCloseBrace(
-        ~tokensAccumRev=[e, ...tokensAccumRev],
-        ~elementsRev,
-        ~level=level - 1,
-        rest,
-      )
-    | [OpenBrace, ..._] as e => iter(e)
     | [e, ...rest] =>
+      let level =
+        switch (e) {
+        | CloseBrace => level - 1
+        | OpenBrace => level + 1
+        | _ => level
+        };
       parseUntilCloseBrace(
         ~tokensAccumRev=[e, ...tokensAccumRev],
         ~elementsRev,
         ~level,
         rest,
-      )
+      );
+    | [] => None
     };
   };
 
@@ -349,18 +349,12 @@ let%private parseTokens = (~base, tokens) => {
   };
 };
 
-let tempOfStringBase = (~base, string) => {
-  let scalar =
-    switch (tokenizeBase(~base, string)) {
-    | Some(tokens) => parseScalar(~base, tokens)
-    | None => None
-    };
-  switch (scalar) {
-  | Some(scalar) => Some(Value_Base.ofScalar(scalar))
+let%private parse = (~base, string) =>
+  switch (tokenizeBase(~base, string)) {
+  | Some([NaN]) => Some(Value_Base.nan)
+  | Some(tokens) => parseValue(~base, tokens)
   | None => None
   };
-};
 
-let ofStringBase = (base, string) =>
-  tempOfStringBase(~base=Some(base), string);
-let ofString = string => tempOfStringBase(~base=None, string);
+let ofStringBase = (base, string) => parse(~base=Some(base), string);
+let ofString = string => parse(~base=None, string);

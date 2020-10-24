@@ -1,11 +1,10 @@
 open Formatting_Types;
 open Formatting_Util;
 
-let toString = (~format=default, ~inline=false, a: Value_Types.t): string => {
+let toString = (~format=?, ~inline=false, a: Value_Types.t): string => {
   let body =
     switch (a) {
-    | (`Z | `R(_) | `I(_) | `C(_)) as aV =>
-      Formatting_Scalar.toString(aV, format)
+    | #Scalar.t as aV => Formatting_Scalar.toString(~format?, aV)
     | (`M(_) | `V(_)) as aV =>
       let matrix =
         switch (aV) {
@@ -13,21 +12,23 @@ let toString = (~format=default, ~inline=false, a: Value_Types.t): string => {
         | `V(v) => Matrix.ofVector(v)
         };
       let tableFormat =
-        switch (format.mode) {
-        | String => Formatting_Matrix.formatString
-        | Tex => Formatting_Matrix.formatTex
-        | MathML => Formatting_Matrix.formatMathML
+        switch (format) {
+        | Some({mode: String})
+        | None => Formatting_Matrix.formatString
+        | Some({mode: Tex}) => Formatting_Matrix.formatTex
+        | Some({mode: MathML}) => Formatting_Matrix.formatMathML
         };
-      Formatting_Matrix.toString(matrix, format, tableFormat);
+      Formatting_Matrix.toString(~format, matrix, tableFormat);
     | `P(p) =>
-      Formatting_Scalar.toString(p, format) ++ formatOperator("%", format)
+      Formatting_Scalar.toString(~format?, p) ++ formatOperator("%", format)
     | `N => formatVariable("NaN", format)
     };
 
-  switch (format.mode) {
-  | String
-  | Tex => body
-  | MathML =>
+  switch (format) {
+  | None
+  | Some({mode: String})
+  | Some({mode: Tex}) => body
+  | Some({mode: MathML}) =>
     let display = inline ? "inline" : "block";
     "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\""
     ++ display

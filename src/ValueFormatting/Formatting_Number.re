@@ -44,7 +44,7 @@ let%private decimalToString = (~base=10, num) =>
   | _ => assert(false)
   };
 
-let formatInteger = (~base=10, ~digitGrouping=true, num) => {
+let formatInteger = (~base=10, ~digitGrouping=false, num) => {
   let str = decimalToString(~base, num);
   let str =
     if (digitGrouping) {
@@ -58,7 +58,7 @@ let formatInteger = (~base=10, ~digitGrouping=true, num) => {
 let formatDecimal =
     (
       ~base=10,
-      ~digitGrouping=true,
+      ~digitGrouping=false,
       ~minDecimalPlaces=0,
       ~maxDecimalPlaces,
       num,

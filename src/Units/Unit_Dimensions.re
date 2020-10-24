@@ -1,31 +1,29 @@
 open Unit_Types;
 
-type dimension =
-  | Length
-  | Time
-  | Mass
-  | Memory
-  | Temperature;
+type t = {
+  length: int,
+  time: int,
+  mass: int,
+  memory: int,
+  temperature: int,
+};
 
-module Comparable =
-  Belt.Id.MakeComparable({
-    type t = dimension;
-    let cmp = (a: dimension, b: dimension) => Pervasives.compare(a, b);
-  });
-type dimensionMap('value) =
-  Belt.Map.t(Comparable.t, 'value, Comparable.identity);
+let%private empty = {length: 0, time: 0, mass: 0, memory: 0, temperature: 0};
 
-let timeDimensions = [|(Time, 1)|];
-let lengthDimensions = [|(Length, 1)|];
-let massDimensions = [|(Mass, 1)|];
-let areaDimensions = [|(Length, 2)|];
-let volumeDimensions = [|(Length, 3)|];
-let energyDimensions = [|(Mass, 1), (Length, 2), (Time, (-2))|];
-let powerDimensions = [|(Mass, 1), (Length, 2), (Time, (-3))|];
-let memoryDimensions = [|(Memory, 1)|];
-let temperatureDimensions = [|(Temperature, 1)|];
+let%private time = {...empty, time: 1};
+let%private length = {...empty, length: 1};
+let%private mass = {...empty, mass: 1};
+let%private area = {...empty, length: 2};
+let%private volume = {...empty, length: 3};
+let%private speed = {...empty, length: 1, time: (-1)};
+let%private force = {...empty, mass: 1, length: 1, time: (-2)};
+let%private energy = {...empty, mass: 1, length: 2, time: (-2)};
+let%private power = {...empty, mass: 1, length: 2, time: (-3)};
+let%private pressure = {...empty, mass: 1, length: (-1), time: (-2)};
+let%private memory = {...empty, memory: 1};
+let%private temperature = {...empty, temperature: 1};
 
-let unitDimensions = (v: unitType) =>
+let ofUnit = (v: unitType) =>
   switch (v) {
   /* Time */
   | Second
@@ -41,13 +39,14 @@ let unitDimensions = (v: unitType) =>
   | Picosecond
   | Nanosecond
   | Microsecond
-  | Millisecond => timeDimensions
+  | Millisecond => time
   /* Length */
   | Meter
   | Inch
   | Foot
   | Yard
   | Mile
+  | NauticalMile
   | LightYear
   | Parsec
   | Angstrom
@@ -57,7 +56,7 @@ let unitDimensions = (v: unitType) =>
   | Micrometer
   | Millimeter
   | Centimeter
-  | Kilometer => lengthDimensions
+  | Kilometer => length
   /* Mass */
   | Gram
   | Tonne
@@ -69,10 +68,10 @@ let unitDimensions = (v: unitType) =>
   | Nanogram
   | Microgram
   | Milligram
-  | Kilogram => massDimensions
+  | Kilogram => mass
   /* Area */
   | Acre
-  | Hectare => areaDimensions
+  | Hectare => area
   /* Volume */
   | Liter
   | Gallon
@@ -84,7 +83,18 @@ let unitDimensions = (v: unitType) =>
   | Tablespoon
   | FluidOunce
   | Milliliter
-  | Centiliter => volumeDimensions
+  | Centiliter => volume
+  /* Speed */
+  | Knot => speed
+  /* Force */
+  | Newton
+  | PoundForce => force
+  /* Pressure */
+  | Pascal
+  | Atmosphere
+  | Bar
+  | HectoPascal
+  | Millibar => pressure
   /* Energy */
   | Joule
   | Calorie
@@ -101,7 +111,7 @@ let unitDimensions = (v: unitType) =>
   | Megajoule
   | Gigajoule
   | Terajoule
-  | Petajoule => energyDimensions
+  | Petajoule => energy
   /* Power */
   | Watt
   | Horsepower
@@ -111,7 +121,7 @@ let unitDimensions = (v: unitType) =>
   | Milliwatt
   | Kilowatt
   | Megawatt
-  | Gigawatt => powerDimensions
+  | Gigawatt => power
   /* Memory */
   | Bit
   | Byte
@@ -134,33 +144,36 @@ let unitDimensions = (v: unitType) =>
   | Mebibyte
   | Gibibyte
   | Tebibyte
-  | Pebibyte => memoryDimensions
+  | Pebibyte => memory
   /* Temperature */
   | Kelvin
   | Celsius
-  | Fahrenheit => temperatureDimensions
+  | Fahrenheit => temperature
   };
 
-let baseDimensions = (units: units) => {
-  let addUnit = (map, (unit, power)) => {
-    let addDimension = (map, (dimension, dimensionPower)) =>
-      Belt.Map.update(
-        map,
-        dimension,
-        current => {
-          let value =
-            Belt.Option.getWithDefault(current, 0) + power * dimensionPower;
-          value != 0 ? Some(value) : None;
-        },
-      );
+let ofUnitPowers = (units: array(unitPower)) =>
+  Belt.Array.reduceU(
+    units,
+    empty,
+    (. comdinedDimensions, (unit, power)) => {
+      let dimensions = ofUnit(unit);
+      {
+        length: comdinedDimensions.length + dimensions.length * power,
+        time: comdinedDimensions.time + dimensions.time * power,
+        mass: comdinedDimensions.mass + dimensions.mass * power,
+        memory: comdinedDimensions.memory + dimensions.memory * power,
+        temperature:
+          comdinedDimensions.temperature + dimensions.temperature * power,
+      };
+    },
+  );
 
-    Belt.Array.reduce(unitDimensions(unit), map, addDimension);
-  };
+let equal = (a: t, b: t) =>
+  a.length == b.length
+  && a.time == b.time
+  && a.mass == b.mass
+  && a.memory == b.memory
+  && a.temperature == b.temperature;
 
-  Belt.Array.reduce(units, Belt.Map.make(~id=(module Comparable)), addUnit);
-};
-
-let powEq = (aPow: int, bPow: int) => aPow == bPow;
-
-let unitsCompatible = (a: units, b: units) =>
-  Belt.Map.eq(baseDimensions(a), baseDimensions(b), powEq);
+let unitsCompatible = (a: array(unitPower), b: array(unitPower)) =>
+  equal(ofUnitPowers(a), ofUnitPowers(b));

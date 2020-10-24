@@ -5,6 +5,7 @@ type matrixFormat = {
   rowClose: string,
   rowSeparator: string,
   elementSeparator: string,
+  compactVectorFormat: bool,
 };
 
 let formatString = {
@@ -12,8 +13,9 @@ let formatString = {
   matrixClose: "}",
   rowOpen: "{",
   rowClose: "}",
-  rowSeparator: ", ",
-  elementSeparator: ", ",
+  rowSeparator: ",",
+  elementSeparator: ",",
+  compactVectorFormat: true,
 };
 
 let formatTex = {
@@ -23,6 +25,7 @@ let formatTex = {
   rowClose: "",
   rowSeparator: "\\\\\n",
   elementSeparator: " && ",
+  compactVectorFormat: false,
 };
 
 let formatMathML = {
@@ -32,17 +35,22 @@ let formatMathML = {
   rowClose: "</mtd></mtr>",
   rowSeparator: "",
   elementSeparator: "</mtd><mtd>",
+  compactVectorFormat: false,
 };
 
-let toString = (matrix: Matrix.t, format, tableFormat) => {
+let toString = (~format, matrix: Matrix.t, tableFormat) => {
   let out = ref(tableFormat.matrixOpen);
+  let skipRowBoundary =
+    matrix.numColumns == 1 && tableFormat.compactVectorFormat;
 
   for (row in 0 to matrix.numRows - 1) {
     if (row != 0) {
       out := out^ ++ tableFormat.rowSeparator;
     };
 
-    out := out^ ++ tableFormat.rowOpen;
+    if (!skipRowBoundary) {
+      out := out^ ++ tableFormat.rowOpen;
+    };
 
     for (column in 0 to matrix.numColumns - 1) {
       if (column != 0) {
@@ -51,11 +59,13 @@ let toString = (matrix: Matrix.t, format, tableFormat) => {
 
       let element =
         Matrix.getExn(matrix, ~row, ~column)
-        ->Formatting_Scalar.toString(_, format);
+        ->Formatting_Scalar.toString(~format?, _);
       out := out^ ++ element;
     };
 
-    out := out^ ++ tableFormat.rowClose;
+    if (!skipRowBoundary) {
+      out := out^ ++ tableFormat.rowClose;
+    };
   };
 
   out := out^ ++ tableFormat.matrixClose;

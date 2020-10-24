@@ -25,6 +25,7 @@ type unitType =
   | Foot
   | Yard
   | Mile
+  | NauticalMile
   | LightYear
   | Parsec
   | Angstrom
@@ -62,6 +63,17 @@ type unitType =
   | FluidOunce
   | Milliliter
   | Centiliter
+  /* Speed */
+  | Knot
+  /* Force */
+  | Newton
+  | PoundForce
+  /* Pressure */
+  | Pascal
+  | Atmosphere
+  | Bar
+  | HectoPascal
+  | Millibar
   /* Energy */
   | Joule
   | Calorie
@@ -118,4 +130,3 @@ type unitType =
   | Fahrenheit;
 
 type unitPower = (unitType, int);
-type units = array(unitPower);

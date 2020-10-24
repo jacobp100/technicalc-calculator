@@ -1,25 +1,34 @@
 open Formatting_Types;
 
-let%private f = (format, v) =>
-  Formatting_Number.formatInteger(
-    ~base=format.base,
-    ~digitGrouping=format.digitGrouping,
-    Decimal.ofInt(v),
-  );
+let%private f = (format, v) => {
+  let (base, digitGrouping) =
+    switch (format) {
+    | Some(format) => (format.base, format.digitGrouping)
+    | _ => (10, false)
+    };
+  Formatting_Number.formatInteger(~base, ~digitGrouping, Decimal.ofInt(v));
+};
 
-let toString = (~format=default, a) =>
-  switch (format.mode, a) {
+let toString = (~format, a) => {
+  let mode =
+    switch (format) {
+    | Some(format) => Some(format.mode)
+    | None => None
+    };
+  switch (mode, a) {
   | (_, Real_Constant.Unit) => ""
-  | (String, Pi) => "pi"
-  | (String, Exp(v)) => "exp(" ++ f(format, v) ++ ")"
-  | (String, Sqrt(v)) => "sqrt(" ++ f(format, v) ++ ")"
-  | (Tex, Pi) => "\\pi"
-  | (Tex, Exp(1)) => "e"
-  | (Tex, Exp(v)) => "e^{" ++ f(format, v) ++ "}"
-  | (Tex, Sqrt(v)) => "\\sqrt{" ++ f(format, v) ++ "}"
-  | (MathML, Pi) => "<mi>&#960;</mi>"
-  | (MathML, Exp(1)) => "<mi>e</mi>"
-  | (MathML, Exp(v)) =>
+  | (Some(String) | None, Pi) => "pi"
+  | (Some(String) | None, Exp(v)) => "exp(" ++ f(format, v) ++ ")"
+  | (Some(String) | None, Sqrt(v)) => "sqrt(" ++ f(format, v) ++ ")"
+  | (Some(Tex), Pi) => "\\pi"
+  | (Some(Tex), Exp(1)) => "e"
+  | (Some(Tex), Exp(v)) => "e^{" ++ f(format, v) ++ "}"
+  | (Some(Tex), Sqrt(v)) => "\\sqrt{" ++ f(format, v) ++ "}"
+  | (Some(MathML), Pi) => "<mi>&#960;</mi>"
+  | (Some(MathML), Exp(1)) => "<mi>e</mi>"
+  | (Some(MathML), Exp(v)) =>
     "<msup><mi>e</mi><mn>" ++ f(format, v) ++ "</mn></msup>"
-  | (MathML, Sqrt(v)) => "<msqrt><mn>" ++ f(format, v) ++ "</mn></msqrt>"
+  | (Some(MathML), Sqrt(v)) =>
+    "<msqrt><mn>" ++ f(format, v) ++ "</mn></msqrt>"
   };
+};

@@ -80,6 +80,6 @@ type t =
     })
   | Convert({
       a: t,
-      toUnits: Unit_Types.units,
-      fromUnits: Unit_Types.units,
+      toUnits: array(Unit_Types.unitPower),
+      fromUnits: array(Unit_Types.unitPower),
     });

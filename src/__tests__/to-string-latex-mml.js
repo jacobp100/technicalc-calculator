@@ -1,5 +1,17 @@
-const { one, minusOne, ofString, add, mul, pi, i } = require("../Value.bs");
-const { toString } = require("../ValueTestUtil.bs");
+const {
+  one,
+  minusOne,
+  ofVector,
+  ofString,
+  toString: toStringBase,
+  add,
+  div,
+  mul,
+  pi,
+  i,
+  nan,
+} = require("../Value.bs");
+const { toString, matrixOfFloats } = require("../ValueTestUtil.bs");
 
 const [three, minusThree, threeHalves, minusThreeHalves, half, minusHalf] = [
   "3",
@@ -15,6 +27,12 @@ it("parses decimal strings", () => {
   expect(ofString("-0.5")).toEqual(minusHalf);
   expect(ofString(".5")).toEqual(half);
   expect(ofString("-.5")).toEqual(minusHalf);
+});
+
+it("formats exactly when not passing in a format", () => {
+  expect(toStringBase(undefined, false, div(one, pi))).toEqual(
+    "0.3183098861837906715377675267450287"
+  );
 });
 
 it.each([
@@ -38,6 +56,10 @@ it.each([
   [mul(minusThree, pi), "-3pi"],
   [mul(threeHalves, pi), "3pi/2"],
   [mul(minusThreeHalves, pi), "-3pi/2"],
+  [ofVector([one, one]), "{1,1}"],
+  [ofVector([add(one, i), add(minusOne, i)]), "{1+i,-1+i}"],
+  [matrixOfFloats(2, 2, [1, 0.5, -0.5, -1]), "{{1,1/2},{-1/2,-1}}"],
+  [nan, "NaN"],
 ])("Formats %s to %s", (scilineValue, formatted) => {
   expect(toString(scilineValue)).toBe(formatted);
   expect(ofString(formatted)).toEqual(scilineValue);

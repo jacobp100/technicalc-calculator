@@ -23,6 +23,7 @@ let linearValue = (unit: unitType) =>
   | Foot => 0.3048
   | Yard => 0.9144
   | Mile => 1609.
+  | NauticalMile => 1852.
   | LightYear => 9.4605284e15
   | Parsec => 3.086e16
   | Angstrom => 1e-10
@@ -60,6 +61,17 @@ let linearValue = (unit: unitType) =>
   | FluidOunce => 2.8413e-5
   | Milliliter => 1e-6
   | Centiliter => 1e-5
+  /* Speed */
+  | Knot => 0.514444
+  /* Force */
+  | Newton => 1.
+  | PoundForce => 4.448222
+  /* Pressure */
+  | Pascal => 1.
+  | Atmosphere => 101325.
+  | Bar => 10000.
+  | HectoPascal => 100.
+  | Millibar => 10.
   /* Energy */
   | Joule => 1.
   | Calorie => 4.184
@@ -129,7 +141,7 @@ let%private transformUnits =
               ~transformFahrenheit,
               ~unitPowerMultiplier,
               value: Decimal.t,
-              units: units,
+              units: array(unitPower),
             ) => {
   let handleLinearUnit = (value, unit) =>
     switch (unit) {
@@ -169,7 +181,7 @@ let toSi = (value: Value.t, units) =>
   ->Value.ofDecimal;
 
 let convert = (value: Value.t, ~fromUnits, ~toUnits) =>
-  if (Unit_Dimensions.unitsCompatible(toUnits, fromUnits)) {
+  if (Unit_Dimensions.unitsCompatible(fromUnits, toUnits)) {
     value->toSi(fromUnits)->fromSi(toUnits);
   } else {
     `N;

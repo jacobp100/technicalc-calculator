@@ -25,7 +25,7 @@ describe("Pow -1", () => {
     const out = toString(
       TechniCalc.pow(matrixOfFloats(2, 2, [3, 7, 8, 9]), TechniCalc.ofFloat(-1))
     );
-    expect(out).toBe("{{-9/29, 7/29}, {8/29, -3/29}}");
+    expect(out).toBe("{{-9/29,7/29},{8/29,-3/29}}");
   });
 
   it("3x3 ** -1", () => {
@@ -35,8 +35,6 @@ describe("Pow -1", () => {
         TechniCalc.ofFloat(-1)
       )
     );
-    expect(out).toBe(
-      "{{7/48, 1/3, -13/48}, {15/16, 1, -21/16}, {-3/4, -1, 5/4}}"
-    );
+    expect(out).toBe("{{7/48,1/3,-13/48},{15/16,1,-21/16},{-3/4,-1,5/4}}");
   });
 });
