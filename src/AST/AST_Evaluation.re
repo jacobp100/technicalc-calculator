@@ -25,9 +25,8 @@ let rec eval = (~context, node: t): Value.t =>
       elements: Belt.Array.map(elements, evalScalar(~context)),
     }
     ->Value.ofMatrix
-  | OfEncoded(a) => Value_Encoding.decode(a)
-  | Variable(ident) =>
-    Belt.Map.String.getWithDefault(context, ident, Value.nan)
+  | OfEncoded(a) => Value.decode(a)->Belt.Option.getWithDefault(`N)
+  | Variable(ident) => Belt.Map.String.getWithDefault(context, ident, `N)
   | Add(a, b) => Value.add(eval(~context, a), eval(~context, b))
   | Sub(a, b) => Value.sub(eval(~context, a), eval(~context, b))
   | Mul(a, b) => Value.mul(eval(~context, a), eval(~context, b))

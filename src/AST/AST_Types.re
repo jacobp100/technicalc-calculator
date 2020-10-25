@@ -11,7 +11,7 @@ type t =
   | OfFloat(float)
   | OfString(string)
   | OfStringBase(int, string)
-  | OfEncoded(Value_Encoding.encoding)
+  | OfEncoded(string)
   | Vector(array(t))
   | Matrix({
       numRows: int,

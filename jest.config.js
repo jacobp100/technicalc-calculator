@@ -5,8 +5,9 @@ module.exports = {
   reporters: [["jest-silent-reporter", { useDots: true }]],
   collectCoverageFrom: ["src/**/*.bs.js", "!src/__mocks__/**/*.js"],
   transformIgnorePatterns: ["/node_modules/(?!(bs-platform)/)"],
+  testPathIgnorePatterns: ["/node_modules/", "<rootDir>/decimal"],
   transform: {
     "^.+\\.bs\\.js$": "babel-jest",
-    "^.+\\.js$": "babel-jest"
-  }
+    "^.+\\.js$": "babel-jest",
+  },
 };
