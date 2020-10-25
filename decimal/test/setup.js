@@ -1,7 +1,7 @@
 // Adds global: T
 
-import Decimal from "../src/Decimal/_Decimal";
-import * as fns from "../src/Decimal/_Decimal";
+import Decimal from "../decimal";
+import * as fns from "../decimal";
 
 global.Decimal = Decimal;
 
