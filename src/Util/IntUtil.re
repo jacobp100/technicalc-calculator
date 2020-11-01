@@ -1,1 +1,0 @@
-let safeMod = (a, b) => (a mod b + b) mod b;
